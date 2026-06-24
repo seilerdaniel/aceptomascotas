@@ -1,0 +1,32 @@
+# Dependencias
+node_modules
+.npm
+
+# Build
+dist
+dist-ssr
+*.local
+
+# Variables de entorno — NUNCA subir al repo
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
