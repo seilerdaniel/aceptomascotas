@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import logo from '@/assets/logo.png';
+import logo from "@/assets/logo.svg";
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Email inválido').max(255, 'Email muy largo');

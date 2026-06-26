@@ -3,7 +3,7 @@ import { Menu, X, Home, Plus, Search, User, LogOut, Heart, Settings, PawPrint } 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,

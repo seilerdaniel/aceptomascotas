@@ -1,6 +1,6 @@
 import { Heart, Mail, MapPin, Facebook, Instagram, Coffee, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.svg";
 
 // Custom TikTok icon since lucide doesn't have it
 const TikTokIcon = ({ className }: { className?: string }) => (

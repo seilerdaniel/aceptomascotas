@@ -9,7 +9,7 @@ import CafecitoSection from "@/components/CafecitoSection";
 import { useFeaturedProperties } from "@/hooks/useProperties";
 import { mockProperties } from "@/data/properties";
 import heroImage from "@/assets/hero-image.jpg";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.svg";
 
 const Index = () => {
   const navigate = useNavigate();
