@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PropertyImageManager from '@/components/PropertyImageManager';
 import PetForm from '@/components/PetForm';
 import PetQRCode from '@/components/PetQRCode';
+import AvatarUpload from '@/components/AvatarUpload';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +50,7 @@ const ProfilePage = () => {
   const [phone, setPhone] = useState('');
   const [hasWhatsapp, setHasWhatsapp] = useState(true);
   const [alternativePhone, setAlternativePhone] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmText, setConfirmText] = useState('');
@@ -123,6 +125,7 @@ const ProfilePage = () => {
       setPhone(profile.phone || '');
       setHasWhatsapp(profile.has_whatsapp ?? true);
       setAlternativePhone(profile.alternative_phone || '');
+      setAvatarUrl(profile.avatar_url || null);
     }
   }, [profile]);
 
@@ -223,32 +226,44 @@ const ProfilePage = () => {
   }
 
   const isBuscador = profile?.user_type === 'buscador';
-  const tabCount = isBuscador ? 3 : 2;
+  const showProperties = !isBuscador; // propietario o agencia
+  const tabCount = isBuscador ? 2 : 2; // siempre 2 tabs visibles según el tipo
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 container py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-8">
-            <Settings className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="font-display text-3xl font-bold">Mi Cuenta</h1>
-              <div className="flex items-center gap-2">
-                <p className="text-muted-foreground">{user?.email}</p>
-                {profile?.user_type && (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                    {userTypeLabel[profile.user_type as keyof typeof userTypeLabel]}
-                  </span>
-                )}
+          <div className="flex items-center gap-4 mb-8">
+            {user && (
+              <AvatarUpload
+                userId={user.id}
+                currentAvatarUrl={avatarUrl}
+                onUploaded={(url) => setAvatarUrl(url)}
+              />
+            )}
+            <div className="flex items-center gap-3">
+              <Settings className="h-8 w-8 text-primary" />
+              <div>
+                <h1 className="font-display text-3xl font-bold">Mi Cuenta</h1>
+                <div className="flex items-center gap-2">
+                  <p className="text-muted-foreground">{user?.email}</p>
+                  {profile?.user_type && (
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                      {userTypeLabel[profile.user_type as keyof typeof userTypeLabel]}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className={`grid w-full max-w-lg ${tabCount === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <TabsList className="grid w-full max-w-lg grid-cols-2">
               <TabsTrigger value="profile">Perfil</TabsTrigger>
-              <TabsTrigger value="properties">Mis Propiedades</TabsTrigger>
+              {showProperties && (
+                <TabsTrigger value="properties">Mis Propiedades</TabsTrigger>
+              )}
               {isBuscador && (
                 <TabsTrigger value="pets">Mis Mascotas</TabsTrigger>
               )}
@@ -398,41 +413,43 @@ const ProfilePage = () => {
               </Card>
             </TabsContent>
 
-            {/* TAB: Mis Propiedades */}
-            <TabsContent value="properties">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Mis Propiedades</CardTitle>
-                  <CardDescription>Administrá tus propiedades publicadas</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {propertiesLoading ? (
-                    <div className="flex justify-center py-8">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                  ) : userProperties && userProperties.length > 0 ? (
-                    <div className="space-y-6">
-                      {userProperties.map((property) => (
-                        <PropertyImageManager
-                          key={property.id}
-                          property={property}
-                          onUpdate={() => queryClient.invalidateQueries({ queryKey: ['user-properties', user?.id] })}
-                          userStorageUsed={userStorageUsed}
-                          onStorageChange={() => refetchStorage()}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground mb-4">Todavía no publicaste ninguna propiedad</p>
-                      <Button variant="hero" onClick={() => navigate('/publicar')}>
-                        Publicar propiedad
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+            {/* TAB: Mis Propiedades (solo propietario/agencia) */}
+            {showProperties && (
+              <TabsContent value="properties">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Mis Propiedades</CardTitle>
+                    <CardDescription>Administrá tus propiedades publicadas</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {propertiesLoading ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : userProperties && userProperties.length > 0 ? (
+                      <div className="space-y-6">
+                        {userProperties.map((property) => (
+                          <PropertyImageManager
+                            key={property.id}
+                            property={property}
+                            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['user-properties', user?.id] })}
+                            userStorageUsed={userStorageUsed}
+                            onStorageChange={() => refetchStorage()}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground mb-4">Todavía no publicaste ninguna propiedad</p>
+                        <Button variant="hero" onClick={() => navigate('/publicar')}>
+                          Publicar propiedad
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
             {/* TAB: Mis Mascotas (solo buscadores) */}
             {isBuscador && (
