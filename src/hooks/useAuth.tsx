@@ -2,11 +2,13 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+type UserType = 'buscador' | 'propietario' | 'agencia';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName?: string, userType?: UserType) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<{ error: Error | null }>;
@@ -25,6 +27,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Cuando el usuario se registra, actualizamos su perfil con el user_type
+        if (event === 'SIGNED_IN' && session?.user) {
+          const userType = session.user.user_metadata?.user_type;
+          if (userType) {
+            setTimeout(() => {
+              supabase
+                .from('profiles')
+                .update({ user_type: userType })
+                .eq('user_id', session.user.id)
+                .then(({ error }) => {
+                  if (error) console.error('Error updating user_type:', error);
+                });
+            }, 500);
+          }
+        }
       }
     );
 
@@ -37,7 +55,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName?: string,
+    userType?: UserType
+  ) => {
     const redirectUrl = `${window.location.origin}/`;
 
     const { error } = await supabase.auth.signUp({
@@ -47,6 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          user_type: userType,
         },
       },
     });
@@ -69,7 +93,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       if (!user) throw new Error('No hay usuario autenticado');
 
-      // Llamar a la Edge Function o RPC para eliminar el usuario
       const { error } = await supabase.rpc('delete_user');
       if (error) throw error;
 
