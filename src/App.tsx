@@ -21,6 +21,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import CookiesPage from "./pages/CookiesPage";
 import TermsPage from "./pages/TermsPage";
 import StorePage from "./pages/StorePage";
+import PetPublicPage from "./pages/PetPublicPage";
 import NotFound from "./pages/NotFound";
 import AIChatbot from "./components/AIChatbot";
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/cookies" element={<CookiesPage />} />
             <Route path="/terminos" element={<TermsPage />} />
             <Route path="/tienda" element={<StorePage />} />
+            <Route path="/mascota/:code" element={<PetPublicPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <AIChatbot />

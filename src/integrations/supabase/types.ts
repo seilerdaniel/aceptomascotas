@@ -155,33 +155,87 @@ export type Database = {
         }
         Relationships: []
       }
+      pets: {
+        Row: {
+          age_years: number | null
+          breed: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          images: string[] | null
+          name: string
+          qr_code: string | null
+          species: string
+          updated_at: string | null
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          age_years?: number | null
+          breed?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          name: string
+          qr_code?: string | null
+          species: string
+          updated_at?: string | null
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          age_years?: number | null
+          breed?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          name?: string
+          qr_code?: string | null
+          species?: string
+          updated_at?: string | null
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          alternative_phone: string | null
           avatar_url: string | null
           created_at: string
           full_name: string | null
+          has_whatsapp: boolean | null
           id: string
           phone: string | null
           updated_at: string
           user_id: string
+          user_type: Database["public"]["Enums"]["user_type"] | null
         }
         Insert: {
+          alternative_phone?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
+          has_whatsapp?: boolean | null
           id?: string
           phone?: string | null
           updated_at?: string
           user_id: string
+          user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Update: {
+          alternative_phone?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
+          has_whatsapp?: boolean | null
           id?: string
           phone?: string | null
           updated_at?: string
           user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Relationships: []
       }
@@ -381,6 +435,21 @@ export type Database = {
       }
     }
     Functions: {
+      generate_pet_qr_code: { Args: { pet_id_input: string }; Returns: string }
+      generate_short_code: { Args: never; Returns: string }
+      get_pet_by_qr_code: {
+        Args: { code: string }
+        Returns: {
+          owner_alternative_phone: string
+          owner_has_whatsapp: boolean
+          owner_phone: string
+          pet_breed: string
+          pet_description: string
+          pet_images: string[]
+          pet_name: string
+          pet_species: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -404,6 +473,7 @@ export type Database = {
         | "ong_refugio"
         | "peluqueria"
         | "tienda"
+      user_type: "buscador" | "propietario" | "agencia"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -546,6 +616,7 @@ export const Constants = {
         "peluqueria",
         "tienda",
       ],
+      user_type: ["buscador", "propietario", "agencia"],
     },
   },
 } as const

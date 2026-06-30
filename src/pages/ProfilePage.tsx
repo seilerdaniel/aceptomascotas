@@ -7,13 +7,15 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { User, Phone, Loader2, Settings, PawPrint, Plus, Pencil, Trash2 } from 'lucide-react';
+import { User, Phone, Loader2, Settings, PawPrint, Plus, Pencil, Trash2, MessageCircle, Info } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PropertyImageManager from '@/components/PropertyImageManager';
 import PetForm from '@/components/PetForm';
+import PetQRCode from '@/components/PetQRCode';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +37,7 @@ interface Pet {
   weight_kg: number | null;
   description: string | null;
   images: string[];
+  qr_code: string | null;
 }
 
 const ProfilePage = () => {
@@ -44,6 +47,8 @@ const ProfilePage = () => {
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [hasWhatsapp, setHasWhatsapp] = useState(true);
+  const [alternativePhone, setAlternativePhone] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmText, setConfirmText] = useState('');
@@ -116,6 +121,8 @@ const ProfilePage = () => {
     if (profile) {
       setFullName(profile.full_name || '');
       setPhone(profile.phone || '');
+      setHasWhatsapp(profile.has_whatsapp ?? true);
+      setAlternativePhone(profile.alternative_phone || '');
     }
   }, [profile]);
 
@@ -124,7 +131,12 @@ const ProfilePage = () => {
       if (!user) throw new Error('No user');
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName.trim() || null, phone: phone.trim() || null })
+        .update({
+          full_name: fullName.trim() || null,
+          phone: phone.trim() || null,
+          has_whatsapp: hasWhatsapp,
+          alternative_phone: alternativePhone.trim() || null,
+        })
         .eq('user_id', user.id);
       if (error) throw error;
     },
@@ -139,6 +151,10 @@ const ProfilePage = () => {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!phone.trim()) {
+      toast.error('El teléfono es obligatorio. Es clave para que puedan contactarte si tu mascota se pierde.');
+      return;
+    }
     setIsSaving(true);
     await saveProfileMutation.mutateAsync();
     setIsSaving(false);
@@ -267,7 +283,9 @@ const ProfilePage = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Teléfono</Label>
+                      <Label htmlFor="phone">
+                        Teléfono <span className="text-destructive">*</span>
+                      </Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -278,8 +296,49 @@ const ProfilePage = () => {
                           onChange={(e) => setPhone(e.target.value)}
                           className="pl-10"
                           maxLength={20}
+                          required
                         />
                       </div>
+                      <div className="flex items-start gap-2 bg-primary/5 border border-primary/20 rounded-lg p-3 mt-2">
+                        <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                        <p className="text-xs text-muted-foreground">
+                          Recomendamos cargar tu teléfono: si tu mascota se pierde, es la forma en que
+                          otras personas van a poder contactarte rápidamente.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-3">
+                        <Checkbox
+                          id="hasWhatsapp"
+                          checked={hasWhatsapp}
+                          onCheckedChange={(checked) => setHasWhatsapp(checked === true)}
+                        />
+                        <Label htmlFor="hasWhatsapp" className="flex items-center gap-1.5 font-normal cursor-pointer">
+                          <MessageCircle className="h-4 w-4 text-green-600" />
+                          Este teléfono tiene WhatsApp
+                        </Label>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="alternativePhone">
+                        Teléfono alternativo <span className="text-muted-foreground font-normal">(opcional)</span>
+                      </Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="alternativePhone"
+                          type="tel"
+                          placeholder="Otro número de contacto"
+                          value={alternativePhone}
+                          onChange={(e) => setAlternativePhone(e.target.value)}
+                          className="pl-10"
+                          maxLength={20}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Útil si tu teléfono principal no tiene WhatsApp
+                      </p>
                     </div>
                     <Button type="submit" variant="hero" disabled={isSaving}>
                       {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -448,6 +507,12 @@ const ProfilePage = () => {
                               </div>
                             </div>
                             <div className="flex gap-2">
+                              <PetQRCode
+                                petId={pet.id}
+                                petName={pet.name}
+                                existingQrCode={pet.qr_code}
+                                onGenerated={() => queryClient.invalidateQueries({ queryKey: ['user-pets', user?.id] })}
+                              />
                               <Button
                                 variant="ghost"
                                 size="icon"
