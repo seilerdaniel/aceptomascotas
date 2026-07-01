@@ -28,6 +28,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         setLoading(false);
 
+        // Redirigir a reset-password cuando el usuario llega desde el email de recuperación
+        if (event === 'PASSWORD_RECOVERY') {
+          window.location.href = '/reset-password';
+          return;
+        }
+
         // Cuando el usuario se registra, actualizamos su perfil con el user_type
         if (event === 'SIGNED_IN' && session?.user) {
           const userType = session.user.user_metadata?.user_type;

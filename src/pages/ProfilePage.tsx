@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { User, Phone, Loader2, Settings, PawPrint, Plus, Pencil, Trash2, MessageCircle, Info } from 'lucide-react';
+import { User, Phone, Loader2, Settings, PawPrint, Plus, Pencil, Trash2, MessageCircle, Info, Eye, EyeOff } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PropertyImageManager from '@/components/PropertyImageManager';
 import PetForm from '@/components/PetForm';
@@ -40,6 +40,108 @@ interface Pet {
   images: string[];
   qr_code: string | null;
 }
+
+// Componente interno para cambiar contraseña
+const ChangePasswordForm = () => {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<string[]>([]);
+
+  const checkStrength = (pwd: string) => {
+    const missing: string[] = [];
+    if (pwd.length < 8) missing.push('8+ caracteres');
+    if (!/[A-Z]/.test(pwd)) missing.push('mayúscula');
+    if (!/[a-z]/.test(pwd)) missing.push('minúscula');
+    if (!/[0-9]/.test(pwd)) missing.push('número');
+    if (!/[^A-Za-z0-9]/.test(pwd)) missing.push('símbolo');
+    setPasswordStrength(missing);
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error('Completá todos los campos');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Las contraseñas no coinciden');
+      return;
+    }
+    if (passwordStrength.length > 0) {
+      toast.error('La contraseña no cumple los requisitos de seguridad');
+      return;
+    }
+
+    setSaving(true);
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      toast.error('Error al cambiar la contraseña: ' + error.message);
+    } else {
+      toast.success('Contraseña actualizada correctamente');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordStrength([]);
+    }
+
+    setSaving(false);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-2">
+        <Label htmlFor="newPassword">Nueva contraseña</Label>
+        <div className="relative">
+          <Input
+            id="newPassword"
+            type={showPasswords ? 'text' : 'password'}
+            placeholder="••••••••"
+            value={newPassword}
+            onChange={(e) => { setNewPassword(e.target.value); checkStrength(e.target.value); }}
+            className="pr-10"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 top-0 h-full px-3"
+            onClick={() => setShowPasswords(!showPasswords)}
+          >
+            {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
+        </div>
+        {newPassword && passwordStrength.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium">Falta:</span> {passwordStrength.join(', ')}
+          </p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirmar nueva contraseña</Label>
+        <Input
+          id="confirmPassword"
+          type={showPasswords ? 'text' : 'password'}
+          placeholder="••••••••"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+        {confirmPassword && newPassword !== confirmPassword && (
+          <p className="text-xs text-destructive">Las contraseñas no coinciden</p>
+        )}
+      </div>
+      <Button
+        variant="outline"
+        onClick={handleChangePassword}
+        disabled={saving || !newPassword || !confirmPassword}
+      >
+        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Actualizar contraseña
+      </Button>
+    </div>
+  );
+};
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -360,6 +462,11 @@ const ProfilePage = () => {
                       Guardar cambios
                     </Button>
                   </form>
+
+                  <div className="mt-8 pt-8 border-t space-y-4">
+                    <h3 className="font-semibold">Cambiar contraseña</h3>
+                    <ChangePasswordForm />
+                  </div>
 
                   <div className="mt-8 pt-8 border-t space-y-4">
                     <h3 className="font-semibold text-destructive">Zona de peligro</h3>

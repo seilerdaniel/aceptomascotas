@@ -129,14 +129,11 @@ const PetQRCode = ({ petId, petName, existingQrCode, onGenerated }: PetQRCodePro
                     Descargar imagen
                   </Button>
                   {publicUrl && (
-                    <a
-                      href={publicUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-muted-foreground hover:text-primary flex items-center justify-center gap-1"
-                    >
-                      Ver página pública
-                      <ExternalLink className="h-3 w-3" />
+                    <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" className="w-full gap-2">
+                        <ExternalLink className="h-4 w-4" />
+                        Ver página pública
+                      </Button>
                     </a>
                   )}
                 </div>

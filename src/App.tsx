@@ -22,6 +22,7 @@ import CookiesPage from "./pages/CookiesPage";
 import TermsPage from "./pages/TermsPage";
 import StorePage from "./pages/StorePage";
 import PetPublicPage from "./pages/PetPublicPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 import AIChatbot from "./components/AIChatbot";
 
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/terminos" element={<TermsPage />} />
             <Route path="/tienda" element={<StorePage />} />
             <Route path="/mascota/:code" element={<PetPublicPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <AIChatbot />

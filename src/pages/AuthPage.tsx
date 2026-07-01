@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,6 +53,9 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const { user, signUp, signIn, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
   const [step, setStep] = useState<'form' | 'user-type'>('form');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -150,6 +154,29 @@ const AuthPage = () => {
     setSubmitting(false);
   };
 
+  const handleForgotPassword = async () => {
+    if (!forgotEmail.trim()) {
+      toast.error('Ingresá tu email para continuar');
+      return;
+    }
+    try {
+      emailSchema.parse(forgotEmail);
+    } catch {
+      toast.error('Email inválido');
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      toast.error('Error al enviar el email: ' + error.message);
+    } else {
+      setForgotSent(true);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -219,6 +246,76 @@ const AuthPage = () => {
               >
                 {submitting ? 'Creando cuenta...' : 'Crear mi cuenta'}
               </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Pantalla de olvidé mi contraseña
+  if (isForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md">
+          <button
+            onClick={() => { setIsForgotPassword(false); setForgotSent(false); setForgotEmail(''); }}
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al inicio de sesión
+          </button>
+
+          <Card className="shadow-hover">
+            <CardHeader className="text-center space-y-4">
+              <Link to="/" className="flex items-center justify-center gap-2">
+                <img src={logo} alt="Acepto Mascotas" className="h-16 w-16" />
+              </Link>
+              <div>
+                <CardTitle className="font-body text-2xl font-bold">
+                  Recuperar contraseña
+                </CardTitle>
+                <CardDescription className="mt-2">
+                  {forgotSent
+                    ? 'Revisá tu casilla de email'
+                    : 'Te enviamos un link para restablecer tu contraseña'}
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {forgotSent ? (
+                <div className="text-center space-y-4 py-4">
+                  <div className="text-5xl">📬</div>
+                  <p className="text-sm text-muted-foreground">
+                    Te enviamos un email a <strong>{forgotEmail}</strong> con las instrucciones para restablecer tu contraseña.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Si no lo ves, revisá la carpeta de spam.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => { setIsForgotPassword(false); setForgotSent(false); setForgotEmail(''); }}
+                  >
+                    Volver al inicio de sesión
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Email</label>
+                    <Input
+                      type="email"
+                      placeholder="tu@email.com"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                    />
+                  </div>
+                  <Button variant="hero" className="w-full" onClick={handleForgotPassword}>
+                    Enviar instrucciones
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -307,6 +404,17 @@ const AuthPage = () => {
                 {!isLogin && password && passwordStrength.length > 0 && (
                   <div className="text-xs text-muted-foreground">
                     <span className="font-medium">Falta:</span> {passwordStrength.join(', ')}
+                  </div>
+                )}
+                {isLogin && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => { setIsForgotPassword(true); setForgotEmail(email); }}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
                   </div>
                 )}
               </div>
