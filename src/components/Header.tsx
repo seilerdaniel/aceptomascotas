@@ -21,6 +21,7 @@ const Header = () => {
     { href: "/", label: "Inicio", icon: Home },
     { href: "/buscar", label: "Buscar", icon: Search },
     { href: "/servicios", label: "Servicios", icon: PawPrint },
+    { href: "/quienes-somos", label: "Quiénes somos", icon: Heart },
     { href: "/publicar", label: "Publicar", icon: Plus },
   ];
 

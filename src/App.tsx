@@ -23,6 +23,7 @@ import TermsPage from "./pages/TermsPage";
 import StorePage from "./pages/StorePage";
 import PetPublicPage from "./pages/PetPublicPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 import AIChatbot from "./components/AIChatbot";
 
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/tienda" element={<StorePage />} />
             <Route path="/mascota/:code" element={<PetPublicPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/quienes-somos" element={<AboutPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <AIChatbot />
