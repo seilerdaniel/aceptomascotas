@@ -17,7 +17,7 @@ const CookiesPage = () => {
               Política de Cookies
             </h1>
             <p className="text-muted-foreground">
-              Última actualización: Enero 2026
+              Última actualización: Julio 2026
             </p>
           </div>
 
@@ -50,7 +50,7 @@ const CookiesPage = () => {
                 <div className="bg-card rounded-xl p-6 border">
                   <h3 className="font-semibold text-lg mb-2">Cookies analíticas</h3>
                   <p className="text-muted-foreground text-sm">
-                    Nos ayudan a entender cómo usás el sitio para mejorar nuestros servicios. Son anónimas y agregadas.
+                    Utilizamos Google Analytics para entender cómo se usa el sitio (páginas visitadas, tiempo de permanencia, origen del tráfico) y así mejorar nuestros servicios. Google puede procesar estos datos según su propia política de privacidad.
                   </p>
                 </div>
               </div>
