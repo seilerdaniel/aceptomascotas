@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Dog, Cat, Phone, Mail, User, Check, Share2, Loader2, Bird, Fish, Lock } from "lucide-react";
+import { ArrowLeft, MapPin, Dog, Cat, Phone, Mail, User, Check, Share2, Loader2, Bird, Fish, Lock, MessageCircle, Facebook, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,10 +17,8 @@ const PropertyDetail = () => {
   const { data: dbProperty, isLoading, error } = useProperty(id || "");
   const [selectedImage, setSelectedImage] = useState(0);
 
-  // Fallback to mock data if no database property found
   const mockProperty = mockProperties.find((p) => p.id === id);
 
-  // Transform database property to match expected format
   const property = dbProperty
     ? {
         id: dbProperty.id,
@@ -78,17 +76,38 @@ const PropertyDetail = () => {
     }).format(price);
   };
 
+  const shareText = `${property.title} - ${formatPrice(property.price)}/mes | Acepto Mascotas`;
+  const shareUrl = window.location.href;
+
   const handleShare = async () => {
-    try {
-      await navigator.share({
-        title: property.title,
-        text: `${property.title} - ${formatPrice(property.price)}/mes`,
-        url: window.location.href,
-      });
-    } catch {
-      navigator.clipboard.writeText(window.location.href);
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: property.title,
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch {
+        // usuario canceló el share, no hacer nada
+      }
+    } else {
+      navigator.clipboard.writeText(shareUrl);
       toast.success("Link copiado al portapapeles");
     }
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = encodeURIComponent(`${shareText}\n${shareUrl}`);
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  };
+
+  const handleShareFacebook = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank");
+  };
+
+  const handleShareTwitter = () => {
+    const text = encodeURIComponent(`${shareText} ${shareUrl}`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
   };
 
   const handleContact = () => {
@@ -101,16 +120,11 @@ const PropertyDetail = () => {
 
   const getPetIcon = (petType: string) => {
     switch (petType) {
-      case "perro":
-        return <Dog className="h-4 w-4" />;
-      case "gato":
-        return <Cat className="h-4 w-4" />;
-      case "aves":
-        return <Bird className="h-4 w-4" />;
-      case "peces":
-        return <Fish className="h-4 w-4" />;
-      default:
-        return <Check className="h-4 w-4" />;
+      case "perro": return <Dog className="h-4 w-4" />;
+      case "gato": return <Cat className="h-4 w-4" />;
+      case "aves": return <Bird className="h-4 w-4" />;
+      case "peces": return <Fish className="h-4 w-4" />;
+      default: return <Check className="h-4 w-4" />;
     }
   };
 
@@ -131,14 +145,12 @@ const PropertyDetail = () => {
 
       <main className="flex-1">
         <div className="container py-6">
-          {/* Back Button */}
           <Link to="/buscar" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
             <ArrowLeft className="h-4 w-4" />
             Volver a resultados
           </Link>
 
           <div className="grid gap-8 lg:grid-cols-3">
-            {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
               {/* Image Gallery */}
               <div className="space-y-4">
@@ -154,14 +166,6 @@ const PropertyDetail = () => {
                       Sin imágenes
                     </div>
                   )}
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="absolute top-4 right-4"
-                    onClick={handleShare}
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </Button>
                 </div>
 
                 {property.images.length > 1 && (
@@ -190,7 +194,7 @@ const PropertyDetail = () => {
               {/* Property Info */}
               <div className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
                       {property.title}
                     </h1>
@@ -217,6 +221,27 @@ const PropertyDetail = () => {
                     </Badge>
                   ))}
                 </div>
+
+                {/* Compartir */}
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  <span className="text-sm text-muted-foreground">Compartir:</span>
+                  <Button variant="outline" size="sm" onClick={handleShareWhatsApp} className="gap-2 text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700">
+                    <MessageCircle className="h-4 w-4" />
+                    WhatsApp
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleShareFacebook} className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                    <Facebook className="h-4 w-4" />
+                    Facebook
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleShareTwitter} className="gap-2 text-sky-500 border-sky-200 hover:bg-sky-50 hover:text-sky-600">
+                    <Twitter className="h-4 w-4" />
+                    X
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={handleShare} className="gap-2 text-muted-foreground">
+                    <Share2 className="h-4 w-4" />
+                    Copiar link
+                  </Button>
+                </div>
               </div>
 
               {/* Description */}
@@ -240,10 +265,7 @@ const PropertyDetail = () => {
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {property.amenities.map((amenity) => (
-                        <div
-                          key={amenity}
-                          className="flex items-center gap-2 text-muted-foreground"
-                        >
+                        <div key={amenity} className="flex items-center gap-2 text-muted-foreground">
                           <Check className="h-4 w-4 text-primary" />
                           <span>{amenity}</span>
                         </div>
@@ -266,15 +288,12 @@ const PropertyDetail = () => {
                       <User className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">
-                        {property.contactName}
-                      </p>
+                      <p className="font-semibold text-foreground">{property.contactName}</p>
                       <p className="text-sm text-muted-foreground">Propietario</p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    {/* Show contact info only for authenticated users */}
                     {user ? (
                       <>
                         {property.contactPhone && (
@@ -299,22 +318,13 @@ const PropertyDetail = () => {
                   </div>
 
                   {user && property.contactPhone ? (
-                    <Button
-                      variant="hero"
-                      size="lg"
-                      className="w-full"
-                      onClick={handleContact}
-                    >
+                    <Button variant="hero" size="lg" className="w-full" onClick={handleContact}>
                       <Phone className="h-4 w-4" />
                       Contactar por WhatsApp
                     </Button>
                   ) : !user ? (
                     <Link to="/auth" className="block">
-                      <Button
-                        variant="hero"
-                        size="lg"
-                        className="w-full"
-                      >
+                      <Button variant="hero" size="lg" className="w-full">
                         <Lock className="h-4 w-4" />
                         Iniciar sesión para contactar
                       </Button>
