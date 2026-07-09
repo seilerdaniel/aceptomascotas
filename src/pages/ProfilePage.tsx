@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -11,12 +12,18 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { User, Phone, Loader2, Settings, PawPrint, Plus, Pencil, Trash2, MessageCircle, Info, Eye, EyeOff } from 'lucide-react';
+import { User, Phone, Loader2, Settings, PawPrint, Plus, Pencil, Trash2, MessageCircle, Info, Eye, EyeOff, AlertTriangle, LayoutDashboard, LogOut, Search, ShieldCheck, ShieldAlert, Upload } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PropertyImageManager from '@/components/PropertyImageManager';
 import PetForm from '@/components/PetForm';
 import PetQRCode from '@/components/PetQRCode';
 import AvatarUpload from '@/components/AvatarUpload';
+import { trackEvent } from '@/lib/analytics';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useUserServices, useToggleServiceActive, useDeleteService, getCategoryLabel } from '@/hooks/useServices';
+import EditServiceDialog from '@/components/EditServiceDialog';
+import ImageUploadField from '@/components/ImageUploadField';
+import ThemeToggle from '@/components/ThemeToggle';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +46,8 @@ interface Pet {
   description: string | null;
   images: string[];
   qr_code: string | null;
+  is_lost?: boolean;
+  lost_since?: string | null;
 }
 
 // Componente interno para cambiar contraseña
@@ -147,12 +156,15 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut, deleteAccount } = useAuth();
   const queryClient = useQueryClient();
+  const { favorites } = useFavorites();
+  const { data: isAdmin } = useIsAdmin();
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [hasWhatsapp, setHasWhatsapp] = useState(true);
   const [alternativePhone, setAlternativePhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmText, setConfirmText] = useState('');
@@ -207,6 +219,11 @@ const ProfilePage = () => {
     enabled: !!user && profile?.user_type === 'buscador',
   });
 
+  // Fetch user's own services (any status, so they can see pending ones too)
+  const { data: userServices, isLoading: servicesLoading } = useUserServices(user?.id);
+  const toggleServiceActive = useToggleServiceActive();
+  const deleteService = useDeleteService();
+
   // Storage usage
   const { data: userStorageUsed = 0, refetch: refetchStorage } = useQuery({
     queryKey: ['user-storage', user?.id],
@@ -228,6 +245,7 @@ const ProfilePage = () => {
       setHasWhatsapp(profile.has_whatsapp ?? true);
       setAlternativePhone(profile.alternative_phone || '');
       setAvatarUrl(profile.avatar_url || null);
+      setBannerUrl((profile as any).banner_url || null);
     }
   }, [profile]);
 
@@ -293,6 +311,48 @@ const ProfilePage = () => {
     }
   };
 
+  const handleToggleLost = async (petId: string, petName: string, markAsLost: boolean) => {
+    const { error } = await supabase
+      .from('pets')
+      .update({
+        is_lost: markAsLost,
+        lost_since: markAsLost ? new Date().toISOString() : null,
+      })
+      .eq('id', petId);
+
+    if (error) {
+      toast.error('Error al actualizar el estado');
+      return;
+    }
+
+    if (markAsLost) {
+      toast.success(`${petName} fue marcada como perdida. Compartí su QR para correr la voz.`);
+      trackEvent('pet_marked_lost', { pet_id: petId });
+    } else {
+      toast.success(`¡Qué alegría! ${petName} fue marcada como encontrada.`);
+      trackEvent('pet_marked_found', { pet_id: petId });
+    }
+    queryClient.invalidateQueries({ queryKey: ['user-pets', user?.id] });
+  };
+
+  const handleToggleServiceActive = async (id: string, isActive: boolean) => {
+    try {
+      await toggleServiceActive.mutateAsync({ id, isActive });
+      toast.success(isActive ? 'Servicio reactivado' : 'Servicio pausado');
+    } catch {
+      toast.error('Error al actualizar el servicio');
+    }
+  };
+
+  const handleDeleteService = async (id: string) => {
+    try {
+      await deleteService.mutateAsync(id);
+      toast.success('Servicio eliminado');
+    } catch {
+      toast.error('Error al eliminar el servicio');
+    }
+  };
+
   const userTypeLabel = {
     buscador: '🐾 Buscador',
     propietario: '🏠 Propietario',
@@ -327,9 +387,9 @@ const ProfilePage = () => {
     );
   }
 
-  const isBuscador = profile?.user_type === 'buscador';
-  const showProperties = !isBuscador; // propietario o agencia
-  const tabCount = isBuscador ? 2 : 2; // siempre 2 tabs visibles según el tipo
+  const isBuscador = !isAdmin && profile?.user_type === 'buscador';
+  const showProperties = !isAdmin && !isBuscador; // propietario o agencia, sin ser admin
+  const showServices = !isAdmin; // cualquier cuenta puede publicar un servicio, excepto admin
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -360,8 +420,9 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full max-w-lg grid-cols-2">
+          <Tabs defaultValue={isAdmin ? 'profile' : 'resumen'} className="space-y-6">
+            <TabsList className="flex flex-wrap h-auto justify-start gap-1 w-full max-w-2xl">
+              {!isAdmin && <TabsTrigger value="resumen">Resumen</TabsTrigger>}
               <TabsTrigger value="profile">Perfil</TabsTrigger>
               {showProperties && (
                 <TabsTrigger value="properties">Mis Propiedades</TabsTrigger>
@@ -369,7 +430,172 @@ const ProfilePage = () => {
               {isBuscador && (
                 <TabsTrigger value="pets">Mis Mascotas</TabsTrigger>
               )}
+              {showServices && (
+                <TabsTrigger value="services">Mis Servicios</TabsTrigger>
+              )}
+              <TabsTrigger value="settings">Configuración</TabsTrigger>
             </TabsList>
+
+            {/* TAB: Resumen (no aplica para admin, ver pestaña Configuración) */}
+            {!isAdmin && (
+            <TabsContent value="resumen" className="space-y-6">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-2">
+                  <LayoutDashboard className="h-5 w-5 text-primary" />
+                  <h2 className="font-display text-xl font-semibold">
+                    {isBuscador ? 'Tu panel' : profile?.user_type === 'agencia' ? 'Panel de agencia' : 'Panel de propietario'}
+                  </h2>
+                </div>
+                <Button variant="outline" size="sm" className="gap-2" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4" />
+                  Cerrar sesión
+                </Button>
+              </div>
+
+              {/* Estado de verificación (solo agencias, no admin) */}
+              {!isAdmin && profile?.user_type === 'agencia' && (
+                <Card className={(profile as any).is_verified ? 'border-primary/40 bg-primary/5' : ''}>
+                  <CardContent className="pt-6 flex items-center gap-3">
+                    {(profile as any).is_verified ? (
+                      <>
+                        <ShieldCheck className="h-8 w-8 text-primary shrink-0" />
+                        <div>
+                          <p className="font-semibold">Agencia verificada</p>
+                          <p className="text-sm text-muted-foreground">
+                            Tus publicaciones muestran el badge de verificación.
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldAlert className="h-8 w-8 text-muted-foreground shrink-0" />
+                        <div>
+                          <p className="font-semibold">Verificación pendiente</p>
+                          <p className="text-sm text-muted-foreground">
+                            Escribinos por WhatsApp o email para solicitar la verificación de tu cuenta.
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Banner de vidriera pública (solo agencias, no admin) */}
+              {!isAdmin && profile?.user_type === 'agencia' && user && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Imagen de portada de tu vidriera</CardTitle>
+                    <CardDescription>
+                      Se muestra en tu página pública de agencia, junto a tu foto de perfil.{' '}
+                      <Link to={`/agencia/${user.id}`} className="text-primary hover:underline">
+                        Ver mi página pública
+                      </Link>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ImageUploadField
+                      bucket="avatars"
+                      folderPath={user.id}
+                      filePrefix="banner"
+                      currentUrl={bannerUrl}
+                      shape="banner"
+                      onUploaded={async (url) => {
+                        setBannerUrl(url);
+                        const { error } = await supabase
+                          .from('profiles')
+                          .update({ banner_url: url } as any)
+                          .eq('user_id', user.id);
+                        if (error) toast.error('Error al guardar la portada');
+                      }}
+                      onRemove={async () => {
+                        setBannerUrl(null);
+                        const { error } = await supabase
+                          .from('profiles')
+                          .update({ banner_url: null } as any)
+                          .eq('user_id', user.id);
+                        if (error) toast.error('Error al quitar la portada');
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Stats + accesos rápidos */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {isBuscador ? (
+                  <>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-3xl font-bold text-primary">{userPets?.length ?? 0}</p>
+                        <p className="text-sm text-muted-foreground">Mascotas registradas</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-3xl font-bold text-primary">{favorites?.length ?? 0}</p>
+                        <p className="text-sm text-muted-foreground">Propiedades favoritas</p>
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-3xl font-bold text-primary">
+                          {userProperties?.filter((p: any) => p.is_active).length ?? 0}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Propiedades activas</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-3xl font-bold text-primary">{userProperties?.length ?? 0}</p>
+                        <p className="text-sm text-muted-foreground">Propiedades totales</p>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </div>
+
+              {/* Accesos rápidos por rol */}
+              <div className="flex flex-wrap gap-3">
+                {isBuscador ? (
+                  <>
+                    <Link to="/buscar">
+                      <Button variant="outline" className="gap-2">
+                        <Search className="h-4 w-4" />
+                        Buscar alquileres
+                      </Button>
+                    </Link>
+                    <Link to="/favoritos">
+                      <Button variant="outline" className="gap-2">
+                        <PawPrint className="h-4 w-4" />
+                        Ver mis favoritos
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/publicar">
+                      <Button variant="hero" className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Publicar nueva propiedad
+                      </Button>
+                    </Link>
+                    {profile?.user_type === 'agencia' && (
+                      <Link to="/publicar/importar">
+                        <Button variant="outline" className="gap-2">
+                          <Upload className="h-4 w-4" />
+                          Importar por CSV
+                        </Button>
+                      </Link>
+                    )}
+                  </>
+                )}
+              </div>
+            </TabsContent>
+            )}
 
             {/* TAB: Perfil */}
             <TabsContent value="profile">
@@ -462,59 +688,80 @@ const ProfilePage = () => {
                       Guardar cambios
                     </Button>
                   </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                  <div className="mt-8 pt-8 border-t space-y-4">
-                    <h3 className="font-semibold">Cambiar contraseña</h3>
-                    <ChangePasswordForm />
-                  </div>
+            {/* TAB: Configuración (disponible para todos los roles, incluido admin) */}
+            <TabsContent value="settings" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Apariencia</CardTitle>
+                  <CardDescription>Elegí cómo querés ver Acepto Mascotas</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ThemeToggle />
+                </CardContent>
+              </Card>
 
-                  <div className="mt-8 pt-8 border-t space-y-4">
-                    <h3 className="font-semibold text-destructive">Zona de peligro</h3>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Button variant="outline" onClick={handleSignOut}>Cerrar sesión</Button>
-                      <AlertDialog onOpenChange={() => setConfirmText('')}>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive">Eliminar cuenta</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>¿Eliminar tu cuenta?</AlertDialogTitle>
-                            <AlertDialogDescription className="space-y-3">
-                              <span className="block">
-                                Esta acción es <strong>permanente e irreversible</strong>. Se eliminarán:
-                              </span>
-                              <ul className="list-disc list-inside text-sm space-y-1">
-                                <li>Tu perfil y datos personales</li>
-                                <li>Todas tus propiedades publicadas</li>
-                                <li>Tus propiedades favoritas</li>
-                                <li>Tus mascotas registradas</li>
-                                <li>Todas las imágenes cargadas</li>
-                              </ul>
-                              <span className="block pt-2">
-                                Para confirmar, escribí <strong>ELIMINAR</strong> en el campo de abajo:
-                              </span>
-                              <Input
-                                placeholder="Escribí ELIMINAR para confirmar"
-                                value={confirmText}
-                                onChange={(e) => setConfirmText(e.target.value)}
-                                className="mt-2"
-                              />
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleDeleteAccount}
-                              disabled={confirmText !== 'ELIMINAR' || isDeleting}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                              Eliminar mi cuenta
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cambiar contraseña</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChangePasswordForm />
+                </CardContent>
+              </Card>
+
+              <Card className="border-destructive/30">
+                <CardHeader>
+                  <CardTitle className="text-destructive">Zona de peligro</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button variant="outline" onClick={handleSignOut}>Cerrar sesión</Button>
+                    <AlertDialog onOpenChange={() => setConfirmText('')}>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive">Eliminar cuenta</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Eliminar tu cuenta?</AlertDialogTitle>
+                          <AlertDialogDescription className="space-y-3">
+                            <span className="block">
+                              Esta acción es <strong>permanente e irreversible</strong>. Se eliminarán:
+                            </span>
+                            <ul className="list-disc list-inside text-sm space-y-1">
+                              <li>Tu perfil y datos personales</li>
+                              <li>Todas tus propiedades publicadas</li>
+                              <li>Tus propiedades favoritas</li>
+                              <li>Tus mascotas registradas</li>
+                              <li>Todas las imágenes cargadas</li>
+                            </ul>
+                            <span className="block pt-2">
+                              Para confirmar, escribí <strong>ELIMINAR</strong> en el campo de abajo:
+                            </span>
+                            <Input
+                              placeholder="Escribí ELIMINAR para confirmar"
+                              value={confirmText}
+                              onChange={(e) => setConfirmText(e.target.value)}
+                              className="mt-2"
+                            />
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDeleteAccount}
+                            disabled={confirmText !== 'ELIMINAR' || isDeleting}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Eliminar mi cuenta
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
@@ -612,14 +859,24 @@ const ProfilePage = () => {
                         {userPets.map((pet) => (
                           <div
                             key={pet.id}
-                            className="flex items-center justify-between p-4 rounded-lg border bg-muted/30"
+                            className={`flex items-center justify-between p-4 rounded-lg border ${
+                              pet.is_lost ? 'bg-destructive/5 border-destructive/30' : 'bg-muted/30'
+                            }`}
                           >
                             <div className="flex items-center gap-3">
                               <div className="text-2xl">
                                 {pet.species === 'perro' ? '🐶' : pet.species === 'gato' ? '🐱' : '🐾'}
                               </div>
                               <div>
-                                <p className="font-semibold">{pet.name}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold">{pet.name}</p>
+                                  {pet.is_lost && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
+                                      <AlertTriangle className="h-3 w-3" />
+                                      Perdida
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-sm text-muted-foreground">
                                   {[pet.breed, pet.age_years ? `${pet.age_years} años` : null, pet.weight_kg ? `${pet.weight_kg} kg` : null]
                                     .filter(Boolean)
@@ -631,6 +888,17 @@ const ProfilePage = () => {
                               </div>
                             </div>
                             <div className="flex gap-2">
+                              {pet.qr_code && (
+                                <Button
+                                  variant={pet.is_lost ? "outline" : "destructive"}
+                                  size="sm"
+                                  className="gap-1"
+                                  onClick={() => handleToggleLost(pet.id, pet.name, !pet.is_lost)}
+                                >
+                                  <AlertTriangle className="h-3.5 w-3.5" />
+                                  {pet.is_lost ? "Encontrada" : "Perdida"}
+                                </Button>
+                              )}
                               <PetQRCode
                                 petId={pet.id}
                                 petName={pet.name}
@@ -687,6 +955,96 @@ const ProfilePage = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
+            )}
+
+            {/* TAB: Mis Servicios (disponible para cualquier usuario, excepto admin) */}
+            {showServices && (
+            <TabsContent value="services">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      <CardTitle>Mis Servicios</CardTitle>
+                      <CardDescription>
+                        Publicá tu veterinaria, paseos, adiestramiento u otro servicio pet-friendly
+                      </CardDescription>
+                    </div>
+                    <Link to="/servicios/publicar">
+                      <Button variant="hero" size="sm" className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Publicar servicio
+                      </Button>
+                    </Link>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {servicesLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : userServices && userServices.length > 0 ? (
+                    <div className="space-y-3">
+                      {userServices.map((service) => (
+                        <div
+                          key={service.id}
+                          className="flex items-center justify-between p-4 rounded-lg border bg-muted/30 flex-wrap gap-3"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold">{service.name}</p>
+                              {service.is_approved ? (
+                                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                                  Aprobado
+                                </span>
+                              ) : (
+                                <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                                  Pendiente de aprobación
+                                </span>
+                              )}
+                              {!service.is_active && (
+                                <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                  Pausado
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {getCategoryLabel(service.category)} · {service.city}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleToggleServiceActive(service.id, !service.is_active)}
+                            >
+                              {service.is_active ? 'Pausar' : 'Reactivar'}
+                            </Button>
+                            <EditServiceDialog service={service} />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteService(service.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 space-y-3">
+                      <p className="text-muted-foreground">Todavía no publicaste ningún servicio</p>
+                      <Link to="/servicios/publicar">
+                        <Button variant="outline" className="gap-2">
+                          <Plus className="h-4 w-4" />
+                          Publicar mi primer servicio
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
             )}
           </Tabs>
         </div>

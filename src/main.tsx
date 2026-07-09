@@ -5,11 +5,17 @@ import "./index.css";
 
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { initGA } from "./lib/analytics";
+import { ThemeProvider } from "./components/theme-provider";
+
+initGA();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
-    <Analytics />
-    <SpeedInsights />
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <App />
+      <Analytics />
+      <SpeedInsights />
+    </ThemeProvider>
   </React.StrictMode>,
 );

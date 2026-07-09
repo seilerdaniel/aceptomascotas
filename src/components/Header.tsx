@@ -1,8 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Home, Plus, Search, User, LogOut, Heart, Settings, PawPrint } from "lucide-react";
+import { Menu, X, Home, Plus, Search, User, LogOut, Heart, Settings, PawPrint, Shield } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useAdmin";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.svg";
 import {
   DropdownMenu,
@@ -16,13 +19,36 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { user, signOut, loading } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
+
+  // Same queryKey ProfilePage uses, so React Query shares the cache
+  // instead of firing a second network request.
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Publishing is only for propietario/agencia accounts. Admins don't get
+  // the publish CTA even if their underlying profile has one of those
+  // types, since the admin panel is their primary workspace.
+  const canPublish =
+    !isAdmin && (profile?.user_type === "propietario" || profile?.user_type === "agencia");
 
   const navLinks = [
     { href: "/", label: "Inicio", icon: Home },
     { href: "/buscar", label: "Buscar", icon: Search },
     { href: "/servicios", label: "Servicios", icon: PawPrint },
     { href: "/quienes-somos", label: "Quiénes somos", icon: Heart },
-    { href: "/publicar", label: "Publicar", icon: Plus },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -78,12 +104,22 @@ const Header = () => {
                         Mi Perfil
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/favoritos" className="flex items-center gap-2">
-                        <Heart className="h-4 w-4" />
-                        Mis Favoritos
-                      </Link>
-                    </DropdownMenuItem>
+                    {!isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/favoritos" className="flex items-center gap-2">
+                          <Heart className="h-4 w-4" />
+                          Mis Favoritos
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          Panel de Admin
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2">
                       <LogOut className="h-4 w-4" />
@@ -102,12 +138,14 @@ const Header = () => {
             </>
           )}
 
-          <Link to="/publicar" className="ml-2">
-            <Button variant="hero" size="sm">
-              <Plus className="h-4 w-4" />
-              Publicar Gratis
-            </Button>
-          </Link>
+          {canPublish && (
+            <Link to="/publicar" className="ml-2">
+              <Button variant="hero" size="sm">
+                <Plus className="h-4 w-4" />
+                Publicar Gratis
+              </Button>
+            </Link>
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -147,12 +185,22 @@ const Header = () => {
                         Mi Perfil
                       </Button>
                     </Link>
-                    <Link to="/favoritos" onClick={() => setIsMenuOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start gap-2">
-                        <Heart className="h-4 w-4" />
-                        Mis Favoritos
-                      </Button>
-                    </Link>
+                    {!isAdmin && (
+                      <Link to="/favoritos" onClick={() => setIsMenuOpen(false)}>
+                        <Button variant="ghost" className="w-full justify-start gap-2">
+                          <Heart className="h-4 w-4" />
+                          Mis Favoritos
+                        </Button>
+                      </Link>
+                    )}
+                    {isAdmin && (
+                      <Link to="/admin" onClick={() => setIsMenuOpen(false)}>
+                        <Button variant="ghost" className="w-full justify-start gap-2">
+                          <Shield className="h-4 w-4" />
+                          Panel de Admin
+                        </Button>
+                      </Link>
+                    )}
                     <Button
                       variant="ghost"
                       className="w-full justify-start gap-2"
@@ -176,12 +224,14 @@ const Header = () => {
               </>
             )}
 
-            <Link to="/publicar" onClick={() => setIsMenuOpen(false)}>
-              <Button variant="hero" className="w-full mt-2">
-                <Plus className="h-4 w-4" />
-                Publicar Gratis
-              </Button>
-            </Link>
+            {canPublish && (
+              <Link to="/publicar" onClick={() => setIsMenuOpen(false)}>
+                <Button variant="hero" className="w-full mt-2">
+                  <Plus className="h-4 w-4" />
+                  Publicar Gratis
+                </Button>
+              </Link>
+            )}
           </div>
         </nav>
       )}
