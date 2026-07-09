@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Upload, Dog, Cat, Check, X, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,11 +18,26 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/analytics";
 
 const PublishPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -206,6 +221,7 @@ const PublishPage = () => {
       }
 
       toast.success("¡Tu propiedad fue publicada exitosamente!");
+      trackEvent("property_published", { property_type: formData.propertyType });
       navigate("/");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error al publicar la propiedad";
@@ -259,6 +275,19 @@ const PublishPage = () => {
               Conectá con inquilinos responsables que buscan un hogar para su familia
             </p>
           </div>
+
+          {profile?.user_type === "agencia" && (
+            <div className="flex items-center justify-between gap-4 bg-secondary/50 border rounded-xl p-4 mb-8">
+              <p className="text-sm text-foreground">
+                ¿Tenés varias propiedades para cargar? Importalas todas juntas desde un CSV.
+              </p>
+              <Link to="/publicar/importar" className="shrink-0">
+                <Button variant="outline" size="sm">
+                  Importar por CSV
+                </Button>
+              </Link>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Property Info */}

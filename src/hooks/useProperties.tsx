@@ -4,6 +4,24 @@ import { Tables } from "@/integrations/supabase/types";
 
 export type Property = Tables<"properties">;
 
+// Counts are aggregate-only (no PII), so this calls a SECURITY DEFINER
+// RPC to safely read past the profiles table's owner-only RLS policy.
+export const usePlatformStats = () => {
+  return useQuery({
+    queryKey: ["platform-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_platform_stats");
+      if (error) throw error;
+      const stats = Array.isArray(data) ? data[0] : data;
+      return {
+        properties: stats?.properties_count ?? 0,
+        searchers: stats?.searchers_count ?? 0,
+      };
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes, no need to refetch constantly
+  });
+};
+
 export interface PropertyFilters {
   location?: string;
   maxPrice?: number;

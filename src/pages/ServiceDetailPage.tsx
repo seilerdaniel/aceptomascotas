@@ -121,6 +121,12 @@ const ServiceDetailPage = () => {
           Volver a servicios
         </Link>
 
+        {(service as any).banner_url && (
+          <div className="w-full aspect-[4/1] rounded-2xl overflow-hidden mb-6 bg-secondary">
+            <img src={(service as any).banner_url} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
@@ -177,13 +183,20 @@ const ServiceDetailPage = () => {
             {/* Service Info */}
             <div className="space-y-4">
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <Badge variant="secondary" className="mb-2">
-                    {getCategoryLabel(service.category)}
-                  </Badge>
-                  <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                    {service.name}
-                  </h1>
+                <div className="flex items-start gap-3">
+                  {(service as any).logo_url && (
+                    <div className="h-14 w-14 rounded-xl overflow-hidden border bg-muted shrink-0">
+                      <img src={(service as any).logo_url} alt={service.name} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div>
+                    <Badge variant="secondary" className="mb-2">
+                      {getCategoryLabel(service.category)}
+                    </Badge>
+                    <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                      {service.name}
+                    </h1>
+                  </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={handleShare}>
                   <Share2 className="h-5 w-5" />

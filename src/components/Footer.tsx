@@ -1,6 +1,13 @@
-import { Heart, Mail, MapPin, Facebook, Instagram, Coffee, ShoppingBag } from "lucide-react";
+import { Heart, Mail, MapPin, Facebook, Instagram, Coffee, ShoppingBag, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.svg";
+
+// TODO: número temporal (personal de Daniel). Reemplazar cuando esté
+// disponible el número de WhatsApp Business dedicado a Acepto Mascotas.
+const WHATSAPP_NUMBER = "5491131797343";
+const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+  "Hola! Te escribo desde Acepto Mascotas, tengo una consulta."
+)}`;
 
 // Custom TikTok icon since lucide doesn't have it
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -93,6 +100,15 @@ const Footer = () => {
                 <Mail className="h-4 w-4" />
                 <span>aceptomascotas@gmail.com</span>
               </a>
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:text-primary transition-colors"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>WhatsApp</span>
+              </a>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 <span>Argentina</span>
@@ -122,6 +138,10 @@ const Footer = () => {
             Hecho con <Heart className="h-4 w-4 text-accent fill-accent" /> para las mascotas
           </p>
         </div>
+
+        <p className="mt-4 text-xs text-muted-foreground text-center max-w-2xl mx-auto">
+          Acepto Mascotas es un espacio de conexión entre propietarios y buscadores de alquileres pet-friendly. No participamos en las transacciones ni garantizamos la veracidad de las publicaciones realizadas por los usuarios.
+        </p>
       </div>
     </footer>
   );

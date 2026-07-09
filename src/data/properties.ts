@@ -17,6 +17,8 @@ export interface Property {
   contactPhone: string;
   contactEmail: string;
   amenities: string[];
+  isVerified?: boolean;
+  agencyId?: string | null;
 }
 
 export const mockProperties: Property[] = [

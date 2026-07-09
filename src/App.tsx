@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import SearchPage from "./pages/SearchPage";
 import PropertyDetail from "./pages/PropertyDetail";
 import PublishPage from "./pages/PublishPage";
+import BulkImportPage from "./pages/BulkImportPage";
+import AgencyPage from "./pages/AgencyPage";
 import AuthPage from "./pages/AuthPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import ContactPage from "./pages/ContactPage";
@@ -26,6 +28,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 import AIChatbot from "./components/AIChatbot";
+import RouteTracker from "./components/RouteTracker";
 
 const queryClient = new QueryClient();
 
@@ -36,11 +39,14 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <RouteTracker />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/buscar" element={<SearchPage />} />
             <Route path="/alquiler/:id" element={<PropertyDetail />} />
             <Route path="/publicar" element={<PublishPage />} />
+            <Route path="/publicar/importar" element={<BulkImportPage />} />
+            <Route path="/agencia/:userId" element={<AgencyPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/favoritos" element={<FavoritesPage />} />
             <Route path="/contacto" element={<ContactPage />} />

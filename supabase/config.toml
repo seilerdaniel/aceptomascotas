@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.pet-assistant]
 verify_jwt = false
+
+[functions.notify-contact-message]
+verify_jwt = false
+
+[functions.bulk-create-properties]
+verify_jwt = false

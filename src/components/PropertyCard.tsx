@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Dog, Cat, Check } from "lucide-react";
+import { MapPin, Dog, Cat, Check, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import FavoriteButton from "@/components/FavoriteButton";
@@ -32,20 +32,34 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
   return (
     <Link to={`/alquiler/${property.id}`}>
       <Card className="group overflow-hidden cursor-pointer h-full">
-        <div className="relative aspect-[4/3] overflow-hidden">
-          <img
-            src={property.images[0]}
-            alt={property.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+          {property.images[0] ? (
+            <img
+              src={property.images[0]}
+              alt={property.title}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center bg-secondary">
+              <Dog className="h-10 w-10 text-muted-foreground/40" />
+            </div>
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
           
           {/* Pet Badge */}
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
             <Badge className="bg-primary text-primary-foreground gap-1 shadow-lg">
               <Dog className="h-3 w-3" />
               Acepta mascotas
             </Badge>
+            {property.isVerified && (
+              <Badge className="bg-accent text-accent-foreground gap-1 shadow-lg">
+                <ShieldCheck className="h-3 w-3" />
+                Agencia verificada
+              </Badge>
+            )}
           </div>
 
           {/* Favorite Button */}

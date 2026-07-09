@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      advertisements: {
+        Row: {
+          advertiser_name: string
+          alt_text: string
+          created_at: string
+          ends_at: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          link_url: string | null
+          sort_order: number
+          starts_at: string | null
+        }
+        Insert: {
+          advertiser_name: string
+          alt_text: string
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          link_url?: string | null
+          sort_order?: number
+          starts_at?: string | null
+        }
+        Update: {
+          advertiser_name?: string
+          alt_text?: string
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          link_url?: string | null
+          sort_order?: number
+          starts_at?: string | null
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -80,6 +119,7 @@ export type Database = {
       pet_services: {
         Row: {
           address: string | null
+          banner_url: string | null
           category: Database["public"]["Enums"]["service_category"]
           city: string
           created_at: string
@@ -93,6 +133,7 @@ export type Database = {
           is_active: boolean | null
           is_approved: boolean | null
           latitude: number | null
+          logo_url: string | null
           longitude: number | null
           name: string
           neighborhood: string | null
@@ -105,6 +146,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          banner_url?: string | null
           category: Database["public"]["Enums"]["service_category"]
           city: string
           created_at?: string
@@ -118,6 +160,7 @@ export type Database = {
           is_active?: boolean | null
           is_approved?: boolean | null
           latitude?: number | null
+          logo_url?: string | null
           longitude?: number | null
           name: string
           neighborhood?: string | null
@@ -130,6 +173,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          banner_url?: string | null
           category?: Database["public"]["Enums"]["service_category"]
           city?: string
           created_at?: string
@@ -143,6 +187,7 @@ export type Database = {
           is_active?: boolean | null
           is_approved?: boolean | null
           latitude?: number | null
+          logo_url?: string | null
           longitude?: number | null
           name?: string
           neighborhood?: string | null
@@ -163,6 +208,8 @@ export type Database = {
           description: string | null
           id: string
           images: string[] | null
+          is_lost: boolean
+          lost_since: string | null
           name: string
           qr_code: string | null
           species: string
@@ -177,6 +224,8 @@ export type Database = {
           description?: string | null
           id?: string
           images?: string[] | null
+          is_lost?: boolean
+          lost_since?: string | null
           name: string
           qr_code?: string | null
           species: string
@@ -191,6 +240,8 @@ export type Database = {
           description?: string | null
           id?: string
           images?: string[] | null
+          is_lost?: boolean
+          lost_since?: string | null
           name?: string
           qr_code?: string | null
           species?: string
@@ -204,10 +255,12 @@ export type Database = {
         Row: {
           alternative_phone: string | null
           avatar_url: string | null
+          banner_url: string | null
           created_at: string
           full_name: string | null
           has_whatsapp: boolean | null
           id: string
+          is_verified: boolean
           phone: string | null
           updated_at: string
           user_id: string
@@ -216,10 +269,12 @@ export type Database = {
         Insert: {
           alternative_phone?: string | null
           avatar_url?: string | null
+          banner_url?: string | null
           created_at?: string
           full_name?: string | null
           has_whatsapp?: boolean | null
           id?: string
+          is_verified?: boolean
           phone?: string | null
           updated_at?: string
           user_id: string
@@ -228,10 +283,12 @@ export type Database = {
         Update: {
           alternative_phone?: string | null
           avatar_url?: string | null
+          banner_url?: string | null
           created_at?: string
           full_name?: string | null
           has_whatsapp?: boolean | null
           id?: string
+          is_verified?: boolean
           phone?: string | null
           updated_at?: string
           user_id?: string
@@ -251,6 +308,8 @@ export type Database = {
           images: string[] | null
           is_active: boolean | null
           location: string
+          owner_is_agency: boolean
+          owner_is_verified: boolean
           pet_types: Database["public"]["Enums"]["pet_type"][]
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
@@ -269,6 +328,8 @@ export type Database = {
           images?: string[] | null
           is_active?: boolean | null
           location: string
+          owner_is_agency?: boolean
+          owner_is_verified?: boolean
           pet_types?: Database["public"]["Enums"]["pet_type"][]
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
@@ -287,6 +348,8 @@ export type Database = {
           images?: string[] | null
           is_active?: boolean | null
           location?: string
+          owner_is_agency?: boolean
+          owner_is_verified?: boolean
           pet_types?: Database["public"]["Enums"]["pet_type"][]
           price?: number
           property_type?: Database["public"]["Enums"]["property_type"]
@@ -295,6 +358,51 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      property_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          property_id: string
+          reason: string
+          reporter_email: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          property_id: string
+          reason: string
+          reporter_email?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          property_id?: string
+          reason?: string
+          reporter_email?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_reports_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_reports_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_reviews: {
         Row: {
@@ -363,6 +471,7 @@ export type Database = {
       properties_public: {
         Row: {
           address: string | null
+          agency_id: string | null
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
@@ -372,6 +481,7 @@ export type Database = {
           images: string[] | null
           is_active: boolean | null
           location: string | null
+          owner_is_verified: boolean | null
           pet_types: Database["public"]["Enums"]["pet_type"][] | null
           price: number | null
           property_type: Database["public"]["Enums"]["property_type"] | null
@@ -381,6 +491,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          agency_id?: never
           contact_email?: never
           contact_name?: string | null
           contact_phone?: never
@@ -390,6 +501,7 @@ export type Database = {
           images?: string[] | null
           is_active?: boolean | null
           location?: string | null
+          owner_is_verified?: boolean | null
           pet_types?: Database["public"]["Enums"]["pet_type"][] | null
           price?: number | null
           property_type?: Database["public"]["Enums"]["property_type"] | null
@@ -399,6 +511,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          agency_id?: never
           contact_email?: never
           contact_name?: string | null
           contact_phone?: never
@@ -408,6 +521,7 @@ export type Database = {
           images?: string[] | null
           is_active?: boolean | null
           location?: string | null
+          owner_is_verified?: boolean | null
           pet_types?: Database["public"]["Enums"]["pet_type"][] | null
           price?: number | null
           property_type?: Database["public"]["Enums"]["property_type"] | null
@@ -437,6 +551,44 @@ export type Database = {
     Functions: {
       generate_pet_qr_code: { Args: { pet_id_input: string }; Returns: string }
       generate_short_code: { Args: never; Returns: string }
+      get_agency_properties: {
+        Args: { agency_user_id: string }
+        Returns: {
+          address: string | null
+          agency_id: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          images: string[] | null
+          is_active: boolean | null
+          location: string | null
+          owner_is_verified: boolean | null
+          pet_types: Database["public"]["Enums"]["pet_type"][] | null
+          price: number | null
+          property_type: Database["public"]["Enums"]["property_type"] | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "properties_public"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_agency_public_profile: {
+        Args: { agency_user_id: string }
+        Returns: {
+          avatar_url: string
+          banner_url: string
+          full_name: string
+          is_verified: boolean
+        }[]
+      }
       get_pet_by_qr_code: {
         Args: { code: string }
         Returns: {
@@ -448,6 +600,13 @@ export type Database = {
           pet_images: string[]
           pet_name: string
           pet_species: string
+        }[]
+      }
+      get_platform_stats: {
+        Args: never
+        Returns: {
+          properties_count: number
+          searchers_count: number
         }[]
       }
       has_role: {

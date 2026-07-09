@@ -207,6 +207,8 @@ export const useCreateService = () => {
       latitude?: number | null;
       longitude?: number | null;
       is_active?: boolean;
+      banner_url?: string | null;
+      logo_url?: string | null;
     }) => {
       const { data, error } = await supabase
         .from("pet_services")
@@ -231,7 +233,9 @@ export const useCreateService = () => {
           longitude: service.longitude || null,
           is_active: true,
           is_approved: false,
-        })
+          banner_url: service.banner_url || null,
+          logo_url: service.logo_url || null,
+        } as any)
         .select()
         .single();
 
@@ -264,6 +268,78 @@ export const useFeaturedServices = (limit = 6) => {
       }
 
       return (data || []) as PetService[];
+    },
+  });
+};
+
+// Services belonging to the current user, regardless of approval status,
+// so they can see and manage what they've submitted (RLS already allows
+// owners to view their own rows even when not yet approved).
+export const useUserServices = (userId?: string) => {
+  return useQuery({
+    queryKey: ["user-services", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from("pet_services")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as PetService[];
+    },
+    enabled: !!userId,
+  });
+};
+
+export const useUpdateService = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<PetService> }) => {
+      const { error } = await supabase.from("pet_services").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-services"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+    },
+  });
+};
+
+export const useToggleServiceActive = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const { error } = await supabase
+        .from("pet_services")
+        .update({ is_active: isActive })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-services"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+    },
+  });
+};
+
+export const useDeleteService = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("pet_services").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-services"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services"] });
     },
   });
 };

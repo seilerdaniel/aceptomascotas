@@ -1,4 +1,4 @@
-import { Search, Plus, Home, Heart, Shield, Clock } from "lucide-react";
+import { Search, Plus, Home, Heart, Shield, Clock, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/SearchBar";
@@ -6,7 +6,9 @@ import PropertyCard from "@/components/PropertyCard";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CafecitoSection from "@/components/CafecitoSection";
-import { useFeaturedProperties } from "@/hooks/useProperties";
+import { useFeaturedProperties, usePlatformStats } from "@/hooks/useProperties";
+import { useActiveAds } from "@/hooks/useAdvertisements";
+import { trackEvent } from "@/lib/analytics";
 import { mockProperties } from "@/data/properties";
 import heroImage from "@/assets/hero-image.jpg";
 import logo from "@/assets/logo.svg";
@@ -14,6 +16,13 @@ import logo from "@/assets/logo.svg";
 const Index = () => {
   const navigate = useNavigate();
   const { data: dbProperties = [], isLoading } = useFeaturedProperties(6);
+  const { data: stats } = usePlatformStats();
+  const { data: ads = [] } = useActiveAds();
+
+  // Only show the public counter once numbers are meaningful enough to
+  // build trust rather than look empty. Tune this as volume grows.
+  const STATS_MIN_PROPERTIES = 5;
+  const showStats = (stats?.properties ?? 0) >= STATS_MIN_PROPERTIES;
 
   // Transform database properties to match PropertyCard format
   const transformedDbProperties = dbProperties.map((p) => ({
@@ -99,6 +108,46 @@ const Index = () => {
         <section className="container -mt-12 relative z-20 pb-16">
           <SearchBar />
         </section>
+
+        {/* Stats Section */}
+        {showStats && (
+          <section className="container pb-16">
+            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto text-center">
+              <div className="bg-card rounded-2xl border p-6">
+                <div className="flex items-center justify-center gap-2 text-primary mb-1">
+                  <Home className="h-5 w-5" />
+                  <span className="font-display text-3xl font-bold">{stats?.properties}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Propiedades publicadas</p>
+              </div>
+              <div className="bg-card rounded-2xl border p-6">
+                <div className="flex items-center justify-center gap-2 text-primary mb-1">
+                  <Users className="h-5 w-5" />
+                  <span className="font-display text-3xl font-bold">{stats?.searchers}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Familias buscando</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Ad Banner */}
+        {ads.length > 0 && (
+          <section className="container pb-12">
+            <div className="max-w-4xl mx-auto">
+              <p className="text-xs text-muted-foreground text-center mb-2">Publicidad</p>
+              <a
+                href={ads[0].link_url || "#"}
+                target={ads[0].link_url ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                onClick={() => trackEvent("ad_banner_click", { advertiser: ads[0].advertiser_name })}
+                className="block rounded-2xl overflow-hidden border hover:opacity-90 transition-opacity"
+              >
+                <img src={ads[0].image_url} alt={ads[0].alt_text} className="w-full h-auto" />
+              </a>
+            </div>
+          </section>
+        )}
 
         {/* Featured Properties */}
         <section className="container py-16">

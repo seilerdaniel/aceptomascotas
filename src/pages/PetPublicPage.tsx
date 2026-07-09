@@ -3,8 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, PawPrint, MessageCircle, Phone, ArrowLeft } from 'lucide-react';
+import { Loader2, PawPrint, MessageCircle, Phone, ArrowLeft, AlertTriangle, Share2, Copy } from 'lucide-react';
 import logo from '@/assets/logo.svg';
+import { toast } from 'sonner';
+import { trackEvent } from '@/lib/analytics';
 
 interface PetPublicData {
   pet_name: string;
@@ -15,6 +17,8 @@ interface PetPublicData {
   owner_phone: string | null;
   owner_has_whatsapp: boolean | null;
   owner_alternative_phone: string | null;
+  is_lost?: boolean;
+  lost_since?: string | null;
 }
 
 const speciesEmoji: Record<string, string> = {
@@ -52,6 +56,34 @@ const PetPublicPage = () => {
       `¡Hola! Encontré a tu mascota mediante el código QR de Acepto Mascotas 🐾`
     );
     return `https://wa.me/${cleanPhone}?text=${message}`;
+  };
+
+  const handleShareLostAlert = async () => {
+    if (!pet) return;
+    const shareUrl = window.location.href;
+    const shareText = `🚨 ${pet.pet_name} está perdid${pet.pet_species === 'gata' ? 'a' : 'o'}. Si lo ves, contactá a su familia acá:`;
+
+    trackEvent('lost_pet_share_click', { pet_name: pet.pet_name });
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${pet.pet_name} está perdido/a`, text: shareText, url: shareUrl });
+      } catch {
+        // User cancelled the share sheet; nothing to do.
+      }
+    } else {
+      const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
+      window.open(whatsappShareUrl, '_blank');
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copiado');
+    } catch {
+      toast.error('No se pudo copiar el link');
+    }
   };
 
   if (loading) {
@@ -96,6 +128,13 @@ const PetPublicPage = () => {
         </Link>
 
         <Card className="overflow-hidden shadow-hover">
+          {pet.is_lost && (
+            <div className="bg-destructive text-destructive-foreground text-center py-2 px-4 flex items-center justify-center gap-2 text-sm font-semibold">
+              <AlertTriangle className="h-4 w-4" />
+              MASCOTA PERDIDA{pet.lost_since ? ` · desde el ${new Date(pet.lost_since).toLocaleDateString('es-AR')}` : ''}
+            </div>
+          )}
+
           {pet.pet_images && pet.pet_images.length > 0 ? (
             <div className="aspect-square w-full">
               <img
@@ -128,7 +167,7 @@ const PetPublicPage = () => {
 
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center space-y-3">
               <p className="text-sm font-medium">
-                ¿Encontraste a {pet.pet_name}? 🙏
+                {pet.is_lost ? `¿Viste a ${pet.pet_name}? 🙏` : `¿Encontraste a ${pet.pet_name}? 🙏`}
               </p>
               <p className="text-xs text-muted-foreground">
                 Contactá a su familia para que puedan reencontrarse
@@ -165,6 +204,18 @@ const PetPublicPage = () => {
                 <p className="text-xs text-destructive">
                   No hay un teléfono de contacto disponible
                 </p>
+              )}
+
+              {pet.is_lost && (
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1 gap-2" onClick={handleShareLostAlert}>
+                    <Share2 className="h-4 w-4" />
+                    Compartir alerta
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={handleCopyLink} aria-label="Copiar link">
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
             </div>
           </CardContent>

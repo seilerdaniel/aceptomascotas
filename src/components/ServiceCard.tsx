@@ -12,7 +12,9 @@ interface ServiceCardProps {
 
 const ServiceCard = ({ service }: ServiceCardProps) => {
   const { data: rating } = useServiceRating(service.id);
-  const imageUrl = service.images?.[0] || "/placeholder.svg";
+  const bannerUrl = (service as any).banner_url as string | null;
+  const logoUrl = (service as any).logo_url as string | null;
+  const imageUrl = bannerUrl || service.images?.[0] || "/placeholder.svg";
 
   return (
     <Link to={`/servicios/${service.id}`}>
@@ -55,16 +57,23 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         </div>
 
         <CardContent className="p-4 space-y-3">
-          <div>
-            <h3 className="font-body text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-              {service.name}
-            </h3>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-              <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-              <span className="line-clamp-1">
-                {service.neighborhood ? `${service.neighborhood}, ` : ""}
-                {service.city}
-              </span>
+          <div className="flex items-start gap-3">
+            {logoUrl && (
+              <div className="h-10 w-10 rounded-lg overflow-hidden border bg-muted shrink-0 -mt-8 shadow-md bg-card">
+                <img src={logoUrl} alt={service.name} className="w-full h-full object-cover" />
+              </div>
+            )}
+            <div>
+              <h3 className="font-body text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                {service.name}
+              </h3>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="line-clamp-1">
+                  {service.neighborhood ? `${service.neighborhood}, ` : ""}
+                  {service.city}
+                </span>
+              </div>
             </div>
           </div>
 

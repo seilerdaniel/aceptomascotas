@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Dog, Cat, Phone, Mail, User, Check, Share2, Loader2, Bird, Fish, Lock, MessageCircle, Facebook, Twitter } from "lucide-react";
+import { ArrowLeft, MapPin, Dog, Cat, Phone, Mail, User, Check, Share2, Loader2, Bird, Fish, Lock, MessageCircle, Facebook, Twitter, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { mockProperties } from "@/data/properties";
 import { toast } from "sonner";
 import { useState } from "react";
+import ReportProperty from "@/components/ReportProperty";
+import { trackEvent } from "@/lib/analytics";
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -32,6 +34,10 @@ const PropertyDetail = () => {
         contactName: dbProperty.contact_name,
         contactPhone: dbProperty.contact_phone || "",
         contactEmail: dbProperty.contact_email || "",
+        // TODO: remove the `as any` cast once `npm run gen:types` picks up
+        // the owner_is_verified column added by the verification migration.
+        isVerified: (dbProperty as any).owner_is_verified ?? false,
+        agencyId: (dbProperty as any).agency_id ?? null,
         amenities: [],
       }
     : mockProperty;
@@ -115,6 +121,7 @@ const PropertyDetail = () => {
       `Hola! Me interesa la propiedad "${property.title}" publicada en Acepto.Mascotas.`
     );
     const phone = property.contactPhone.replace(/\D/g, "");
+    trackEvent("whatsapp_contact_click", { source: "property_detail", property_id: property.id });
     window.open(`https://wa.me/${phone}?text=${message}`, "_blank");
   };
 
@@ -288,8 +295,23 @@ const PropertyDetail = () => {
                       <User className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">{property.contactName}</p>
-                      <p className="text-sm text-muted-foreground">Propietario</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-semibold text-foreground">{property.contactName}</p>
+                        {property.isVerified && (
+                          <ShieldCheck className="h-4 w-4 text-accent shrink-0" aria-label="Agencia verificada" />
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {property.isVerified ? "Agencia verificada" : "Propietario"}
+                      </p>
+                      {property.agencyId && (
+                        <Link
+                          to={`/agencia/${property.agencyId}`}
+                          className="text-xs text-primary hover:underline inline-block mt-0.5"
+                        >
+                          Ver todas sus propiedades
+                        </Link>
+                      )}
                     </div>
                   </div>
 
@@ -310,9 +332,21 @@ const PropertyDetail = () => {
                         )}
                       </>
                     ) : (
-                      <div className="flex items-center gap-2 text-muted-foreground bg-secondary/50 p-3 rounded-lg">
-                        <Lock className="h-4 w-4" />
-                        <span className="text-sm">Iniciá sesión para ver la información de contacto</span>
+                      <div className="relative">
+                        <div className="space-y-2 blur-sm select-none pointer-events-none" aria-hidden="true">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Phone className="h-4 w-4" />
+                            <span>+54 9 11 •••• ••••</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Mail className="h-4 w-4" />
+                            <span>•••••••@•••••.com</span>
+                          </div>
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center gap-2 text-muted-foreground bg-secondary/70 rounded-lg">
+                          <Lock className="h-4 w-4" />
+                          <span className="text-sm font-medium">Registrate para ver la información de contacto</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -323,19 +357,39 @@ const PropertyDetail = () => {
                       Contactar por WhatsApp
                     </Button>
                   ) : !user ? (
-                    <Link to="/auth" className="block">
+                    <Link
+                      to="/auth"
+                      className="block"
+                      onClick={() =>
+                        trackEvent("register_cta_click", { source: "property_detail", property_id: property.id })
+                      }
+                    >
                       <Button variant="hero" size="lg" className="w-full">
                         <Lock className="h-4 w-4" />
-                        Iniciar sesión para contactar
+                        Registrate para contactar
                       </Button>
                     </Link>
                   ) : null}
+
+                  {!user && (
+                    <p className="text-xs text-center text-muted-foreground">
+                      Es gratis y te toma menos de un minuto
+                    </p>
+                  )}
 
                   <p className="text-xs text-center text-muted-foreground">
                     Mencioná que encontraste esta propiedad en Acepto.Mascotas
                   </p>
                 </CardContent>
               </Card>
+
+              <p className="text-xs text-muted-foreground text-center mt-4 px-2">
+                Acepto Mascotas conecta propietarios y buscadores, pero no participa en los acuerdos de alquiler ni garantiza la veracidad de esta publicación. Verificá la información antes de coordinar una visita o firmar un contrato.
+              </p>
+
+              <div className="flex justify-center mt-2">
+                <ReportProperty propertyId={property.id} />
+              </div>
             </div>
           </div>
         </div>

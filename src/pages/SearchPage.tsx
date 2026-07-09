@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Search, SlidersHorizontal, X, Map as MapIcon, List, Loader2 } from "lucide-react";
+import { Search, SlidersHorizontal, X, Map as MapIcon, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PropertyCard from "@/components/PropertyCard";
+import PropertyCardSkeleton from "@/components/PropertyCardSkeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Map from "@/components/Map";
@@ -104,6 +105,10 @@ const SearchPage = () => {
     contactPhone: p.contact_phone || "",
     contactEmail: p.contact_email || "",
     amenities: [],
+    // TODO: remove the `as any` cast once `npm run gen:types` picks up
+    // the owner_is_verified column added by the verification migration.
+    isVerified: (p as any).owner_is_verified ?? false,
+    agencyId: (p as any).agency_id ?? null,
   }));
 
   return (
@@ -241,8 +246,10 @@ const SearchPage = () => {
 
         {/* Results */}
         {isLoading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <PropertyCardSkeleton key={i} />
+            ))}
           </div>
         ) : error ? (
           <div className="text-center py-16 bg-card rounded-2xl border">

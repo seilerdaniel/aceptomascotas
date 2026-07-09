@@ -35,6 +35,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateService, SERVICE_CATEGORIES, ServiceCategory } from "@/hooks/useServices";
+import ImageUploadField from "@/components/ImageUploadField";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 
@@ -103,6 +104,8 @@ const PublishServicePage = () => {
   const { toast } = useToast();
   const createService = useCreateService();
   const [submitted, setSubmitted] = useState(false);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   const form = useForm<ServiceFormData>({
     resolver: zodResolver(serviceSchema),
@@ -145,6 +148,8 @@ const PublishServicePage = () => {
         latitude: null,
         longitude: null,
         is_active: true,
+        banner_url: bannerUrl,
+        logo_url: logoUrl,
       });
 
       setSubmitted(true);
@@ -224,6 +229,36 @@ const PublishServicePage = () => {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Imágenes */}
+                  {user && (
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-lg border-b pb-2">
+                        Imágenes
+                      </h3>
+                      <ImageUploadField
+                        bucket="service-images"
+                        folderPath={user.id}
+                        filePrefix="banner"
+                        currentUrl={bannerUrl}
+                        shape="banner"
+                        label="Imagen de portada"
+                        onUploaded={setBannerUrl}
+                        onRemove={() => setBannerUrl(null)}
+                      />
+                      <div>
+                        <p className="text-sm font-medium mb-2">Logo</p>
+                        <ImageUploadField
+                          bucket="service-images"
+                          folderPath={user.id}
+                          filePrefix="logo"
+                          currentUrl={logoUrl}
+                          shape="square"
+                          onUploaded={setLogoUrl}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {/* Basic Info */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-lg border-b pb-2">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Send, Loader2, MessageSquare, User } from "lucide-react";
+import { Mail, Send, Loader2, MessageSquare, User, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,14 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/analytics";
+
+// TODO: número temporal (personal de Daniel). Reemplazar cuando esté
+// disponible el número de WhatsApp Business dedicado a Acepto Mascotas.
+const WHATSAPP_NUMBER = "5491131797343";
+const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+  "Hola! Te escribo desde Acepto Mascotas, tengo una consulta."
+)}`;
 
 const ContactPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,6 +76,7 @@ const ContactPage = () => {
       }
 
       toast.success("¡Mensaje enviado! Te responderemos pronto.");
+      trackEvent("contact_form_submitted");
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (error) {
       toast.error("Error al enviar el mensaje. Por favor intentá de nuevo.");
@@ -93,6 +102,32 @@ const ContactPage = () => {
           </div>
 
           <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-primary" />
+                ¿Necesitás una respuesta rápida?
+              </CardTitle>
+              <CardDescription>
+                Escribinos por WhatsApp y te respondemos a la brevedad.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+                onClick={() => trackEvent("whatsapp_contact_click", { source: "contact_page" })}
+              >
+                <Button variant="hero" size="lg" className="w-full gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  Escribir por WhatsApp
+                </Button>
+              </a>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-primary" />
@@ -192,13 +227,22 @@ const ContactPage = () => {
           </Card>
 
           {/* Contact info */}
-          <div className="mt-8 text-center text-muted-foreground">
+          <div className="mt-8 text-center text-muted-foreground space-y-2">
             <p>También podés escribirnos directamente a:</p>
             <a 
               href="mailto:aceptomascotas@gmail.com" 
-              className="text-primary hover:underline font-medium"
+              className="text-primary hover:underline font-medium block"
             >
               aceptomascotas@gmail.com
+            </a>
+            <a
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
             </a>
           </div>
         </div>
