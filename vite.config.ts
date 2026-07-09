@@ -43,6 +43,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Default limit is 2MB; the app's main bundle is currently ~3MB.
+        // Raising this avoids failing the build, but the bundle size itself
+        // is worth trimming down later (see note below).
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
         // Don't cache Supabase API calls — always fetch fresh data for
         // listings, messages, etc. Only static assets get cached offline.
         runtimeCaching: [
