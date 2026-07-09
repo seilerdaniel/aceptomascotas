@@ -871,7 +871,7 @@ const ProfilePage = () => {
                                 <div className="flex items-center gap-2">
                                   <p className="font-semibold">{pet.name}</p>
                                   {pet.is_lost && (
-                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
+                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full">
                                       <AlertTriangle className="h-3 w-3" />
                                       Perdida
                                     </span>

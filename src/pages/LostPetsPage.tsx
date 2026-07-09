@@ -38,7 +38,7 @@ const LostPetsPage = () => {
       <main className="flex-1 container py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 text-destructive bg-destructive/10 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <AlertTriangle className="h-4 w-4" />
               Alerta comunitaria
             </div>
@@ -82,7 +82,7 @@ const LostPetsPage = () => {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground">{pet.name}</p>
-                        <span className="text-xs font-medium text-destructive bg-destructive/10 px-2 py-0.5 rounded-full shrink-0">
+                        <span className="text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full shrink-0">
                           Perdida
                         </span>
                       </div>

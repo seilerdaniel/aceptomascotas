@@ -103,12 +103,12 @@ const Header = () => {
             <Button
               variant={isActive("/mascotas-perdidas") ? "soft" : "ghost"}
               size="sm"
-              className="gap-2 text-destructive hover:text-destructive relative"
+              className="gap-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 relative"
             >
               <AlertTriangle className="h-4 w-4" />
               Mascota Perdida
               {lostPets.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-600 dark:bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
                   {lostPets.length}
                 </span>
               )}
@@ -206,12 +206,12 @@ const Header = () => {
             <Link to="/mascotas-perdidas" onClick={() => setIsMenuOpen(false)}>
               <Button
                 variant={isActive("/mascotas-perdidas") ? "soft" : "ghost"}
-                className="w-full justify-start gap-2 text-destructive hover:text-destructive"
+                className="w-full justify-start gap-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
               >
                 <AlertTriangle className="h-4 w-4" />
                 Mascota Perdida
                 {lostPets.length > 0 && (
-                  <span className="ml-auto h-5 w-5 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
+                  <span className="ml-auto h-5 w-5 rounded-full bg-red-600 dark:bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
                     {lostPets.length}
                   </span>
                 )}
