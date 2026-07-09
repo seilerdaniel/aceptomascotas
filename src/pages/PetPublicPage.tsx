@@ -203,7 +203,7 @@ const PetPublicPage = () => {
               )}
 
               {!pet.owner_phone && (
-                <p className="text-xs text-destructive">
+                <p className="text-xs text-red-600 dark:text-red-400">
                   No hay un teléfono de contacto disponible
                 </p>
               )}

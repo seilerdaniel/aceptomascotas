@@ -137,7 +137,7 @@ const ChangePasswordForm = () => {
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
         {confirmPassword && newPassword !== confirmPassword && (
-          <p className="text-xs text-destructive">Las contraseñas no coinciden</p>
+          <p className="text-xs text-red-600 dark:text-red-400">Las contraseñas no coinciden</p>
         )}
       </div>
       <Button
@@ -627,7 +627,7 @@ const ProfilePage = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">
-                        Teléfono <span className="text-destructive">*</span>
+                        Teléfono <span className="text-red-600 dark:text-red-400">*</span>
                       </Label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -715,7 +715,7 @@ const ProfilePage = () => {
 
               <Card className="border-destructive/30">
                 <CardHeader>
-                  <CardTitle className="text-destructive">Zona de peligro</CardTitle>
+                  <CardTitle className="text-red-600 dark:text-red-400">Zona de peligro</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col sm:flex-row gap-3">
@@ -914,7 +914,7 @@ const ProfilePage = () => {
                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                  <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </AlertDialogTrigger>
@@ -1025,7 +1025,7 @@ const ProfilePage = () => {
                               size="icon"
                               onClick={() => handleDeleteService(service.id)}
                             >
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                             </Button>
                           </div>
                         </div>

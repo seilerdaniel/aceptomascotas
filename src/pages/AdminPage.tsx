@@ -263,7 +263,7 @@ const AdminPage = () => {
         <Header />
         <main className="flex-1 container py-8">
           <div className="max-w-md mx-auto text-center">
-            <Shield className="h-16 w-16 text-destructive mx-auto mb-4" />
+            <Shield className="h-16 w-16 text-red-600 dark:text-red-400 mx-auto mb-4" />
             <h1 className="font-display text-2xl font-bold mb-4">Acceso denegado</h1>
             <p className="text-muted-foreground mb-6">
               No tenés permisos de administrador para acceder a esta página.
@@ -413,7 +413,7 @@ const AdminPage = () => {
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -506,7 +506,7 @@ const AdminPage = () => {
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -590,7 +590,7 @@ const AdminPage = () => {
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="ghost" size="icon">
-                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                    <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -683,7 +683,7 @@ const AdminPage = () => {
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon">
-                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
@@ -882,7 +882,7 @@ const AdminPage = () => {
                           onCheckedChange={(checked) => handleToggleAdActive(ad.id, checked)}
                         />
                         <Button variant="ghost" size="icon" onClick={() => handleDeleteAd(ad.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                         </Button>
                       </div>
                     ))}
