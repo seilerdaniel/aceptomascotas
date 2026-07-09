@@ -357,6 +357,7 @@ const ProfilePage = () => {
     buscador: '🐾 Buscador',
     propietario: '🏠 Propietario',
     agencia: '🏢 Agencia',
+    proveedor: '🩺 Proveedor de servicios',
   };
 
   if (!authLoading && !user) {
@@ -388,8 +389,9 @@ const ProfilePage = () => {
   }
 
   const isBuscador = !isAdmin && profile?.user_type === 'buscador';
-  const showProperties = !isAdmin && !isBuscador; // propietario o agencia, sin ser admin
-  const showServices = !isAdmin; // cualquier cuenta puede publicar un servicio, excepto admin
+  const showProperties = !isAdmin && (profile?.user_type === 'propietario' || profile?.user_type === 'agencia');
+  const isProveedor = !isAdmin && profile?.user_type === 'proveedor';
+  const showServices = isProveedor; // cuenta dedicada a ofrecer servicios, no todos los roles
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -443,7 +445,7 @@ const ProfilePage = () => {
                 <div className="flex items-center gap-2">
                   <LayoutDashboard className="h-5 w-5 text-primary" />
                   <h2 className="font-display text-xl font-semibold">
-                    {isBuscador ? 'Tu panel' : profile?.user_type === 'agencia' ? 'Panel de agencia' : 'Panel de propietario'}
+                    {isBuscador ? 'Tu panel' : isProveedor ? 'Panel de proveedor' : profile?.user_type === 'agencia' ? 'Panel de agencia' : 'Panel de propietario'}
                   </h2>
                 </div>
                 <Button variant="outline" size="sm" className="gap-2" onClick={handleSignOut}>
@@ -538,6 +540,23 @@ const ProfilePage = () => {
                       </CardContent>
                     </Card>
                   </>
+                ) : isProveedor ? (
+                  <>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-3xl font-bold text-primary">
+                          {userServices?.filter((s: any) => s.is_approved).length ?? 0}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Servicios aprobados</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-3xl font-bold text-primary">{userServices?.length ?? 0}</p>
+                        <p className="text-sm text-muted-foreground">Servicios publicados</p>
+                      </CardContent>
+                    </Card>
+                  </>
                 ) : (
                   <>
                     <Card>
@@ -575,6 +594,13 @@ const ProfilePage = () => {
                       </Button>
                     </Link>
                   </>
+                ) : isProveedor ? (
+                  <Link to="/servicios/publicar">
+                    <Button variant="hero" className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Publicar nuevo servicio
+                    </Button>
+                  </Link>
                 ) : (
                   <>
                     <Link to="/publicar">

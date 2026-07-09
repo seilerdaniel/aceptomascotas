@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Eye, EyeOff, ArrowLeft, PawPrint, Home, Building2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, PawPrint, Home, Building2, Stethoscope } from 'lucide-react';
 import logo from "@/assets/logo.svg";
 import { z } from 'zod';
 
@@ -26,7 +26,7 @@ const fullNameSchema = z.string()
   .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/, 'Solo letras, espacios y guiones')
   .transform(val => val.trim().replace(/\s+/g, ' '));
 
-type UserType = 'buscador' | 'propietario' | 'agencia';
+type UserType = 'buscador' | 'propietario' | 'agencia' | 'proveedor';
 
 const userTypeOptions = [
   {
@@ -46,6 +46,12 @@ const userTypeOptions = [
     icon: Building2,
     title: 'Soy agencia',
     description: 'Represento una inmobiliaria o agencia',
+  },
+  {
+    value: 'proveedor' as UserType,
+    icon: Stethoscope,
+    title: 'Ofrezco un servicio',
+    description: 'Soy veterinario/a, paseador/a u otro servicio para mascotas',
   },
 ];
 

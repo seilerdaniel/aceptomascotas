@@ -34,6 +34,8 @@ import {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useCreateService, SERVICE_CATEGORIES, ServiceCategory } from "@/hooks/useServices";
 import ImageUploadField from "@/components/ImageUploadField";
 import { useToast } from "@/hooks/use-toast";
@@ -100,12 +102,26 @@ type ServiceFormData = z.infer<typeof serviceSchema>;
 
 const PublishServicePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const createService = useCreateService();
   const [submitted, setSubmitted] = useState(false);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const form = useForm<ServiceFormData>({
     resolver: zodResolver(serviceSchema),
@@ -165,6 +181,44 @@ const PublishServicePage = () => {
       });
     }
   };
+
+  if (authLoading || profileLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container py-16 flex justify-center items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!user) {
+    navigate("/auth");
+    return null;
+  }
+
+  if (profile?.user_type !== "proveedor") {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container py-16 text-center">
+          <h1 className="font-display text-2xl font-bold text-foreground mb-4">
+            Publicar servicios es para cuentas de proveedor
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            Esta sección está pensada para veterinarias, paseadores y otros servicios para mascotas.
+            Registrate con ese tipo de cuenta para poder publicar el tuyo.
+          </p>
+          <Link to="/servicios">
+            <Button variant="outline">Ver servicios publicados</Button>
+          </Link>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
