@@ -123,7 +123,9 @@ const PetPublicPage = () => {
     <div className="min-h-screen bg-background p-4 flex items-center justify-center">
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-6">
-          <img src={logo} alt="Acepto Mascotas" className="h-10 w-10" />
+          <div className="h-10 w-10 rounded-full bg-white p-0.5 shadow-sm">
+            <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+          </div>
           <span className="font-body font-bold text-lg">Acepto Mascotas</span>
         </Link>
 

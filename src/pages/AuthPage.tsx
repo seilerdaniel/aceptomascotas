@@ -201,7 +201,9 @@ const AuthPage = () => {
           <Card className="shadow-hover">
             <CardHeader className="text-center space-y-4">
               <Link to="/" className="flex items-center justify-center gap-2">
-                <img src={logo} alt="Acepto Mascotas" className="h-16 w-16" />
+                <div className="h-16 w-16 rounded-full bg-white p-1 shadow-sm">
+                  <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+                </div>
               </Link>
               <div>
                 <CardTitle className="font-body text-2xl font-bold">
@@ -269,7 +271,9 @@ const AuthPage = () => {
           <Card className="shadow-hover">
             <CardHeader className="text-center space-y-4">
               <Link to="/" className="flex items-center justify-center gap-2">
-                <img src={logo} alt="Acepto Mascotas" className="h-16 w-16" />
+                <div className="h-16 w-16 rounded-full bg-white p-1 shadow-sm">
+                  <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+                </div>
               </Link>
               <div>
                 <CardTitle className="font-body text-2xl font-bold">
@@ -335,7 +339,9 @@ const AuthPage = () => {
         <Card className="shadow-hover">
           <CardHeader className="text-center space-y-4">
             <Link to="/" className="flex items-center justify-center gap-2">
-              <img src={logo} alt="Acepto Mascotas" className="h-16 w-16" />
+              <div className="h-16 w-16 rounded-full bg-white p-1 shadow-sm">
+                  <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+                </div>
             </Link>
             <div>
               <CardTitle className="font-body text-2xl font-bold">
