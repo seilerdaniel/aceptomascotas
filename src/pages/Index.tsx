@@ -90,7 +90,9 @@ const Index = () => {
             <div className="max-w-2xl space-y-8">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-pet-green-light/80 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium text-primary animate-fade-up">
-                <img src={logo} alt="Acepto Mascotas" className="h-5 w-5" />
+                <div className="h-5 w-5 rounded-full bg-white p-0.5 shrink-0">
+                  <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+                </div>
                 <span>El marketplace pet-friendly de Argentina</span>
               </div>
 
@@ -285,7 +287,9 @@ const Index = () => {
           <div className="bg-primary rounded-3xl p-8 md:p-16 text-center relative overflow-hidden">
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-10 left-10">
-                <img src={logo} alt="" className="h-32 w-32 opacity-50" />
+                <div className="h-32 w-32 rounded-full bg-white p-2">
+                  <img src={logo} alt="" className="h-full w-full rounded-full object-cover opacity-50" />
+                </div>
               </div>
               <div className="absolute bottom-10 right-10">
                 <Home className="h-24 w-24" />
