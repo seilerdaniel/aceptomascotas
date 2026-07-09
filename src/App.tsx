@@ -10,6 +10,7 @@ import PropertyDetail from "./pages/PropertyDetail";
 import PublishPage from "./pages/PublishPage";
 import BulkImportPage from "./pages/BulkImportPage";
 import AgencyPage from "./pages/AgencyPage";
+import LostPetsPage from "./pages/LostPetsPage";
 import AuthPage from "./pages/AuthPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import ContactPage from "./pages/ContactPage";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/publicar" element={<PublishPage />} />
             <Route path="/publicar/importar" element={<BulkImportPage />} />
             <Route path="/agencia/:userId" element={<AgencyPage />} />
+            <Route path="/mascotas-perdidas" element={<LostPetsPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/favoritos" element={<FavoritesPage />} />
             <Route path="/contacto" element={<ContactPage />} />

@@ -1,6 +1,15 @@
+import { useEffect, useState } from "react";
 import { Search, Plus, Home, Heart, Shield, Clock, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
 import Header from "@/components/Header";
@@ -18,6 +27,21 @@ const Index = () => {
   const { data: dbProperties = [], isLoading } = useFeaturedProperties(6);
   const { data: stats } = usePlatformStats();
   const { data: ads = [] } = useActiveAds();
+
+  const [adsApi, setAdsApi] = useState<CarouselApi>();
+
+  // Auto-advance the ads carousel every 5s, only when there's more than one ad.
+  useEffect(() => {
+    if (!adsApi || ads.length <= 1) return;
+    const interval = setInterval(() => {
+      if (adsApi.canScrollNext()) {
+        adsApi.scrollNext();
+      } else {
+        adsApi.scrollTo(0);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [adsApi, ads.length]);
 
   // Only show the public counter once numbers are meaningful enough to
   // build trust rather than look empty. Tune this as volume grows.
@@ -136,15 +160,35 @@ const Index = () => {
           <section className="container pb-12">
             <div className="max-w-4xl mx-auto">
               <p className="text-xs text-muted-foreground text-center mb-2">Publicidad</p>
-              <a
-                href={ads[0].link_url || "#"}
-                target={ads[0].link_url ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                onClick={() => trackEvent("ad_banner_click", { advertiser: ads[0].advertiser_name })}
-                className="block rounded-2xl overflow-hidden border hover:opacity-90 transition-opacity"
-              >
-                <img src={ads[0].image_url} alt={ads[0].alt_text} className="w-full h-auto" />
-              </a>
+              <Carousel setApi={setAdsApi} className="relative">
+                <CarouselContent>
+                  {ads.map((ad) => (
+                    <CarouselItem key={ad.id}>
+                      <a
+                        href={ad.link_url || "#"}
+                        target={ad.link_url ? "_blank" : undefined}
+                        rel="noopener noreferrer"
+                        onClick={() => trackEvent("ad_banner_click", { advertiser: ad.advertiser_name })}
+                        className="block rounded-2xl overflow-hidden border hover:opacity-90 transition-opacity"
+                      >
+                        <div className="w-full aspect-[3/1] bg-secondary">
+                          <img
+                            src={ad.image_url}
+                            alt={ad.alt_text}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </a>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {ads.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-2" />
+                    <CarouselNext className="right-2" />
+                  </>
+                )}
+              </Carousel>
             </div>
           </section>
         )}

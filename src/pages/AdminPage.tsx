@@ -794,16 +794,21 @@ const AdminPage = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {user && (
-                  <ImageUploadField
-                    bucket="ad-images"
-                    folderPath="ads"
-                    filePrefix={user.id}
-                    currentUrl={newAdImage}
-                    shape="banner"
-                    label="Imagen del anuncio"
-                    onUploaded={setNewAdImage}
-                    onRemove={() => setNewAdImage(null)}
-                  />
+                  <div className="space-y-1.5">
+                    <ImageUploadField
+                      bucket="ad-images"
+                      folderPath="ads"
+                      filePrefix={user.id}
+                      currentUrl={newAdImage}
+                      shape="banner"
+                      label="Imagen del anuncio"
+                      onUploaded={setNewAdImage}
+                      onRemove={() => setNewAdImage(null)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Tamaño recomendado: 1200×400px (relación 3:1) — es la proporción con la que se muestra en la home. Formato JPG o PNG, hasta 5MB.
+                    </p>
+                  </div>
                 )}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">

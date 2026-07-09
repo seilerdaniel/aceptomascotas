@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Home, Plus, Search, User, LogOut, Heart, Settings, PawPrint, Shield } from "lucide-react";
+import { Menu, X, Home, Plus, Search, User, LogOut, Heart, Settings, PawPrint, Shield, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,6 +44,16 @@ const Header = () => {
   const canPublish =
     !isAdmin && (profile?.user_type === "propietario" || profile?.user_type === "agencia");
 
+  const { data: lostPets = [] } = useQuery({
+    queryKey: ["lost-pets"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_lost_pets" as any);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    staleTime: 60 * 1000,
+  });
+
   const navLinks = [
     { href: "/", label: "Inicio", icon: Home },
     { href: "/buscar", label: "Buscar", icon: Search },
@@ -61,7 +71,9 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2 transition-transform hover:scale-105">
-          <img src={logo} alt="Acepto Mascotas" className="h-10 w-10" />
+          <div className="h-10 w-10 rounded-full bg-white p-0.5 shrink-0 shadow-sm">
+            <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+          </div>
           <div className="flex flex-col">
             <span className="font-body text-lg font-bold leading-tight text-foreground">
               Acepto Mascotas
@@ -86,6 +98,22 @@ const Header = () => {
               </Button>
             </Link>
           ))}
+
+          <Link to="/mascotas-perdidas">
+            <Button
+              variant={isActive("/mascotas-perdidas") ? "soft" : "ghost"}
+              size="sm"
+              className="gap-2 text-destructive hover:text-destructive relative"
+            >
+              <AlertTriangle className="h-4 w-4" />
+              Mascota Perdida
+              {lostPets.length > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
+                  {lostPets.length}
+                </span>
+              )}
+            </Button>
+          </Link>
           
           {!loading && (
             <>
@@ -174,6 +202,21 @@ const Header = () => {
                 </Button>
               </Link>
             ))}
+
+            <Link to="/mascotas-perdidas" onClick={() => setIsMenuOpen(false)}>
+              <Button
+                variant={isActive("/mascotas-perdidas") ? "soft" : "ghost"}
+                className="w-full justify-start gap-2 text-destructive hover:text-destructive"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                Mascota Perdida
+                {lostPets.length > 0 && (
+                  <span className="ml-auto h-5 w-5 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
+                    {lostPets.length}
+                  </span>
+                )}
+              </Button>
+            </Link>
             
             {!loading && (
               <>
