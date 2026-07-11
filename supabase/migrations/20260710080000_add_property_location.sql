@@ -1,37 +1,33 @@
--- Location picker for property listings.
-ALTER TABLE public.properties
-  ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
+-- Last-seen location for lost pets (set optionally when marking a pet lost).
+ALTER TABLE public.pets
+  ADD COLUMN IF NOT EXISTS lost_latitude DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS lost_longitude DOUBLE PRECISION;
 
--- Recreate properties_public to include the new coordinate columns
--- (coordinates are approximate/voluntary and not sensitive like contact
--- info, so they're exposed the same way for everyone, logged in or not).
-DROP VIEW IF EXISTS public.properties_public;
+-- Update get_lost_pets to include the last-seen coordinates.
+-- Postgres won't let CREATE OR REPLACE change a function's return
+-- columns, so the old version has to be dropped first.
+DROP FUNCTION IF EXISTS public.get_lost_pets();
 
-CREATE VIEW public.properties_public
-WITH (security_invoker = off) AS
-SELECT
-  id,
-  title,
-  description,
-  location,
-  address,
-  price,
-  property_type,
-  pet_types,
-  images,
-  contact_name,
-  CASE WHEN auth.uid() IS NOT NULL THEN contact_phone ELSE NULL END AS contact_phone,
-  CASE WHEN auth.uid() IS NOT NULL THEN contact_email ELSE NULL END AS contact_email,
-  is_active,
-  owner_is_verified,
-  latitude,
-  longitude,
-  created_at,
-  updated_at,
-  NULL::uuid AS user_id,
-  CASE WHEN owner_is_agency THEN user_id ELSE NULL END AS agency_id
-FROM public.properties
-WHERE is_active = true;
+CREATE OR REPLACE FUNCTION public.get_lost_pets()
+RETURNS TABLE (
+  qr_code TEXT,
+  name TEXT,
+  species TEXT,
+  breed TEXT,
+  images TEXT[],
+  lost_since TIMESTAMPTZ,
+  lost_latitude DOUBLE PRECISION,
+  lost_longitude DOUBLE PRECISION
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT qr_code, name, species, breed, images, lost_since, lost_latitude, lost_longitude
+  FROM public.pets
+  WHERE is_lost = true AND qr_code IS NOT NULL
+  ORDER BY lost_since DESC NULLS LAST;
+$$;
 
-GRANT SELECT ON public.properties_public TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_lost_pets() TO anon, authenticated;

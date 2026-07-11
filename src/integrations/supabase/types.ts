@@ -209,6 +209,8 @@ export type Database = {
           id: string
           images: string[] | null
           is_lost: boolean
+          lost_latitude: number | null
+          lost_longitude: number | null
           lost_since: string | null
           name: string
           qr_code: string | null
@@ -225,6 +227,8 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_lost?: boolean
+          lost_latitude?: number | null
+          lost_longitude?: number | null
           lost_since?: string | null
           name: string
           qr_code?: string | null
@@ -241,6 +245,8 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_lost?: boolean
+          lost_latitude?: number | null
+          lost_longitude?: number | null
           lost_since?: string | null
           name?: string
           qr_code?: string | null
@@ -307,7 +313,9 @@ export type Database = {
           id: string
           images: string[] | null
           is_active: boolean | null
+          latitude: number | null
           location: string
+          longitude: number | null
           owner_is_agency: boolean
           owner_is_verified: boolean
           pet_types: Database["public"]["Enums"]["pet_type"][]
@@ -327,7 +335,9 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          latitude?: number | null
           location: string
+          longitude?: number | null
           owner_is_agency?: boolean
           owner_is_verified?: boolean
           pet_types?: Database["public"]["Enums"]["pet_type"][]
@@ -347,7 +357,9 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           owner_is_agency?: boolean
           owner_is_verified?: boolean
           pet_types?: Database["public"]["Enums"]["pet_type"][]
@@ -480,7 +492,9 @@ export type Database = {
           id: string | null
           images: string[] | null
           is_active: boolean | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           owner_is_verified: boolean | null
           pet_types: Database["public"]["Enums"]["pet_type"][] | null
           price: number | null
@@ -500,7 +514,9 @@ export type Database = {
           id?: string | null
           images?: string[] | null
           is_active?: boolean | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           owner_is_verified?: boolean | null
           pet_types?: Database["public"]["Enums"]["pet_type"][] | null
           price?: number | null
@@ -520,7 +536,9 @@ export type Database = {
           id?: string | null
           images?: string[] | null
           is_active?: boolean | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           owner_is_verified?: boolean | null
           pet_types?: Database["public"]["Enums"]["pet_type"][] | null
           price?: number | null
@@ -564,7 +582,9 @@ export type Database = {
           id: string | null
           images: string[] | null
           is_active: boolean | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           owner_is_verified: boolean | null
           pet_types: Database["public"]["Enums"]["pet_type"][] | null
           price: number | null
@@ -587,6 +607,19 @@ export type Database = {
           banner_url: string
           full_name: string
           is_verified: boolean
+        }[]
+      }
+      get_lost_pets: {
+        Args: never
+        Returns: {
+          breed: string
+          images: string[]
+          lost_latitude: number
+          lost_longitude: number
+          lost_since: string
+          name: string
+          qr_code: string
+          species: string
         }[]
       }
       get_pet_by_qr_code: {
@@ -632,7 +665,7 @@ export type Database = {
         | "ong_refugio"
         | "peluqueria"
         | "tienda"
-      user_type: "buscador" | "propietario" | "agencia"
+      user_type: "buscador" | "propietario" | "agencia" | "proveedor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -775,7 +808,7 @@ export const Constants = {
         "peluqueria",
         "tienda",
       ],
-      user_type: ["buscador", "propietario", "agencia"],
+      user_type: ["buscador", "propietario", "agencia", "proveedor"],
     },
   },
 } as const

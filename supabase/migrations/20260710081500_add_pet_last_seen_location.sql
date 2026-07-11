@@ -4,6 +4,10 @@ ALTER TABLE public.pets
   ADD COLUMN IF NOT EXISTS lost_longitude DOUBLE PRECISION;
 
 -- Update get_lost_pets to include the last-seen coordinates.
+-- Postgres won't let CREATE OR REPLACE change a function's return
+-- columns, so the old version has to be dropped first.
+DROP FUNCTION IF EXISTS public.get_lost_pets();
+
 CREATE OR REPLACE FUNCTION public.get_lost_pets()
 RETURNS TABLE (
   qr_code TEXT,
