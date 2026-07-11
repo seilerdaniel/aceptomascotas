@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft, PawPrint, Home, Building2, Stethoscope } from 'lucide-react';
 import logo from "@/assets/logo.svg";
+import heroImage from "@/assets/hero-image.jpg";
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Email inválido').max(255, 'Email muy largo');
@@ -57,6 +58,36 @@ const userTypeOptions = [
     description: 'Soy veterinario/a, paseador/a u otro servicio para mascotas',
   },
 ];
+
+// Shared split-screen layout for all 3 auth screens (form, user-type,
+// forgot-password). Image + branding on the left (hidden on small screens),
+// scrollable content on the right so a tall form never fights the page
+// scroll — only this right panel scrolls.
+const AuthLayout = ({ children }: { children: ReactNode }) => (
+  <div className="min-h-screen flex bg-background">
+    <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+      <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-primary/75" />
+      <div className="relative z-10 h-full flex flex-col justify-end p-12 text-primary-foreground">
+        <div className="h-14 w-14 rounded-full bg-white p-1 shadow-sm mb-6">
+          <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+        </div>
+        <h2 className="font-display text-3xl font-bold mb-3">
+          Tu hogar, tu familia, tus mascotas
+        </h2>
+        <p className="text-primary-foreground/90 max-w-sm">
+          Encontrá alquileres pet-friendly en toda Argentina, sin tener que elegir entre tu familia y tus mascotas.
+        </p>
+      </div>
+    </div>
+
+    <div className="flex-1 overflow-y-auto">
+      <div className="min-h-full flex items-center justify-center p-4 py-10">
+        <div className="w-full max-w-md">{children}</div>
+      </div>
+    </div>
+  </div>
+);
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -239,8 +270,7 @@ const AuthPage = () => {
   // Pantalla de selección de tipo de usuario
   if (step === 'user-type') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md">
+      <AuthLayout>
           <button
             onClick={() => setStep('form')}
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -301,16 +331,14 @@ const AuthPage = () => {
               </Button>
             </CardContent>
           </Card>
-        </div>
-      </div>
+      </AuthLayout>
     );
   }
 
   // Pantalla de olvidé mi contraseña
   if (isForgotPassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md">
+      <AuthLayout>
           <button
             onClick={() => { setIsForgotPassword(false); setForgotSent(false); setForgotEmail(''); }}
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -373,15 +401,13 @@ const AuthPage = () => {
               )}
             </CardContent>
           </Card>
-        </div>
-      </div>
+      </AuthLayout>
     );
   }
 
   // Pantalla principal de login/registro
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
+    <AuthLayout>
         <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
           <ArrowLeft className="h-4 w-4" />
           Volver al inicio
@@ -521,8 +547,7 @@ const AuthPage = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
+    </AuthLayout>
   );
 };
 

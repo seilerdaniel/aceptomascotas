@@ -26,7 +26,8 @@ const AlternativeAuthMethods = () => {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      console.error("Magic link error:", error);
+      toast.error(error.message || "No se pudo enviar el link. Revisá la consola para más detalle.");
       return;
     }
     setMode("magic-link-sent");
