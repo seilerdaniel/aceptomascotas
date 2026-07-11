@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, AlertTriangle, PawPrint } from 'lucide-react';
+import { Loader2, AlertTriangle, PawPrint, MapPin } from 'lucide-react';
+import { googleMapsLink } from '@/lib/googleMaps';
 
 interface LostPet {
   qr_code: string;
@@ -13,6 +14,8 @@ interface LostPet {
   breed: string | null;
   images: string[] | null;
   lost_since: string | null;
+  lost_latitude: number | null;
+  lost_longitude: number | null;
 }
 
 const speciesEmoji = (species: string) => {
@@ -68,36 +71,49 @@ const LostPetsPage = () => {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {pets.map((pet) => (
-                <Link key={pet.qr_code} to={`/mascota/${pet.qr_code}`}>
-                  <Card className="overflow-hidden hover:shadow-hover transition-shadow h-full border-destructive/20">
-                    <div className="aspect-square bg-secondary overflow-hidden">
-                      {pet.images && pet.images.length > 0 ? (
-                        <img src={pet.images[0]} alt={pet.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-5xl">
-                          {speciesEmoji(pet.species)}
-                        </div>
-                      )}
-                    </div>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-foreground">{pet.name}</p>
-                        <span className="text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full shrink-0">
-                          Perdida
-                        </span>
+                <div key={pet.qr_code}>
+                  <Link to={`/mascota/${pet.qr_code}`}>
+                    <Card className="overflow-hidden hover:shadow-hover transition-shadow h-full border-destructive/20">
+                      <div className="aspect-square bg-secondary overflow-hidden">
+                        {pet.images && pet.images.length > 0 ? (
+                          <img src={pet.images[0]} alt={pet.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-5xl">
+                            {speciesEmoji(pet.species)}
+                          </div>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {pet.breed ? `${pet.breed} · ` : ''}
-                        {speciesEmoji(pet.species)} {pet.species}
-                      </p>
-                      {pet.lost_since && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Perdida desde el {new Date(pet.lost_since).toLocaleDateString('es-AR')}
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-foreground">{pet.name}</p>
+                          <span className="text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full shrink-0">
+                            Perdida
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {pet.breed ? `${pet.breed} · ` : ''}
+                          {speciesEmoji(pet.species)} {pet.species}
                         </p>
-                      )}
-                    </CardContent>
+                        {pet.lost_since && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Perdida desde el {new Date(pet.lost_since).toLocaleDateString('es-AR')}
+                          </p>
+                        )}
+                      </CardContent>
                   </Card>
                 </Link>
+                {pet.lost_latitude && pet.lost_longitude && (
+                  <a
+                    href={googleMapsLink(pet.lost_latitude, pet.lost_longitude)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2 px-1"
+                  >
+                    <MapPin className="h-3 w-3" />
+                    Ver última ubicación en Google Maps
+                  </a>
+                )}
+                </div>
               ))}
             </div>
           )}

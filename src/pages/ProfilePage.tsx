@@ -24,6 +24,7 @@ import { useUserServices, useToggleServiceActive, useDeleteService, getCategoryL
 import EditServiceDialog from '@/components/EditServiceDialog';
 import ImageUploadField from '@/components/ImageUploadField';
 import ThemeToggle from '@/components/ThemeToggle';
+import MarkPetLostDialog from '@/components/MarkPetLostDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -311,13 +312,21 @@ const ProfilePage = () => {
     }
   };
 
-  const handleToggleLost = async (petId: string, petName: string, markAsLost: boolean) => {
+  const handleToggleLost = async (
+    petId: string,
+    petName: string,
+    markAsLost: boolean,
+    lostLat?: number | null,
+    lostLng?: number | null
+  ) => {
     const { error } = await supabase
       .from('pets')
       .update({
         is_lost: markAsLost,
         lost_since: markAsLost ? new Date().toISOString() : null,
-      })
+        lost_latitude: markAsLost ? lostLat ?? null : null,
+        lost_longitude: markAsLost ? lostLng ?? null : null,
+      } as any)
       .eq('id', petId);
 
     if (error) {
@@ -915,15 +924,22 @@ const ProfilePage = () => {
                             </div>
                             <div className="flex gap-2">
                               {pet.qr_code && (
-                                <Button
-                                  variant={pet.is_lost ? "outline" : "destructive"}
-                                  size="sm"
-                                  className="gap-1"
-                                  onClick={() => handleToggleLost(pet.id, pet.name, !pet.is_lost)}
-                                >
-                                  <AlertTriangle className="h-3.5 w-3.5" />
-                                  {pet.is_lost ? "Encontrada" : "Perdida"}
-                                </Button>
+                                pet.is_lost ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1"
+                                    onClick={() => handleToggleLost(pet.id, pet.name, false)}
+                                  >
+                                    <AlertTriangle className="h-3.5 w-3.5" />
+                                    Encontrada
+                                  </Button>
+                                ) : (
+                                  <MarkPetLostDialog
+                                    petName={pet.name}
+                                    onConfirm={(lat, lng) => handleToggleLost(pet.id, pet.name, true, lat, lng)}
+                                  />
+                                )
                               )}
                               <PetQRCode
                                 petId={pet.id}

@@ -256,6 +256,24 @@ Deno.serve(async (req) => {
     const contactEmail = validateEmail(body.contactEmail);
     const images = validateImages(body.images);
 
+    // Location coordinates are optional; validate range if provided.
+    let latitude: number | null = null;
+    let longitude: number | null = null;
+    if (body.latitude !== undefined && body.latitude !== null) {
+      const lat = Number(body.latitude);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        throw new Error("Invalid latitude");
+      }
+      latitude = lat;
+    }
+    if (body.longitude !== undefined && body.longitude !== null) {
+      const lng = Number(body.longitude);
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        throw new Error("Invalid longitude");
+      }
+      longitude = lng;
+    }
+
     // Insert property into database
     const { data: property, error: insertError } = await supabase
       .from("properties")
@@ -273,6 +291,8 @@ Deno.serve(async (req) => {
         user_id: user.id,
         is_active: true,
         images,
+        latitude,
+        longitude,
       })
       .select()
       .single();

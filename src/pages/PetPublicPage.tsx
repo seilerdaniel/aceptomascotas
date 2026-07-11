@@ -7,6 +7,7 @@ import { Loader2, PawPrint, MessageCircle, Phone, ArrowLeft, AlertTriangle, Shar
 import logo from '@/assets/logo.svg';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/analytics';
+import { googleMapsLink } from '@/lib/googleMaps';
 
 interface PetPublicData {
   pet_name: string;
@@ -19,6 +20,8 @@ interface PetPublicData {
   owner_alternative_phone: string | null;
   is_lost?: boolean;
   lost_since?: string | null;
+  lost_latitude?: number | null;
+  lost_longitude?: number | null;
 }
 
 const speciesEmoji: Record<string, string> = {
@@ -135,6 +138,16 @@ const PetPublicPage = () => {
               <AlertTriangle className="h-4 w-4" />
               MASCOTA PERDIDA{pet.lost_since ? ` · desde el ${new Date(pet.lost_since).toLocaleDateString('es-AR')}` : ''}
             </div>
+          )}
+          {pet.is_lost && pet.lost_latitude && pet.lost_longitude && (
+            <a
+              href={googleMapsLink(pet.lost_latitude, pet.lost_longitude)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block bg-destructive/10 text-destructive text-center py-2 px-4 text-sm font-medium hover:underline"
+            >
+              📍 Ver última ubicación vista en Google Maps
+            </a>
           )}
 
           {pet.pet_images && pet.pet_images.length > 0 ? (

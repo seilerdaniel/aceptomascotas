@@ -19,6 +19,8 @@ export interface Property {
   amenities: string[];
   isVerified?: boolean;
   agencyId?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export const mockProperties: Property[] = [

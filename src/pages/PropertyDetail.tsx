@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import ReportProperty from "@/components/ReportProperty";
 import { trackEvent } from "@/lib/analytics";
+import { googleMapsLink } from "@/lib/googleMaps";
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -38,6 +39,8 @@ const PropertyDetail = () => {
         // the owner_is_verified column added by the verification migration.
         isVerified: (dbProperty as any).owner_is_verified ?? false,
         agencyId: (dbProperty as any).agency_id ?? null,
+        latitude: (dbProperty as any).latitude ?? null,
+        longitude: (dbProperty as any).longitude ?? null,
         amenities: [],
       }
     : mockProperty;
@@ -208,6 +211,16 @@ const PropertyDetail = () => {
                     <div className="flex items-center gap-2 text-muted-foreground mt-2">
                       <MapPin className="h-4 w-4" />
                       <span>{property.location}</span>
+                      {property.latitude && property.longitude && (
+                        <a
+                          href={googleMapsLink(property.latitude, property.longitude)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline text-sm font-medium"
+                        >
+                          Ver en Google Maps
+                        </a>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">

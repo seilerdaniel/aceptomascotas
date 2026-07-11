@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 
 interface MapProps {
@@ -17,19 +15,11 @@ interface MapProps {
   onMarkerClick?: (id: string) => void;
 }
 
-const MAPBOX_TOKEN_KEY = 'mapbox_token';
-
 const Map = ({ properties = [], onMarkerClick }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [token, setToken] = useState(() => localStorage.getItem(MAPBOX_TOKEN_KEY) || '');
-  const [inputToken, setInputToken] = useState('');
   const [isMapReady, setIsMapReady] = useState(false);
-
-  const saveToken = () => {
-    localStorage.setItem(MAPBOX_TOKEN_KEY, inputToken);
-    setToken(inputToken);
-  };
+  const token = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 
   useEffect(() => {
     if (!mapContainer.current || !token) return;
@@ -82,8 +72,6 @@ const Map = ({ properties = [], onMarkerClick }: MapProps) => {
       });
     } catch (error) {
       console.error('Error initializing map:', error);
-      localStorage.removeItem(MAPBOX_TOKEN_KEY);
-      setToken('');
     }
 
     return () => {
@@ -95,29 +83,10 @@ const Map = ({ properties = [], onMarkerClick }: MapProps) => {
     return (
       <div className="bg-card rounded-2xl border p-8 text-center">
         <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="font-body text-lg font-semibold mb-2">Configurar Mapa</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Ingresá tu token de Mapbox para ver el mapa de propiedades.
-          Podés obtenerlo gratis en{' '}
-          <a
-            href="https://mapbox.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            mapbox.com
-          </a>
+        <h3 className="font-body text-lg font-semibold mb-2">Mapa no disponible</h3>
+        <p className="text-sm text-muted-foreground">
+          Este mapa todavía no está configurado. Intentá de nuevo más tarde.
         </p>
-        <div className="flex gap-2 max-w-md mx-auto">
-          <Input
-            placeholder="pk.eyJ1..."
-            value={inputToken}
-            onChange={(e) => setInputToken(e.target.value)}
-          />
-          <Button variant="hero" onClick={saveToken} disabled={!inputToken}>
-            Guardar
-          </Button>
-        </div>
       </div>
     );
   }

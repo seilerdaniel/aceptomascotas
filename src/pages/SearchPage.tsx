@@ -109,6 +109,8 @@ const SearchPage = () => {
     // the owner_is_verified column added by the verification migration.
     isVerified: (p as any).owner_is_verified ?? false,
     agencyId: (p as any).agency_id ?? null,
+    latitude: (p as any).latitude ?? null,
+    longitude: (p as any).longitude ?? null,
   }));
 
   return (
@@ -238,6 +240,8 @@ const SearchPage = () => {
                 title: p.title,
                 price: p.price,
                 location: p.location,
+                lat: p.latitude ?? undefined,
+                lng: p.longitude ?? undefined,
               }))}
               onMarkerClick={handlePropertyClick}
             />

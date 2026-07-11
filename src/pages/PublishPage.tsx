@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
+import LocationPicker from "@/components/LocationPicker";
 
 const PublishPage = () => {
   const navigate = useNavigate();
@@ -52,6 +53,8 @@ const PublishPage = () => {
     contactPhone: "",
     contactEmail: "",
   });
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -213,6 +216,8 @@ const PublishPage = () => {
           contactPhone: formData.contactPhone,
           contactEmail: formData.contactEmail,
           images: imageUrls,
+          latitude,
+          longitude,
         },
       });
 
@@ -373,6 +378,21 @@ const PublishPage = () => {
                     onChange={handleInputChange}
                     maxLength={200}
                     required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Marcar en el mapa (opcional)</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Le permite a quien vea la publicación abrir la ubicación exacta en Google Maps.
+                  </p>
+                  <LocationPicker
+                    initialLat={latitude}
+                    initialLng={longitude}
+                    onChange={(lat, lng) => {
+                      setLatitude(lat);
+                      setLongitude(lng);
+                    }}
                   />
                 </div>
               </CardContent>

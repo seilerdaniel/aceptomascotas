@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
+import SocialAuthButtons from '@/components/SocialAuthButtons';
+import AlternativeAuthMethods from '@/components/AlternativeAuthMethods';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,9 +75,32 @@ const AuthPage = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string }>({});
   const [passwordStrength, setPasswordStrength] = useState<string[]>([]);
 
+  // Used to know whether a logged-in user still needs to pick a role —
+  // relevant for accounts created via OAuth/magic link/phone, which skip
+  // the normal signup form where user_type is set.
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
   useEffect(() => {
-    if (user) navigate('/');
-  }, [user, navigate]);
+    if (!user || profileLoading) return;
+    if (!profile?.user_type) {
+      // New account (OAuth/magic link/phone) without a role yet.
+      setStep('user-type');
+    } else {
+      navigate('/');
+    }
+  }, [user, profile, profileLoading, navigate]);
 
   const checkPasswordStrength = (pwd: string) => {
     const missing: string[] = [];
@@ -144,6 +170,25 @@ const AuthPage = () => {
     }
 
     setSubmitting(true);
+
+    // Already-authenticated users (OAuth/magic link/phone) just need their
+    // profile's user_type set — they don't go through signUp again.
+    if (user) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ user_type: selectedUserType })
+        .eq('user_id', user.id);
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('¡Bienvenido a Acepto Mascotas!');
+        navigate('/');
+      }
+      setSubmitting(false);
+      return;
+    }
+
     const { error } = await signUp(email, password, fullName, selectedUserType);
     if (error) {
       if (error.message.includes('User already registered')) {
@@ -361,6 +406,17 @@ const AuthPage = () => {
             </div>
           </CardHeader>
           <CardContent>
+            <SocialAuthButtons disabled={submitting} />
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">O con email</span>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
@@ -444,6 +500,12 @@ const AuthPage = () => {
                   : 'Continuar'}
               </Button>
             </form>
+
+            {isLogin && (
+              <div className="mt-6 pt-6 border-t">
+                <AlternativeAuthMethods />
+              </div>
+            )}
 
             <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">

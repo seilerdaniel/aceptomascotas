@@ -25,7 +25,9 @@ RETURNS TABLE (
   owner_has_whatsapp BOOLEAN,
   owner_alternative_phone TEXT,
   is_lost BOOLEAN,          -- NEW
-  lost_since TIMESTAMPTZ    -- NEW
+  lost_since TIMESTAMPTZ,   -- NEW
+  lost_latitude DOUBLE PRECISION,   -- NEW
+  lost_longitude DOUBLE PRECISION   -- NEW
 )
 LANGUAGE sql
 STABLE
@@ -42,7 +44,9 @@ AS $$
     prof.has_whatsapp,
     prof.alternative_phone,
     p.is_lost,
-    p.lost_since
+    p.lost_since,
+    p.lost_latitude,
+    p.lost_longitude
   FROM public.pets p
   JOIN public.profiles prof ON prof.user_id = p.user_id
   WHERE p.qr_code = code;
