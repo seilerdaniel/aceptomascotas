@@ -67,18 +67,20 @@ const SocialAuthButtons = ({ disabled }: SocialAuthButtonsProps) => {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-4 gap-2">
       {PROVIDERS.map((p) => (
         <Button
           key={p.id}
           type="button"
           variant="outline"
-          className="gap-2"
+          size="icon"
+          className="w-full"
+          title={`Continuar con ${p.label}`}
+          aria-label={`Continuar con ${p.label}`}
           disabled={disabled}
           onClick={() => handleOAuth(p.id)}
         >
           {p.logo}
-          {p.label}
         </Button>
       ))}
     </div>

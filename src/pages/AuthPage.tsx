@@ -81,8 +81,15 @@ const AuthLayout = ({ children }: { children: ReactNode }) => (
       </div>
     </div>
 
-    <div className="flex-1 overflow-y-auto">
-      <div className="min-h-full flex items-center justify-center p-4 py-10">
+    <div
+      className="flex-1 overflow-y-auto"
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%231B2A4A' fill-opacity='0.04'%3E%3Cellipse cx='40' cy='48' rx='11' ry='9'/%3E%3Cellipse cx='27' cy='30' rx='4.2' ry='5.2'/%3E%3Cellipse cx='37' cy='24' rx='4.2' ry='5.2'/%3E%3Cellipse cx='48' cy='24' rx='4.2' ry='5.2'/%3E%3Cellipse cx='58' cy='30' rx='4.2' ry='5.2'/%3E%3C/g%3E%3C/svg%3E")`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '80px 80px',
+      }}
+    >
+      <div className="min-h-full flex items-center justify-center p-4 py-6">
         <div className="w-full max-w-md">{children}</div>
       </div>
     </div>
@@ -408,33 +415,33 @@ const AuthPage = () => {
   // Pantalla principal de login/registro
   return (
     <AuthLayout>
-        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
+        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4">
           <ArrowLeft className="h-4 w-4" />
           Volver al inicio
         </Link>
 
         <Card className="shadow-hover">
-          <CardHeader className="text-center space-y-4">
+          <CardHeader className="text-center space-y-2 pb-4">
             <Link to="/" className="flex items-center justify-center gap-2">
-              <div className="h-16 w-16 rounded-full bg-white p-1 shadow-sm">
+              <div className="h-12 w-12 rounded-full bg-white p-1 shadow-sm">
                   <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
                 </div>
             </Link>
             <div>
-              <CardTitle className="font-body text-2xl font-bold">
+              <CardTitle className="font-body text-xl font-bold">
                 {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
               </CardTitle>
-              <CardDescription className="mt-2">
+              <CardDescription className="mt-1 text-sm">
                 {isLogin
                   ? 'Ingresá a tu cuenta para guardar favoritos'
                   : 'Registrate para guardar propiedades favoritas'}
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <SocialAuthButtons disabled={submitting} />
 
-            <div className="relative my-6">
+            <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
@@ -443,7 +450,7 @@ const AuthPage = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {!isLogin && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Nombre completo</label>
@@ -528,12 +535,12 @@ const AuthPage = () => {
             </form>
 
             {isLogin && (
-              <div className="mt-6 pt-6 border-t">
+              <div className="mt-4 pt-4 border-t">
                 <AlternativeAuthMethods />
               </div>
             )}
 
-            <div className="mt-6 text-center text-sm">
+            <div className="mt-4 text-center text-sm">
               <span className="text-muted-foreground">
                 {isLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}
               </span>{' '}
