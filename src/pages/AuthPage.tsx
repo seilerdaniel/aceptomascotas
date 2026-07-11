@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft, PawPrint, Home, Building2, Stethoscope } from 'lucide-react';
 import logo from "@/assets/logo.svg";
-import heroImage from "@/assets/hero-image.jpg";
+import loginBrandImage from "@/assets/login-brand.png";
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Email inválido').max(255, 'Email muy largo');
@@ -66,8 +66,8 @@ const userTypeOptions = [
 const AuthLayout = ({ children }: { children: ReactNode }) => (
   <div className="min-h-screen flex bg-background">
     <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-      <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-primary/75" />
+      <img src={loginBrandImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent" />
       <div className="relative z-10 h-full flex flex-col justify-end p-12 text-primary-foreground">
         <div className="h-14 w-14 rounded-full bg-white p-1 shadow-sm mb-6">
           <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
