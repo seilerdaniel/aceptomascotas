@@ -101,6 +101,9 @@ export const useTogglePropertyActive = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
+      // Without this, the owner's own "Mis Propiedades" tab kept showing
+      // stale active/inactive state within the same browser session.
+      queryClient.invalidateQueries({ queryKey: ["user-properties"] });
     },
   });
 };
@@ -122,6 +125,7 @@ export const useDeleteProperty = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
+      queryClient.invalidateQueries({ queryKey: ["user-properties"] });
     },
   });
 };
