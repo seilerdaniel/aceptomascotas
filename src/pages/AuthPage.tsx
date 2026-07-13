@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useAdmin';
 import { useQuery } from '@tanstack/react-query';
 import SocialAuthButtons from '@/components/SocialAuthButtons';
 import AlternativeAuthMethods from '@/components/AlternativeAuthMethods';
@@ -130,15 +131,17 @@ const AuthPage = () => {
     enabled: !!user,
   });
 
+  const { data: isAdmin, isLoading: isAdminLoading } = useIsAdmin();
+
   useEffect(() => {
-    if (!user || profileLoading) return;
+    if (!user || profileLoading || isAdminLoading) return;
     if (!profile?.user_type) {
       // New account (OAuth/magic link/phone) without a role yet.
       setStep('user-type');
     } else {
-      navigate('/');
+      navigate(isAdmin ? '/admin' : '/');
     }
-  }, [user, profile, profileLoading, navigate]);
+  }, [user, profile, profileLoading, isAdmin, isAdminLoading, navigate]);
 
   const checkPasswordStrength = (pwd: string) => {
     const missing: string[] = [];
@@ -190,7 +193,9 @@ const AuthPage = () => {
         }
       } else {
         toast.success('¡Bienvenido de vuelta!');
-        navigate('/');
+        // No navigate() here on purpose — the useEffect above waits for
+        // both the profile and isAdmin queries to settle before deciding
+        // where to go, avoiding a race where isAdmin is still loading.
       }
     } else {
       // Registro: primero mostrar pantalla de tipo de usuario
