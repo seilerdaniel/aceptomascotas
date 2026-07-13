@@ -226,7 +226,7 @@ const AuthPage = () => {
         toast.error(error.message);
       } else {
         toast.success('¡Bienvenido a Acepto Mascotas!');
-        navigate('/');
+        navigate(isAdmin ? '/admin' : '/');
       }
       setSubmitting(false);
       return;
