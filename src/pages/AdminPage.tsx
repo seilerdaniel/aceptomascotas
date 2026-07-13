@@ -477,7 +477,21 @@ const AdminPage = () => {
                           <TableCell className="whitespace-nowrap">
                             {new Date(report.created_at).toLocaleDateString("es-AR")}
                           </TableCell>
-                          <TableCell>{report.properties?.title || "—"}</TableCell>
+                          <TableCell>
+                            {report.property_id ? (
+                              <Link
+                                to={`/propiedad/${report.property_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline inline-flex items-center gap-1"
+                              >
+                                {report.properties?.title || "Ver publicación"}
+                                <ExternalLink className="h-3 w-3" />
+                              </Link>
+                            ) : (
+                              report.properties?.title || "—"
+                            )}
+                          </TableCell>
                           <TableCell>{report.reason}</TableCell>
                           <TableCell className="max-w-xs truncate">
                             {report.details || "—"}

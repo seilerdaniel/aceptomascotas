@@ -218,6 +218,22 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Only propietario/agencia accounts can publish. This is the real
+    // enforcement point — the frontend also hides the form for other
+    // roles, but that alone doesn't stop a direct API call.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("user_type")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (profile?.user_type !== "propietario" && profile?.user_type !== "agencia") {
+      return new Response(
+        JSON.stringify({ error: "Solo cuentas de propietario o agencia pueden publicar propiedades" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Check rate limit
     const rateCheck = checkRateLimit(user.id);
     if (!rateCheck.allowed) {

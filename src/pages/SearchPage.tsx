@@ -17,10 +17,34 @@ import Footer from "@/components/Footer";
 import Map from "@/components/Map";
 import AdvancedFilters, { FilterState } from "@/components/AdvancedFilters";
 import { useProperties, Property } from "@/hooks/useProperties";
+import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useAdmin";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const { user } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+  const canPublish =
+    !isAdmin && (profile?.user_type === "propietario" || profile?.user_type === "agencia");
+
   const [showFilters, setShowFilters] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [location, setLocation] = useState(searchParams.get("ubicacion") || "");
@@ -290,11 +314,11 @@ const SearchPage = () => {
               <Button variant="outline" onClick={clearFilters}>
                 Limpiar filtros
               </Button>
-            ) : (
+            ) : canPublish ? (
               <Button variant="hero" onClick={() => navigate("/publicar")}>
                 Publicar propiedad
               </Button>
-            )}
+            ) : null}
           </div>
         )}
       </main>

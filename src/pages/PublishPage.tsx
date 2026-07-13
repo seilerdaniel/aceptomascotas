@@ -265,6 +265,29 @@ const PublishPage = () => {
     );
   }
 
+  // Only propietario/agencia accounts can publish — a buscador reaching
+  // this page directly by URL should not see the form.
+  if (user && profile && profile.user_type !== "propietario" && profile.user_type !== "agencia") {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container py-8 text-center">
+          <h1 className="font-display text-2xl font-bold text-foreground mb-4">
+            Publicar propiedades es para propietarios y agencias
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            Tu cuenta está registrada como buscador. Si sos propietario o representás una
+            agencia, actualizá tu tipo de cuenta desde tu perfil para poder publicar.
+          </p>
+          <Button variant="outline" onClick={() => navigate("/buscar")}>
+            Buscar propiedades
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />

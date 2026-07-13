@@ -161,6 +161,10 @@ export const useToggleProfileVerification = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
+      // Broad match: invalidates ["profile", anyUserId] too, which is what
+      // ProfilePage's Resumen tab reads — without this, the agency's own
+      // session kept showing "no verificada" until a hard refresh/relogin.
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
 };

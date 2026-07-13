@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useAdmin";
+import { supabase } from "@/integrations/supabase/client";
 import { Search, Plus, Home, Heart, Shield, Clock, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,6 +31,27 @@ const Index = () => {
   const { data: dbProperties = [], isLoading } = useFeaturedProperties(6);
   const { data: stats } = usePlatformStats();
   const { data: ads = [] } = useActiveAds();
+
+  const { user } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+  // Same rule as the navbar CTA: only propietario/agencia get to publish,
+  // never buscador, and never admin (their workspace is /admin).
+  const canPublish =
+    !isAdmin && (profile?.user_type === "propietario" || profile?.user_type === "agencia");
 
   const [adsApi, setAdsApi] = useState<CarouselApi>();
 
@@ -116,12 +141,14 @@ const Index = () => {
                     Buscar alquileres
                   </Button>
                 </Link>
-                <Link to="/publicar">
-                  <Button variant="hero-outline" size="xl">
-                    <Plus className="h-5 w-5" />
-                    Publicar alquiler
-                  </Button>
-                </Link>
+                {canPublish && (
+                  <Link to="/publicar">
+                    <Button variant="hero-outline" size="xl">
+                      <Plus className="h-5 w-5" />
+                      Publicar alquiler
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -282,7 +309,8 @@ const Index = () => {
         {/* Cafecito Section */}
         <CafecitoSection />
 
-        {/* CTA Section */}
+        {/* CTA Section — only relevant to propietario/agencia */}
+        {canPublish && (
         <section className="container py-20">
           <div className="bg-primary rounded-3xl p-8 md:p-16 text-center relative overflow-hidden">
             <div className="absolute inset-0 opacity-10">
@@ -311,6 +339,7 @@ const Index = () => {
             </div>
           </div>
         </section>
+        )}
       </main>
 
       <Footer />

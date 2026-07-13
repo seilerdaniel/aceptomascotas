@@ -78,7 +78,7 @@ const Header = () => {
             <span className="font-body text-lg font-bold leading-tight text-foreground">
               Acepto Mascotas
             </span>
-            <span className="text-[10px] text-muted-foreground leading-none">
+            <span className="text-[10px] text-muted-foreground leading-none min-[770px]:hidden min-[1020px]:block">
               Tu hogar, tu familia, tus mascotas
             </span>
           </div>
