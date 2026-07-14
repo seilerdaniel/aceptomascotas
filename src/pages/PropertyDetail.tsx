@@ -27,6 +27,7 @@ const PropertyDetail = () => {
         id: dbProperty.id,
         title: dbProperty.title,
         description: dbProperty.description || "",
+        requirements: (dbProperty as any).requirements || "",
         location: dbProperty.location,
         price: dbProperty.price,
         propertyType: dbProperty.property_type,
@@ -38,6 +39,7 @@ const PropertyDetail = () => {
         // TODO: remove the `as any` cast once `npm run gen:types` picks up
         // the owner_is_verified column added by the verification migration.
         isVerified: (dbProperty as any).owner_is_verified ?? false,
+        propertyIsVerified: (dbProperty as any).property_is_verified ?? false,
         agencyId: (dbProperty as any).agency_id ?? null,
         latitude: (dbProperty as any).latitude ?? null,
         longitude: (dbProperty as any).longitude ?? null,
@@ -205,9 +207,17 @@ const PropertyDetail = () => {
               <div className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                      {property.title}
-                    </h1>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                        {property.title}
+                      </h1>
+                      {property.propertyIsVerified && (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full shrink-0">
+                          <ShieldCheck className="h-3.5 w-3.5" />
+                          Propiedad verificada
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 text-muted-foreground mt-2">
                       <MapPin className="h-4 w-4" />
                       <span>{property.location}</span>
@@ -275,6 +285,20 @@ const PropertyDetail = () => {
                   </p>
                 </CardContent>
               </Card>
+
+              {/* Requisitos */}
+              {property.requirements && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Requisitos para alquilar</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {property.requirements}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Amenities */}
               {property.amenities && property.amenities.length > 0 && (

@@ -8,6 +8,7 @@ export interface Property {
   id: string;
   title: string;
   description: string;
+  requirements?: string;
   location: string;
   price: number;
   propertyType: string;
@@ -18,6 +19,7 @@ export interface Property {
   contactEmail: string;
   amenities: string[];
   isVerified?: boolean;
+  propertyIsVerified?: boolean;
   agencyId?: string | null;
   latitude?: number | null;
   longitude?: number | null;

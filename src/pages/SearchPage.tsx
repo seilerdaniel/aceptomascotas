@@ -132,6 +132,7 @@ const SearchPage = () => {
     // TODO: remove the `as any` cast once `npm run gen:types` picks up
     // the owner_is_verified column added by the verification migration.
     isVerified: (p as any).owner_is_verified ?? false,
+    propertyIsVerified: (p as any).property_is_verified ?? false,
     agencyId: (p as any).agency_id ?? null,
     latitude: (p as any).latitude ?? null,
     longitude: (p as any).longitude ?? null,

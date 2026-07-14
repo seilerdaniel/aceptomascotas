@@ -79,7 +79,31 @@ export const useAllProperties = () => {
         throw error;
       }
 
-      return data || [];
+      const properties = data || [];
+
+      // properties.user_id and profiles.user_id both point to auth.users
+      // independently (no direct FK between the two tables), so PostgREST
+      // can't embed this as a join — fetch owner profiles separately and
+      // merge client-side instead.
+      const ownerIds = [...new Set(properties.map((p: any) => p.user_id).filter(Boolean))];
+      let profilesById: Record<string, { full_name: string | null; user_type: string | null }> = {};
+
+      if (ownerIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, user_type")
+          .in("user_id", ownerIds);
+
+        profilesById = Object.fromEntries(
+          (profilesData || []).map((p: any) => [p.user_id, { full_name: p.full_name, user_type: p.user_type }])
+        );
+      }
+
+      return properties.map((p: any) => ({
+        ...p,
+        owner_full_name: p.user_id ? profilesById[p.user_id]?.full_name ?? null : null,
+        owner_user_type: p.user_id ? profilesById[p.user_id]?.user_type ?? null : null,
+      }));
     },
   });
 };
@@ -252,6 +276,28 @@ export const useAllServices = () => {
       }
 
       return data || [];
+    },
+  });
+};
+
+export const useTogglePropertyVerified = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, isVerified }: { id: string; isVerified: boolean }) => {
+      const { error } = await supabase
+        .from("properties")
+        .update({ property_is_verified: isVerified })
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+      queryClient.invalidateQueries({ queryKey: ["user-properties"] });
     },
   });
 };

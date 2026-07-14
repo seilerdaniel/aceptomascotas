@@ -60,6 +60,12 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
                 Agencia verificada
               </Badge>
             )}
+            {property.propertyIsVerified && (
+              <Badge className="bg-primary text-primary-foreground gap-1 shadow-lg">
+                <ShieldCheck className="h-3 w-3" />
+                Propiedad verificada
+              </Badge>
+            )}
           </div>
 
           {/* Favorite Button */}

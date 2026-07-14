@@ -65,6 +65,7 @@ import {
   useToggleProfileVerification,
   useAllServices,
   useToggleServiceApproval,
+  useTogglePropertyVerified,
   useAllAds,
   useCreateAd,
   useUpdateAd,
@@ -93,6 +94,7 @@ const AdminPage = () => {
   const deleteReport = useDeletePropertyReport();
   const toggleVerification = useToggleProfileVerification();
   const toggleServiceApproval = useToggleServiceApproval();
+  const togglePropertyVerified = useTogglePropertyVerified();
   const deleteService = useDeleteService();
   const createAd = useCreateAd();
   const updateAd = useUpdateAd();
@@ -120,6 +122,15 @@ const AdminPage = () => {
       toast.success(currentStatus ? "Propiedad desactivada" : "Propiedad activada");
     } catch (error) {
       toast.error("Error al actualizar la propiedad");
+    }
+  };
+
+  const handleToggleVerified = async (id: string, isVerified: boolean) => {
+    try {
+      await togglePropertyVerified.mutateAsync({ id, isVerified });
+      toast.success(isVerified ? "Propiedad verificada" : "Verificación removida");
+    } catch (error) {
+      toast.error("Error al actualizar la verificación");
     }
   };
 
@@ -657,6 +668,7 @@ const AdminPage = () => {
                       <TableRow>
                         <TableHead>Fecha</TableHead>
                         <TableHead>Título</TableHead>
+                        <TableHead>Usuario</TableHead>
                         <TableHead>Ubicación</TableHead>
                         <TableHead>Precio</TableHead>
                         <TableHead>Estado</TableHead>
@@ -670,6 +682,20 @@ const AdminPage = () => {
                             {new Date(property.created_at).toLocaleDateString("es-AR")}
                           </TableCell>
                           <TableCell className="max-w-xs truncate">{property.title}</TableCell>
+                          <TableCell>
+                            {property.owner_full_name ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="truncate max-w-[120px]">{property.owner_full_name}</span>
+                                {property.owner_user_type && (
+                                  <Badge variant="secondary" className="capitalize text-[10px] px-1.5 py-0 shrink-0">
+                                    {property.owner_user_type}
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">Sin dueño</span>
+                            )}
+                          </TableCell>
                           <TableCell>{property.location}</TableCell>
                           <TableCell>${property.price.toLocaleString("es-AR")}</TableCell>
                           <TableCell>
@@ -678,6 +704,12 @@ const AdminPage = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right space-x-1">
+                            <Switch
+                              checked={!!(property as any).property_is_verified}
+                              onCheckedChange={(checked) => handleToggleVerified(property.id, checked)}
+                              aria-label="Propiedad verificada"
+                              className="align-middle mr-1"
+                            />
                             <Link to={`/propiedad/${property.id}`} target="_blank" rel="noopener noreferrer">
                               <Button variant="ghost" size="icon" title="Ver publicación">
                                 <ExternalLink className="h-4 w-4" />

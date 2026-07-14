@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.bulk-create-properties]
 verify_jwt = false
+
+[functions.notify-property-reported]
+verify_jwt = false
