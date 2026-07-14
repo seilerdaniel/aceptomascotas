@@ -132,6 +132,7 @@ export type Database = {
           is_24h: boolean | null
           is_active: boolean | null
           is_approved: boolean | null
+          is_verified: boolean
           latitude: number | null
           logo_url: string | null
           longitude: number | null
@@ -159,6 +160,7 @@ export type Database = {
           is_24h?: boolean | null
           is_active?: boolean | null
           is_approved?: boolean | null
+          is_verified?: boolean
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
@@ -186,6 +188,7 @@ export type Database = {
           is_24h?: boolean | null
           is_active?: boolean | null
           is_approved?: boolean | null
+          is_verified?: boolean
           latitude?: number | null
           logo_url?: string | null
           longitude?: number | null
