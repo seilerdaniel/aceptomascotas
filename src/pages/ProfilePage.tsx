@@ -186,6 +186,8 @@ const ProfilePage = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   // Fetch user's properties
@@ -423,7 +425,7 @@ const ProfilePage = () => {
                   <p className="text-muted-foreground">{user?.email}</p>
                   {profile?.user_type && (
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                      {userTypeLabel[profile.user_type as keyof typeof userTypeLabel]}
+                      {isAdmin ? '🛡️ Administrador' : userTypeLabel[profile.user_type as keyof typeof userTypeLabel]}
                     </span>
                   )}
                 </div>

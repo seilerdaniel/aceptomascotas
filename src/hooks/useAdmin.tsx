@@ -302,6 +302,28 @@ export const useTogglePropertyVerified = () => {
   });
 };
 
+export const useToggleServiceVerified = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, isVerified }: { id: string; isVerified: boolean }) => {
+      const { error } = await supabase
+        .from("pet_services")
+        .update({ is_verified: isVerified } as any)
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+      queryClient.invalidateQueries({ queryKey: ["services"] });
+      queryClient.invalidateQueries({ queryKey: ["user-services"] });
+    },
+  });
+};
+
 export const useToggleServiceApproval = () => {
   const queryClient = useQueryClient();
 

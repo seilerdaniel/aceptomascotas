@@ -320,7 +320,9 @@ export type Database = {
           owner_is_verified: boolean
           pet_types: Database["public"]["Enums"]["pet_type"][]
           price: number
+          property_is_verified: boolean
           property_type: Database["public"]["Enums"]["property_type"]
+          requirements: string | null
           title: string
           updated_at: string
           user_id: string | null
@@ -342,7 +344,9 @@ export type Database = {
           owner_is_verified?: boolean
           pet_types?: Database["public"]["Enums"]["pet_type"][]
           price: number
+          property_is_verified?: boolean
           property_type: Database["public"]["Enums"]["property_type"]
+          requirements?: string | null
           title: string
           updated_at?: string
           user_id?: string | null
@@ -364,7 +368,9 @@ export type Database = {
           owner_is_verified?: boolean
           pet_types?: Database["public"]["Enums"]["pet_type"][]
           price?: number
+          property_is_verified?: boolean
           property_type?: Database["public"]["Enums"]["property_type"]
+          requirements?: string | null
           title?: string
           updated_at?: string
           user_id?: string | null
@@ -498,7 +504,9 @@ export type Database = {
           owner_is_verified: boolean | null
           pet_types: Database["public"]["Enums"]["pet_type"][] | null
           price: number | null
+          property_is_verified: boolean | null
           property_type: Database["public"]["Enums"]["property_type"] | null
+          requirements: string | null
           title: string | null
           updated_at: string | null
           user_id: string | null
@@ -520,7 +528,9 @@ export type Database = {
           owner_is_verified?: boolean | null
           pet_types?: Database["public"]["Enums"]["pet_type"][] | null
           price?: number | null
+          property_is_verified?: boolean | null
           property_type?: Database["public"]["Enums"]["property_type"] | null
+          requirements?: string | null
           title?: string | null
           updated_at?: string | null
           user_id?: never
@@ -542,7 +552,9 @@ export type Database = {
           owner_is_verified?: boolean | null
           pet_types?: Database["public"]["Enums"]["pet_type"][] | null
           price?: number | null
+          property_is_verified?: boolean | null
           property_type?: Database["public"]["Enums"]["property_type"] | null
+          requirements?: string | null
           title?: string | null
           updated_at?: string | null
           user_id?: never
@@ -567,6 +579,7 @@ export type Database = {
       }
     }
     Functions: {
+      delete_user: { Args: never; Returns: undefined }
       generate_pet_qr_code: { Args: { pet_id_input: string }; Returns: string }
       generate_short_code: { Args: never; Returns: string }
       get_agency_properties: {
@@ -588,7 +601,9 @@ export type Database = {
           owner_is_verified: boolean | null
           pet_types: Database["public"]["Enums"]["pet_type"][] | null
           price: number | null
+          property_is_verified: boolean | null
           property_type: Database["public"]["Enums"]["property_type"] | null
+          requirements: string | null
           title: string | null
           updated_at: string | null
           user_id: string | null

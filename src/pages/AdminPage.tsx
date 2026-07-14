@@ -65,6 +65,7 @@ import {
   useToggleProfileVerification,
   useAllServices,
   useToggleServiceApproval,
+  useToggleServiceVerified,
   useTogglePropertyVerified,
   useAllAds,
   useCreateAd,
@@ -94,6 +95,7 @@ const AdminPage = () => {
   const deleteReport = useDeletePropertyReport();
   const toggleVerification = useToggleProfileVerification();
   const toggleServiceApproval = useToggleServiceApproval();
+  const toggleServiceVerified = useToggleServiceVerified();
   const togglePropertyVerified = useTogglePropertyVerified();
   const deleteService = useDeleteService();
   const createAd = useCreateAd();
@@ -179,6 +181,15 @@ const AdminPage = () => {
       toast.success(isApproved ? "Servicio aprobado y publicado" : "Servicio despublicado");
     } catch (error) {
       toast.error("Error al actualizar el servicio");
+    }
+  };
+
+  const handleToggleServiceVerified = async (id: string, isVerified: boolean) => {
+    try {
+      await toggleServiceVerified.mutateAsync({ id, isVerified });
+      toast.success(isVerified ? "Servicio verificado" : "Verificación removida");
+    } catch (error) {
+      toast.error("Error al actualizar la verificación");
     }
   };
 
@@ -586,6 +597,7 @@ const AdminPage = () => {
                         <TableHead>Ciudad</TableHead>
                         <TableHead>Contacto</TableHead>
                         <TableHead>Estado</TableHead>
+                        <TableHead>Verificado</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -602,6 +614,15 @@ const AdminPage = () => {
                             ) : (
                               <Badge variant="destructive">Pendiente</Badge>
                             )}
+                          </TableCell>
+                          <TableCell>
+                            <Switch
+                              checked={!!service.is_verified}
+                              onCheckedChange={(checked) =>
+                                handleToggleServiceVerified(service.id, checked)
+                              }
+                              aria-label="Servicio verificado"
+                            />
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end items-center gap-2">

@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Plus, X, Loader2, Eye, EyeOff, Trash2, ExternalLink, HardDrive } from 'lucide-react';
+import EditPropertyDialog from '@/components/EditPropertyDialog';
 import { useNavigate } from 'react-router-dom';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -232,6 +233,7 @@ const PropertyImageManager = ({ property, onUpdate, userStorageUsed = 0, onStora
               >
                 <ExternalLink className="h-4 w-4" />
               </Button>
+              <EditPropertyDialog property={property as any} />
               <Button
                 variant="outline"
                 size="sm"

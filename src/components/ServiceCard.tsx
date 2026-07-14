@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Clock, Star, Phone } from "lucide-react";
+import { MapPin, Clock, Star, Phone, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,10 +28,16 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
 
           {/* Category Badge */}
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
             <Badge className="bg-primary text-primary-foreground shadow-lg">
               {getCategoryLabel(service.category)}
             </Badge>
+            {(service as any).is_verified && (
+              <Badge className="bg-accent text-accent-foreground shadow-lg gap-1">
+                <ShieldCheck className="h-3 w-3" />
+                Verificado
+              </Badge>
+            )}
           </div>
 
           {/* 24h Badge */}

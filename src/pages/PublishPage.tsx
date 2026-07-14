@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Upload, Dog, Cat, Check, X, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ const PublishPage = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("user_type")
+        .select("user_type, full_name, phone")
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error;
@@ -45,6 +45,7 @@ const PublishPage = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    requirements: "",
     price: "",
     propertyType: "",
     location: "",
@@ -55,6 +56,20 @@ const PublishPage = () => {
   });
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+
+  // Pre-fill contact info from the profile (name, phone) and auth session
+  // (email), so propietario/agencia don't have to retype it on every
+  // listing. Still editable per-listing (useful for agencies with
+  // multiple agents), just no longer starts blank every time.
+  useEffect(() => {
+    if (!profile && !user) return;
+    setFormData((prev) => ({
+      ...prev,
+      contactName: prev.contactName || profile?.full_name || "",
+      contactPhone: prev.contactPhone || profile?.phone || "",
+      contactEmail: prev.contactEmail || user?.email || "",
+    }));
+  }, [profile, user]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -208,6 +223,7 @@ const PublishPage = () => {
         body: {
           title: formData.title,
           description: formData.description || null,
+          requirements: formData.requirements || null,
           price: Number(formData.price),
           propertyType: formData.propertyType.toLowerCase(),
           location: formData.location,
@@ -350,6 +366,19 @@ const PublishPage = () => {
                     onChange={handleInputChange}
                     maxLength={2000}
                     rows={5}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="requirements">Requisitos para alquilar (opcional)</Label>
+                  <Textarea
+                    id="requirements"
+                    name="requirements"
+                    placeholder="Ej: recibo de sueldo, garantía propietaria, depósito de un mes..."
+                    value={formData.requirements}
+                    onChange={handleInputChange}
+                    maxLength={1000}
+                    rows={3}
                   />
                 </div>
 
@@ -501,7 +530,7 @@ const PublishPage = () => {
               <CardHeader>
                 <CardTitle>Datos de contacto *</CardTitle>
                 <CardDescription>
-                  Esta información se mostrará a los interesados para que puedan contactarte
+                  Ya completamos esto con los datos de tu perfil — podés cambiarlos para esta publicación puntual si querés.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
