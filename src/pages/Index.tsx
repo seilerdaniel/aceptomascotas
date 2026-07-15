@@ -40,7 +40,7 @@ const Index = () => {
       if (!user) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("user_type")
+        .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
       if (error) throw error;
@@ -87,27 +87,25 @@ const Index = () => {
     contactPhone: p.contact_phone || "",
     contactEmail: p.contact_email || "",
     amenities: [],
-    isVerified: (p as any).owner_is_verified ?? false,
-    propertyIsVerified: (p as any).property_is_verified ?? false,
   }));
 
   // Use database properties if available, otherwise fall back to mock data
-  const featuredProperties = transformedDbProperties.length > 0
-    ? transformedDbProperties
+  const featuredProperties = transformedDbProperties.length > 0 
+    ? transformedDbProperties 
     : mockProperties.slice(0, 6);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-
+      
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative min-h-[85vh] flex items-center gradient-hero overflow-hidden">
           {/* Background Image with overlay */}
           <div className="absolute inset-0">
-            <img
-              src={heroImage}
-              alt="Hogar pet-friendly con mascotas felices"
+            <img 
+              src={heroImage} 
+              alt="Hogar pet-friendly con mascotas felices" 
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40" />
@@ -131,7 +129,7 @@ const Index = () => {
 
               {/* Subtitle */}
               <p className="text-lg md:text-xl text-muted-foreground max-w-lg animate-fade-up" style={{ animationDelay: "0.2s" }}>
-                Encontrá tu próximo hogar sin tener que elegir entre tu familia y tus compañeros peludos.
+                Encontrá tu próximo hogar sin tener que elegir entre tu familia y tus compañeros peludos. 
                 Porque ellos también merecen un lugar donde ser felices.
               </p>
 
@@ -313,34 +311,34 @@ const Index = () => {
 
         {/* CTA Section — only relevant to propietario/agencia */}
         {canPublish && (
-          <section className="container py-20">
-            <div className="bg-primary rounded-3xl p-8 md:p-16 text-center relative overflow-hidden">
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-10 left-10">
-                  <div className="h-32 w-32 rounded-full bg-white p-2">
-                    <img src={logo} alt="" className="h-full w-full rounded-full object-cover opacity-50" />
-                  </div>
-                </div>
-                <div className="absolute bottom-10 right-10">
-                  <Home className="h-24 w-24" />
+        <section className="container py-20">
+          <div className="bg-primary rounded-3xl p-8 md:p-16 text-center relative overflow-hidden">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-10 left-10">
+                <div className="h-32 w-32 rounded-full bg-white p-2">
+                  <img src={logo} alt="" className="h-full w-full rounded-full object-cover opacity-50" />
                 </div>
               </div>
-              <div className="relative z-10 space-y-6 max-w-2xl mx-auto">
-                <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
-                  ¿Tenés una propiedad que acepta mascotas?
-                </h2>
-                <p className="text-primary-foreground/80 text-lg">
-                  Publicá gratis y conectá con inquilinos responsables que buscan un hogar para toda su familia.
-                </p>
-                <Link to="/publicar">
-                  <Button variant="secondary" size="xl" className="mt-4">
-                    <Plus className="h-5 w-5" />
-                    Publicar ahora
-                  </Button>
-                </Link>
+              <div className="absolute bottom-10 right-10">
+                <Home className="h-24 w-24" />
               </div>
             </div>
-          </section>
+            <div className="relative z-10 space-y-6 max-w-2xl mx-auto">
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground">
+                ¿Tenés una propiedad que acepta mascotas?
+              </h2>
+              <p className="text-primary-foreground/80 text-lg">
+                Publicá gratis y conectá con inquilinos responsables que buscan un hogar para toda su familia.
+              </p>
+              <Link to="/publicar">
+                <Button variant="secondary" size="xl" className="mt-4">
+                  <Plus className="h-5 w-5" />
+                  Publicar ahora
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
         )}
       </main>
 

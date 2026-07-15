@@ -18,6 +18,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SERVICE_CATEGORIES, ServiceCategory } from "@/hooks/useServices";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Stethoscope,
@@ -47,6 +50,22 @@ const ServicesSidebar = ({
 }: ServicesSidebarProps) => {
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(true);
+  const { user } = useAuth();
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+  const canAddService = profile?.user_type === "proveedor";
 
   const handleCategoryClick = (category: ServiceCategory) => {
     if (onCategorySelect) {
@@ -120,7 +139,7 @@ const ServicesSidebar = ({
       )}
 
       {/* CTA */}
-      {isExpanded && (
+      {isExpanded && canAddService && (
         <div className="pt-4 border-t">
           <Link to="/servicios/publicar">
             <Button variant="outline" size="sm" className="w-full gap-2">
