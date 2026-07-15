@@ -37,6 +37,7 @@ const FavoriteButton = ({ propertyId, variant = 'icon', className }: FavoriteBut
     <Button
       variant="secondary"
       size="icon"
+      aria-label={isFav ? "Quitar de favoritos" : "Guardar en favoritos"}
       onClick={handleClick}
       disabled={loading}
       className={cn('rounded-full', className)}

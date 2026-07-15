@@ -117,6 +117,7 @@ const ChangePasswordForm = () => {
             variant="ghost"
             size="icon"
             className="absolute right-0 top-0 h-full px-3"
+            aria-label={showPasswords ? "Ocultar contraseña" : "Mostrar contraseña"}
             onClick={() => setShowPasswords(!showPasswords)}
           >
             {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -958,13 +959,14 @@ const ProfilePage = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                aria-label="Editar mascota"
                                 onClick={() => { setEditingPet(pet); setShowPetForm(false); }}
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                                  <Button variant="ghost" size="icon" aria-label="Eliminar mascota" className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </AlertDialogTrigger>
@@ -1072,7 +1074,7 @@ const ProfilePage = () => {
                             <EditServiceDialog service={service} />
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" aria-label="Eliminar servicio">
                                   <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                 </Button>
                               </AlertDialogTrigger>

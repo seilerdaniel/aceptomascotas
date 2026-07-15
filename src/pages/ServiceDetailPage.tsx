@@ -140,7 +140,7 @@ const ServiceDetailPage = () => {
                 />
                 {service.is_24h && (
                   <div className="absolute top-4 right-4">
-                    <Badge className="bg-accent text-accent-foreground text-lg px-4 py-1 gap-2">
+                    <Badge variant="accent" className="text-lg px-4 py-1 gap-2">
                       <Clock className="h-4 w-4" />
                       Abierto 24 hs
                     </Badge>
@@ -198,7 +198,7 @@ const ServiceDetailPage = () => {
                     </h1>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={handleShare}>
+                <Button variant="ghost" size="icon" aria-label="Compartir servicio" onClick={handleShare}>
                   <Share2 className="h-5 w-5" />
                 </Button>
               </div>

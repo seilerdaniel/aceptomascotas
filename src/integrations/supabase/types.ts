@@ -319,6 +319,7 @@ export type Database = {
           latitude: number | null
           location: string
           longitude: number | null
+          owner_avatar_url: string | null
           owner_is_agency: boolean
           owner_is_verified: boolean
           pet_types: Database["public"]["Enums"]["pet_type"][]
@@ -343,6 +344,7 @@ export type Database = {
           latitude?: number | null
           location: string
           longitude?: number | null
+          owner_avatar_url?: string | null
           owner_is_agency?: boolean
           owner_is_verified?: boolean
           pet_types?: Database["public"]["Enums"]["pet_type"][]
@@ -367,6 +369,7 @@ export type Database = {
           latitude?: number | null
           location?: string
           longitude?: number | null
+          owner_avatar_url?: string | null
           owner_is_agency?: boolean
           owner_is_verified?: boolean
           pet_types?: Database["public"]["Enums"]["pet_type"][]
@@ -504,6 +507,7 @@ export type Database = {
           latitude: number | null
           location: string | null
           longitude: number | null
+          owner_avatar_url: string | null
           owner_is_verified: boolean | null
           pet_types: Database["public"]["Enums"]["pet_type"][] | null
           price: number | null
@@ -528,6 +532,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          owner_avatar_url?: string | null
           owner_is_verified?: boolean | null
           pet_types?: Database["public"]["Enums"]["pet_type"][] | null
           price?: number | null
@@ -552,6 +557,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
+          owner_avatar_url?: string | null
           owner_is_verified?: boolean | null
           pet_types?: Database["public"]["Enums"]["pet_type"][] | null
           price?: number | null
@@ -601,6 +607,7 @@ export type Database = {
           latitude: number | null
           location: string | null
           longitude: number | null
+          owner_avatar_url: string | null
           owner_is_verified: boolean | null
           pet_types: Database["public"]["Enums"]["pet_type"][] | null
           price: number | null

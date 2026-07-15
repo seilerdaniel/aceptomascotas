@@ -96,6 +96,7 @@ const ServicesSidebar = ({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
+          aria-label={isExpanded ? "Contraer categorías" : "Expandir categorías"}
           onClick={() => setIsExpanded(!isExpanded)}
         >
           {isExpanded ? (

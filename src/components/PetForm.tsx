@@ -156,7 +156,7 @@ const PetForm = ({ pet, onSave, onCancel }: PetFormProps) => {
             <PawPrint className="h-4 w-4 text-primary" />
             {pet ? 'Editar mascota' : 'Agregar mascota'}
           </CardTitle>
-          <Button variant="ghost" size="icon" onClick={onCancel}>
+          <Button variant="ghost" size="icon" aria-label="Cerrar formulario" onClick={onCancel}>
             <X className="h-4 w-4" />
           </Button>
         </div>

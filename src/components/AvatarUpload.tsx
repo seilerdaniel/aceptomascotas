@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Camera, Loader2, User, X } from 'lucide-react';
+import { Camera, Loader2, User, Trash2 } from 'lucide-react';
 
 const MAX_FILE_SIZE_BYTES = 3 * 1024 * 1024; // 3MB
 
@@ -91,31 +91,34 @@ const AvatarUpload = ({ userId, currentAvatarUrl, onUploaded, onRemove }: Avatar
         )}
       </div>
 
-      <label className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-md">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleUpload}
-          disabled={uploading}
-          className="hidden"
-        />
-        {uploading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Camera className="h-4 w-4" />
-        )}
-      </label>
-
-      {currentAvatarUrl && (
+      {currentAvatarUrl ? (
         <button
           type="button"
           onClick={handleRemove}
           disabled={removing}
           title="Quitar foto de perfil"
-          className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center hover:bg-destructive/90 transition-colors shadow-md"
+          className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-destructive text-white flex items-center justify-center hover:bg-destructive/90 transition-colors shadow-md"
         >
-          {removing ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+          {removing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
         </button>
+      ) : (
+        <label
+          title="Subir foto de perfil"
+          className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-md"
+        >
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleUpload}
+            disabled={uploading}
+            className="hidden"
+          />
+          {uploading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Camera className="h-4 w-4" />
+          )}
+        </label>
       )}
     </div>
   );

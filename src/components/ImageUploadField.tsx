@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Camera, Loader2, Image as ImageIcon, X } from 'lucide-react';
+import { Camera, Loader2, Image as ImageIcon, Trash2 } from 'lucide-react';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
@@ -67,7 +66,7 @@ const ImageUploadField = ({
 
   if (shape === 'square') {
     return (
-      <div className="relative group inline-block">
+      <div className="relative inline-block">
         <div className="h-20 w-20 rounded-xl overflow-hidden border-2 border-primary/20 bg-muted flex items-center justify-center">
           {currentUrl ? (
             <img src={currentUrl} alt={label || 'Imagen'} className="w-full h-full object-cover" />
@@ -75,10 +74,21 @@ const ImageUploadField = ({
             <ImageIcon className="h-8 w-8 text-muted-foreground" />
           )}
         </div>
-        <label className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-md">
-          <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-        </label>
+        {currentUrl && onRemove ? (
+          <button
+            type="button"
+            onClick={onRemove}
+            title="Quitar imagen"
+            className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-destructive text-white flex items-center justify-center hover:bg-destructive/90 transition-colors shadow-md"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        ) : (
+          <label className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors shadow-md">
+            <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+          </label>
+        )}
       </div>
     );
   }
@@ -86,29 +96,28 @@ const ImageUploadField = ({
   return (
     <div className="space-y-2">
       {label && <p className="text-sm font-medium">{label}</p>}
-      <div className="relative w-full aspect-[3/1] rounded-xl overflow-hidden border-2 border-dashed border-border bg-muted flex items-center justify-center group">
+      <div className="relative w-full aspect-[3/1] rounded-xl overflow-hidden border-2 border-dashed border-border bg-muted flex items-center justify-center">
         {currentUrl ? (
           <img src={currentUrl} alt={label || 'Banner'} className="w-full h-full object-cover" />
         ) : (
-          <div className="flex flex-col items-center gap-1 text-muted-foreground">
-            <ImageIcon className="h-8 w-8" />
-            <span className="text-xs">Sin imagen de portada</span>
-          </div>
+          <label className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-muted-foreground cursor-pointer hover:bg-foreground/5 transition-colors">
+            <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
+            {uploading ? <Loader2 className="h-8 w-8 animate-spin" /> : <ImageIcon className="h-8 w-8" />}
+            <span className="text-xs">{uploading ? 'Subiendo...' : 'Subir imagen'}</span>
+          </label>
         )}
-        <label className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/40 transition-colors cursor-pointer opacity-0 group-hover:opacity-100">
-          <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
-          <span className="flex items-center gap-2 text-white text-sm font-medium">
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-            {currentUrl ? 'Cambiar imagen' : 'Subir imagen'}
-          </span>
-        </label>
+
+        {currentUrl && (
+          <button
+            type="button"
+            onClick={onRemove}
+            title="Quitar imagen"
+            className="absolute bottom-2 right-2 h-9 w-9 rounded-full bg-destructive text-white flex items-center justify-center hover:bg-destructive/90 transition-colors shadow-md"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
-      {currentUrl && onRemove && (
-        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={onRemove}>
-          <X className="h-3.5 w-3.5" />
-          Quitar imagen
-        </Button>
-      )}
     </div>
   );
 };

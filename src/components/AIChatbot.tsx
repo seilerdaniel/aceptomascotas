@@ -159,6 +159,7 @@ const AIChatbot = () => {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Cerrar chat"
               onClick={() => setIsOpen(false)}
               className="text-primary-foreground hover:bg-primary-foreground/20"
             >
@@ -228,7 +229,7 @@ const AIChatbot = () => {
                 disabled={isLoading}
                 className="flex-1"
               />
-              <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+              <Button type="submit" size="icon" aria-label="Enviar mensaje" disabled={isLoading || !input.trim()}>
                 <Send className="h-4 w-4" />
               </Button>
             </form>
