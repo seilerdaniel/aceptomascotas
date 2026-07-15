@@ -346,12 +346,13 @@ const AdminPage = () => {
         </div>
 
         <Tabs defaultValue="messages" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="messages" className="gap-2">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-2">
+          <TabsList className="w-max sm:w-auto">
+            <TabsTrigger value="messages" className="gap-2 shrink-0">
               <MessageSquare className="h-4 w-4" />
               Mensajes
             </TabsTrigger>
-            <TabsTrigger value="reports" className="gap-2">
+            <TabsTrigger value="reports" className="gap-2 shrink-0">
               <Flag className="h-4 w-4" />
               Reportes
               {reports.filter((r) => r.status === "pending").length > 0 && (
@@ -360,7 +361,7 @@ const AdminPage = () => {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="services" className="gap-2">
+            <TabsTrigger value="services" className="gap-2 shrink-0">
               <Stethoscope className="h-4 w-4" />
               Servicios
               {services.filter((s: any) => !s.is_approved).length > 0 && (
@@ -369,23 +370,24 @@ const AdminPage = () => {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="properties" className="gap-2">
+            <TabsTrigger value="properties" className="gap-2 shrink-0">
               <Home className="h-4 w-4" />
               Propiedades
             </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2">
+            <TabsTrigger value="users" className="gap-2 shrink-0">
               <Users className="h-4 w-4" />
               Usuarios
             </TabsTrigger>
-            <TabsTrigger value="utm" className="gap-2">
+            <TabsTrigger value="utm" className="gap-2 shrink-0">
               <Link2 className="h-4 w-4" />
               Links UTM
             </TabsTrigger>
-            <TabsTrigger value="ads" className="gap-2">
+            <TabsTrigger value="ads" className="gap-2 shrink-0">
               <Megaphone className="h-4 w-4" />
               Publicidad
             </TabsTrigger>
           </TabsList>
+          </div>
 
           {/* Messages Tab */}
           <TabsContent value="messages">
