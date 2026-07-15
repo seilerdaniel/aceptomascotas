@@ -212,7 +212,7 @@ const PropertyImageManager = ({ property, onUpdate, userStorageUsed = 0, onStora
           </div>
 
           {/* Header */}
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold truncate">{property.title}</h3>
@@ -225,7 +225,7 @@ const PropertyImageManager = ({ property, onUpdate, userStorageUsed = 0, onStora
                 ${property.price.toLocaleString('es-AR')}/mes
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center flex-wrap gap-2">
               <Button
                 variant="outline"
                 size="sm"

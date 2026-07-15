@@ -853,7 +853,7 @@ const ProfilePage = () => {
               <TabsContent value="pets">
                 <Card>
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
                       <div>
                         <CardTitle className="flex items-center gap-2">
                           <PawPrint className="h-5 w-5 text-primary" />
@@ -902,7 +902,7 @@ const ProfilePage = () => {
                         {userPets.map((pet) => (
                           <div
                             key={pet.id}
-                            className={`flex items-center justify-between p-4 rounded-lg border ${
+                            className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border ${
                               pet.is_lost ? 'bg-destructive/5 border-destructive/30' : 'bg-muted/30'
                             }`}
                           >
@@ -930,7 +930,7 @@ const ProfilePage = () => {
                                 )}
                               </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2">
                               {pet.qr_code && (
                                 pet.is_lost ? (
                                   <Button

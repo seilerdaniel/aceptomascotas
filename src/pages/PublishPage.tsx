@@ -321,7 +321,7 @@ const PublishPage = () => {
           </div>
 
           {profile?.user_type === "agencia" && (
-            <div className="flex items-center justify-between gap-4 bg-secondary/50 border rounded-xl p-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-secondary/50 border rounded-xl p-4 mb-8">
               <p className="text-sm text-foreground">
                 ¿Tenés varias propiedades para cargar? Importalas todas juntas desde un CSV.
               </p>
