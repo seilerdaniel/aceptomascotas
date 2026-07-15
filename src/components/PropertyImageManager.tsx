@@ -6,6 +6,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Plus, X, Loader2, Eye, EyeOff, Trash2, ExternalLink, HardDrive } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import EditPropertyDialog from '@/components/EditPropertyDialog';
 import { useNavigate } from 'react-router-dom';
 import type { Tables } from '@/integrations/supabase/types';
@@ -160,10 +171,6 @@ const PropertyImageManager = ({ property, onUpdate, userStorageUsed = 0, onStora
   };
 
   const handleDeleteProperty = async () => {
-    if (!confirm('¿Estás seguro de que querés eliminar esta propiedad? Esta acción no se puede deshacer.')) {
-      return;
-    }
-
     setIsDeleting(true);
     try {
       // Delete images from storage
@@ -248,19 +255,39 @@ const PropertyImageManager = ({ property, onUpdate, userStorageUsed = 0, onStora
                   <Eye className="h-4 w-4" />
                 )}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDeleteProperty}
-                disabled={isDeleting}
-                className="text-destructive hover:text-destructive"
-              >
-                {isDeleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isDeleting}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    {isDeleting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Eliminar esta propiedad?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción no se puede deshacer. "{property.title}" se va a borrar por completo, junto con sus fotos.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteProperty}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Eliminar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
 

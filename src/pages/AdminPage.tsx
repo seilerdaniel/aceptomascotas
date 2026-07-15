@@ -953,9 +953,30 @@ const AdminPage = () => {
                           checked={!!ad.is_active}
                           onCheckedChange={(checked) => handleToggleAdActive(ad.id, checked)}
                         />
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteAd(ad.id)}>
-                          <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Eliminar esta publicidad?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta acción no se puede deshacer. El anuncio de "{ad.advertiser_name}" dejará de mostrarse.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteAd(ad.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     ))}
                   </div>

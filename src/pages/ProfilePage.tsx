@@ -1070,13 +1070,30 @@ const ProfilePage = () => {
                               {service.is_active ? 'Pausar' : 'Reactivar'}
                             </Button>
                             <EditServiceDialog service={service} />
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteService(service.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Eliminar este servicio?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. La publicación de "{service.name}" se va a borrar por completo.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteService(service.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Eliminar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </div>
                       ))}
