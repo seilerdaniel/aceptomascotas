@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import SearchPage from "./pages/SearchPage";
@@ -23,13 +23,14 @@ import FAQPage from "./pages/FAQPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import CookiesPage from "./pages/CookiesPage";
 import TermsPage from "./pages/TermsPage";
-import StorePage from "./pages/StorePage";
+// import StorePage from "./pages/StorePage"; // Tienda oculta hasta que la pasarela de pagos esté lista
 import PetPublicPage from "./pages/PetPublicPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
-import AIChatbot from "./components/AIChatbot";
+// import AIChatbot from "./components/AIChatbot"; // Desactivado temporalmente
 import RouteTracker from "./components/RouteTracker";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <RouteTracker />
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/buscar" element={<SearchPage />} />
@@ -65,13 +67,15 @@ const App = () => (
             <Route path="/privacidad" element={<PrivacyPage />} />
             <Route path="/cookies" element={<CookiesPage />} />
             <Route path="/terminos" element={<TermsPage />} />
-            <Route path="/tienda" element={<StorePage />} />
+            {/* Tienda oculta hasta que la pasarela de pagos esté funcionando */}
+            <Route path="/tienda" element={<Navigate to="/" replace />} />
             <Route path="/mascota/:code" element={<PetPublicPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/quienes-somos" element={<AboutPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <AIChatbot />
+          {/* AIChatbot desactivado temporalmente hasta que esté funcionando completamente */}
+          {/* <AIChatbot /> */}
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

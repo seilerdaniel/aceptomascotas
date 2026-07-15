@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Camera, Loader2, User } from 'lucide-react';
+import { Camera, Loader2, User, X } from 'lucide-react';
 
 const MAX_FILE_SIZE_BYTES = 3 * 1024 * 1024; // 3MB
 
@@ -10,10 +10,12 @@ interface AvatarUploadProps {
   userId: string;
   currentAvatarUrl: string | null;
   onUploaded: (url: string) => void;
+  onRemove?: () => void;
 }
 
-const AvatarUpload = ({ userId, currentAvatarUrl, onUploaded }: AvatarUploadProps) => {
+const AvatarUpload = ({ userId, currentAvatarUrl, onUploaded, onRemove }: AvatarUploadProps) => {
   const [uploading, setUploading] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,6 +63,24 @@ const AvatarUpload = ({ userId, currentAvatarUrl, onUploaded }: AvatarUploadProp
     }
   };
 
+  const handleRemove = async () => {
+    setRemoving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('user_id', userId);
+      if (error) throw error;
+      onRemove?.();
+      toast.success('Foto de perfil eliminada');
+    } catch (error) {
+      console.error('Avatar remove error:', error);
+      toast.error('Error al eliminar la imagen');
+    } finally {
+      setRemoving(false);
+    }
+  };
+
   return (
     <div className="relative group">
       <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-primary/20 bg-muted flex items-center justify-center">
@@ -85,6 +105,18 @@ const AvatarUpload = ({ userId, currentAvatarUrl, onUploaded }: AvatarUploadProp
           <Camera className="h-4 w-4" />
         )}
       </label>
+
+      {currentAvatarUrl && (
+        <button
+          type="button"
+          onClick={handleRemove}
+          disabled={removing}
+          title="Quitar foto de perfil"
+          className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center hover:bg-destructive/90 transition-colors shadow-md"
+        >
+          {removing ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+        </button>
+      )}
     </div>
   );
 };

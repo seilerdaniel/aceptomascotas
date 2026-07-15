@@ -597,6 +597,7 @@ const AdminPage = () => {
                         <TableHead>Ciudad</TableHead>
                         <TableHead>Contacto</TableHead>
                         <TableHead>Estado</TableHead>
+                        <TableHead>Aprobado</TableHead>
                         <TableHead>Verificado</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
@@ -617,6 +618,15 @@ const AdminPage = () => {
                           </TableCell>
                           <TableCell>
                             <Switch
+                              checked={!!service.is_approved}
+                              onCheckedChange={(checked) =>
+                                handleToggleServiceApproval(service.id, checked)
+                              }
+                              aria-label="Aprobar servicio"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Switch
                               checked={!!service.is_verified}
                               onCheckedChange={(checked) =>
                                 handleToggleServiceVerified(service.id, checked)
@@ -626,13 +636,6 @@ const AdminPage = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end items-center gap-2">
-                              <Switch
-                                checked={!!service.is_approved}
-                                onCheckedChange={(checked) =>
-                                  handleToggleServiceApproval(service.id, checked)
-                                }
-                                aria-label="Aprobar servicio"
-                              />
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="ghost" size="icon">

@@ -40,6 +40,7 @@ const PropertyDetail = () => {
         // the owner_is_verified column added by the verification migration.
         isVerified: (dbProperty as any).owner_is_verified ?? false,
         propertyIsVerified: (dbProperty as any).property_is_verified ?? false,
+        ownerAvatarUrl: (dbProperty as any).owner_avatar_url ?? null,
         agencyId: (dbProperty as any).agency_id ?? null,
         latitude: (dbProperty as any).latitude ?? null,
         longitude: (dbProperty as any).longitude ?? null,
@@ -328,9 +329,17 @@ const PropertyDetail = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-3 p-3 bg-secondary rounded-xl">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                      <User className="h-6 w-6" />
-                    </div>
+                    {property.ownerAvatarUrl ? (
+                      <img
+                        src={property.ownerAvatarUrl}
+                        alt={property.contactName}
+                        className="h-12 w-12 rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shrink-0">
+                        <User className="h-6 w-6" />
+                      </div>
+                    )}
                     <div>
                       <div className="flex items-center gap-1.5">
                         <p className="font-semibold text-foreground">{property.contactName}</p>

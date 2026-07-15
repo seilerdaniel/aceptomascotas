@@ -407,6 +407,11 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      {!isAdmin && profile?.user_type === 'agencia' && bannerUrl && (
+        <div className="w-full aspect-[5/1] bg-secondary overflow-hidden">
+          <img src={bannerUrl} alt="" className="w-full h-full object-cover" />
+        </div>
+      )}
       <main className="flex-1 container py-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
@@ -415,6 +420,7 @@ const ProfilePage = () => {
                 userId={user.id}
                 currentAvatarUrl={avatarUrl}
                 onUploaded={(url) => setAvatarUrl(url)}
+                onRemove={() => setAvatarUrl(null)}
               />
             )}
             <div className="flex items-center gap-3">

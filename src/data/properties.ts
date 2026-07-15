@@ -20,6 +20,7 @@ export interface Property {
   amenities: string[];
   isVerified?: boolean;
   propertyIsVerified?: boolean;
+  ownerAvatarUrl?: string | null;
   agencyId?: string | null;
   latitude?: number | null;
   longitude?: number | null;

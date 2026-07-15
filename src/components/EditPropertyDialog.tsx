@@ -119,7 +119,7 @@ const EditPropertyDialog = ({ property }: EditPropertyDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="Editar propiedad">
+        <Button variant="outline" size="sm" title="Editar propiedad">
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
