@@ -18,6 +18,8 @@ import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
 import PetCategoryTiles from "@/components/PetCategoryTiles";
 import TrustBar from "@/components/TrustBar";
+import StoryCarousel from "@/components/StoryCarousel";
+import CommunityGrid from "@/components/CommunityGrid";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CafecitoSection from "@/components/CafecitoSection";
@@ -168,6 +170,11 @@ const Index = () => {
           </section>
         )}
 
+        {/* Storytelling — antes de los tiles y del catálogo, a propósito:
+            ver sección 3 y 11 del doc de rediseño. No renderiza nada hasta
+            que haya historias reales cargadas en src/data/stories.ts. */}
+        <StoryCarousel />
+
         {/* Explorar por mascota — acción de bajo compromiso antes de pedir
             que el usuario evalúe el catálogo completo o lea los diferenciales. */}
         <PetCategoryTiles />
@@ -294,6 +301,11 @@ const Index = () => {
             </Link>
           </div>
         </section>
+
+        {/* Comunidad — cierre de conversión social antes del CTA final. No
+            renderiza nada hasta que haya fotos curadas cargadas en
+            src/data/communityPhotos.ts. */}
+        <CommunityGrid />
 
         {/* Cafecito Section */}
         <CafecitoSection />
