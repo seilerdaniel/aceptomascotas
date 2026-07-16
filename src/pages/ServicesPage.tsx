@@ -163,7 +163,7 @@ const ServicesPage = () => {
               {/* Mobile Filters Button */}
               <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden relative">
+                  <Button variant="outline" size="icon" aria-label="Abrir filtros" className="lg:hidden relative">
                     <Filter className="h-4 w-4" />
                     {activeFiltersCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">

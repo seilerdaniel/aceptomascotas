@@ -110,7 +110,7 @@ const UtmLinkGenerator = () => {
 
         <div className="flex items-center gap-2 bg-secondary/50 rounded-lg p-3">
           <code className="flex-1 text-sm break-all">{generatedUrl}</code>
-          <Button variant="outline" size="icon" onClick={handleCopy} className="shrink-0">
+          <Button variant="outline" size="icon" aria-label="Copiar link" onClick={handleCopy} className="shrink-0">
             <Copy className="h-4 w-4" />
           </Button>
         </div>

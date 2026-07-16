@@ -308,6 +308,7 @@ const PublishServicePage = () => {
                           currentUrl={logoUrl}
                           shape="square"
                           onUploaded={setLogoUrl}
+                          onRemove={() => setLogoUrl(null)}
                         />
                       </div>
                     </div>

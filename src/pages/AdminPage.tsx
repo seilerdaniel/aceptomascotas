@@ -436,7 +436,7 @@ const AdminPage = () => {
                           <TableCell className="text-right">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" aria-label="Eliminar mensaje">
                                   <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                 </Button>
                               </AlertDialogTrigger>
@@ -543,7 +543,7 @@ const AdminPage = () => {
                           <TableCell className="text-right">
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" aria-label="Eliminar reporte">
                                   <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                 </Button>
                               </AlertDialogTrigger>
@@ -640,7 +640,7 @@ const AdminPage = () => {
                             <div className="flex justify-end items-center gap-2">
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon">
+                                  <Button variant="ghost" size="icon" aria-label="Eliminar servicio">
                                     <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                   </Button>
                                 </AlertDialogTrigger>
@@ -744,6 +744,7 @@ const AdminPage = () => {
                             <Button
                               variant="ghost"
                               size="icon"
+                              aria-label="Mostrar u ocultar propiedad"
                               onClick={() => handleToggleProperty(property.id, property.is_active || false)}
                             >
                               {property.is_active ? (
@@ -754,7 +755,7 @@ const AdminPage = () => {
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" aria-label="Eliminar propiedad">
                                   <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                 </Button>
                               </AlertDialogTrigger>
@@ -955,7 +956,7 @@ const AdminPage = () => {
                         />
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" aria-label="Eliminar publicidad">
                               <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                             </Button>
                           </AlertDialogTrigger>
