@@ -72,11 +72,12 @@ import {
   useUpdateAd,
   useDeleteAd
 } from "@/hooks/useAdmin";
+import { useAdminActionLog, getActionLabel } from "@/hooks/useAdminActionLog";
 import { useDeleteService } from "@/hooks/useServices";
 import ImageUploadField from "@/components/ImageUploadField";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Megaphone } from "lucide-react";
+import { Megaphone, History } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminPage = () => {
@@ -89,6 +90,12 @@ const AdminPage = () => {
   const { data: reports = [], isLoading: reportsLoading } = usePropertyReports();
   const { data: services = [], isLoading: servicesLoading } = useAllServices();
   const { data: ads = [], isLoading: adsLoading } = useAllAds();
+  const {
+    data: actionLogData,
+    isLoading: actionLogLoading,
+    loadMore: loadMoreActionLog,
+    hasMore: hasMoreActionLog,
+  } = useAdminActionLog();
 
   const deleteMessage = useDeleteContactMessage();
   const updateReportStatus = useUpdatePropertyReportStatus();
@@ -385,6 +392,10 @@ const AdminPage = () => {
             <TabsTrigger value="ads" className="gap-2 shrink-0">
               <Megaphone className="h-4 w-4" />
               Publicidad
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-2 shrink-0">
+              <History className="h-4 w-4" />
+              Actividad
             </TabsTrigger>
           </TabsList>
           </div>
@@ -981,6 +992,64 @@ const AdminPage = () => {
                       </div>
                     ))}
                   </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Activity Log Tab */}
+          <TabsContent value="activity">
+            <Card>
+              <CardHeader>
+                <CardTitle>Actividad del admin</CardTitle>
+                <CardDescription>
+                  Quién verificó, aprobó o eliminó qué, y cuándo. Registro de solo lectura.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {actionLogLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : !actionLogData || actionLogData.rows.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Todavía no hay acciones registradas
+                  </div>
+                ) : (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Fecha</TableHead>
+                          <TableHead>Admin</TableHead>
+                          <TableHead>Acción</TableHead>
+                          <TableHead>Detalle</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {actionLogData.rows.map((entry: any) => (
+                          <TableRow key={entry.id}>
+                            <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                              {new Date(entry.created_at).toLocaleString("es-AR")}
+                            </TableCell>
+                            <TableCell>{entry.admin_full_name || "—"}</TableCell>
+                            <TableCell>{getActionLabel(entry.action)}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {entry.target_id ? `${entry.target_table}: ${entry.target_id.slice(0, 8)}…` : "—"}
+                              {entry.details ? ` (${JSON.stringify(entry.details)})` : ""}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    {hasMoreActionLog && (
+                      <div className="flex justify-center mt-4">
+                        <Button variant="outline" size="sm" onClick={loadMoreActionLog}>
+                          Cargar más
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>

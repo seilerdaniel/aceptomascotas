@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables, Enums } from "@/integrations/supabase/types";
+import { logAdminAction } from "@/lib/adminActionLog";
 
 export type PetService = Tables<"pet_services">;
 export type ServiceReview = Tables<"service_reviews">;
@@ -336,10 +337,17 @@ export const useDeleteService = () => {
       const { error } = await supabase.from("pet_services").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["user-services"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
       queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+      // Se usa tanto para que un proveedor borre su propio servicio como
+      // para que un admin lo borre desde el panel. logAdminAction() solo
+      // deja rastro si quien llama es realmente admin (lo verifica la
+      // policy de RLS de admin_action_log); si es el dueño borrando su
+      // propio servicio, el insert del log falla silenciosamente y no
+      // pasa nada — no hace falta distinguir el caso acá.
+      logAdminAction({ action: "delete_service", targetTable: "pet_services", targetId: id });
     },
   });
 };
