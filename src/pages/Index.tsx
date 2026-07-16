@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Plus, Home, Heart, Shield, Clock, Users } from "lucide-react";
+import { Search, Plus, Home, Heart, Shield, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import {
 import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
 import PetCategoryTiles from "@/components/PetCategoryTiles";
+import TrustBar from "@/components/TrustBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CafecitoSection from "@/components/CafecitoSection";
@@ -160,25 +161,10 @@ const Index = () => {
           <SearchBar />
         </section>
 
-        {/* Stats Section */}
+        {/* Trust Bar */}
         {showStats && (
           <section className="container pb-16">
-            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto text-center">
-              <div className="bg-card rounded-2xl border p-6">
-                <div className="flex items-center justify-center gap-2 text-primary mb-1">
-                  <Home className="h-5 w-5" />
-                  <span className="font-display text-3xl font-bold">{stats?.properties}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">Propiedades publicadas</p>
-              </div>
-              <div className="bg-card rounded-2xl border p-6">
-                <div className="flex items-center justify-center gap-2 text-primary mb-1">
-                  <Users className="h-5 w-5" />
-                  <span className="font-display text-3xl font-bold">{stats?.searchers}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">Familias buscando</p>
-              </div>
-            </div>
+            <TrustBar properties={stats?.properties ?? 0} searchers={stats?.searchers ?? 0} />
           </section>
         )}
 
