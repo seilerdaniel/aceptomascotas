@@ -73,7 +73,10 @@ const Index = () => {
   const STATS_MIN_PROPERTIES = 5;
   const showStats = (stats?.properties ?? 0) >= STATS_MIN_PROPERTIES;
 
-  // Transform database properties to match PropertyCard format
+  // Transform database properties to match PropertyCard format.
+  // isVerified/propertyIsVerified se mapean igual que en PropertyDetail.tsx
+  // y SearchPage.tsx: sin esto, PropertyCard nunca mostraba el badge de
+  // "Propiedad verificada" en el Home aunque la propiedad sí lo estuviera.
   const transformedDbProperties = dbProperties.map((p) => ({
     id: p.id,
     title: p.title,
@@ -87,6 +90,8 @@ const Index = () => {
     contactPhone: p.contact_phone || "",
     contactEmail: p.contact_email || "",
     amenities: [],
+    isVerified: (p as any).owner_is_verified ?? false,
+    propertyIsVerified: (p as any).property_is_verified ?? false,
   }));
 
   // Use database properties if available, otherwise fall back to mock data
