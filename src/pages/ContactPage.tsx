@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
+import { getClientIdentifier } from "@/lib/clientIdentifier";
 
 // TODO: número temporal (personal de Daniel). Reemplazar cuando esté
 // disponible el número de WhatsApp Business dedicado a Acepto Mascotas.
@@ -62,16 +63,19 @@ const ContactPage = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .insert({
-          name: formData.name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          subject: formData.subject.trim(),
-          message: formData.message.trim(),
-        });
+      const { error } = await supabase.rpc("submit_contact_message", {
+        p_identifier: getClientIdentifier(),
+        p_name: formData.name.trim(),
+        p_email: formData.email.trim().toLowerCase(),
+        p_subject: formData.subject.trim(),
+        p_message: formData.message.trim(),
+      });
 
       if (error) {
+        if (error.message?.includes("rate_limited")) {
+          toast.error("Ya enviaste varios mensajes. Probá de nuevo en un rato.");
+          return;
+        }
         throw error;
       }
 

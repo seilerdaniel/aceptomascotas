@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getClientIdentifier } from "@/lib/clientIdentifier";
 
 interface ReportPropertyProps {
   propertyId: string;
@@ -41,13 +42,20 @@ const ReportProperty = ({ propertyId }: ReportPropertyProps) => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("property_reports").insert({
-        property_id: propertyId,
-        reason,
-        details: details.trim() || null,
+      const { error } = await supabase.rpc("submit_property_report", {
+        p_identifier: getClientIdentifier(),
+        p_property_id: propertyId,
+        p_reason: reason,
+        p_details: details.trim() || null,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes("rate_limited")) {
+          toast.error("Ya enviaste varios reportes. Probá de nuevo en un rato.");
+          return;
+        }
+        throw error;
+      }
 
       toast.success("Gracias por avisarnos. Vamos a revisar la publicación.");
       setOpen(false);
