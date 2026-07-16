@@ -11,6 +11,7 @@ import { mockProperties } from "@/data/properties";
 import { toast } from "sonner";
 import { useState } from "react";
 import ReportProperty from "@/components/ReportProperty";
+import StickyMobileContactBar from "@/components/StickyMobileContactBar";
 import { trackEvent } from "@/lib/analytics";
 import { googleMapsLink } from "@/lib/googleMaps";
 
@@ -156,7 +157,7 @@ const PropertyDetail = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1">
+      <main className="flex-1 pb-24 md:pb-0">
         <div className="container py-6">
           <Link to="/buscar" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6">
             <ArrowLeft className="h-4 w-4" />
@@ -440,6 +441,24 @@ const PropertyDetail = () => {
           </div>
         </div>
       </main>
+
+      {user && property.contactPhone ? (
+        <StickyMobileContactBar
+          label="Contactar por WhatsApp"
+          icon={<Phone className="h-4 w-4" />}
+          onClick={handleContact}
+        />
+      ) : !user ? (
+        <StickyMobileContactBar
+          label="Registrate para contactar"
+          icon={<Lock className="h-4 w-4" />}
+          to="/auth"
+          onClick={() =>
+            trackEvent("register_cta_click", { source: "property_detail", property_id: property.id })
+          }
+          helperText="Es gratis y te toma menos de un minuto"
+        />
+      ) : null}
 
       <Footer />
     </div>
