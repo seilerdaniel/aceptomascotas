@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/carousel";
 import SearchBar from "@/components/SearchBar";
 import PropertyCard from "@/components/PropertyCard";
+import PetCategoryTiles from "@/components/PetCategoryTiles";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CafecitoSection from "@/components/CafecitoSection";
@@ -180,6 +181,10 @@ const Index = () => {
             </div>
           </section>
         )}
+
+        {/* Explorar por mascota — acción de bajo compromiso antes de pedir
+            que el usuario evalúe el catálogo completo o lea los diferenciales. */}
+        <PetCategoryTiles />
 
         {/* Features Section — va antes del catálogo a propósito: el usuario
             necesita entender el diferencial antes de evaluar inventario. */}
