@@ -1,38 +1,55 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
+// Index es la ruta de mayor tráfico (el Home): se mantiene con import
+// eager para que la primera carga no dependa de una request adicional.
+// El resto de las rutas se cargan con React.lazy() + code-splitting por
+// ruta, para que el bundle inicial no traiga páginas que la mayoría de
+// las visitas nunca llega a ver (admin, publicar, checkout de servicios,
+// legales, etc.). Esto es lo que baja el ~2.96MB del bundle principal.
 import Index from "./pages/Index";
-import SearchPage from "./pages/SearchPage";
-import PropertyDetail from "./pages/PropertyDetail";
-import PublishPage from "./pages/PublishPage";
-import BulkImportPage from "./pages/BulkImportPage";
-import AgencyPage from "./pages/AgencyPage";
-import LostPetsPage from "./pages/LostPetsPage";
-import AuthPage from "./pages/AuthPage";
-import FavoritesPage from "./pages/FavoritesPage";
-import ContactPage from "./pages/ContactPage";
-import AdminPage from "./pages/AdminPage";
-import ProfilePage from "./pages/ProfilePage";
-import ServicesPage from "./pages/ServicesPage";
-import ServiceDetailPage from "./pages/ServiceDetailPage";
-import PublishServicePage from "./pages/PublishServicePage";
-import FAQPage from "./pages/FAQPage";
-import PrivacyPage from "./pages/PrivacyPage";
-import CookiesPage from "./pages/CookiesPage";
-import TermsPage from "./pages/TermsPage";
+const SearchPage = lazy(() => import("./pages/SearchPage"));
+const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
+const PublishPage = lazy(() => import("./pages/PublishPage"));
+const BulkImportPage = lazy(() => import("./pages/BulkImportPage"));
+const AgencyPage = lazy(() => import("./pages/AgencyPage"));
+const LostPetsPage = lazy(() => import("./pages/LostPetsPage"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const ServicesPage = lazy(() => import("./pages/ServicesPage"));
+const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
+const PublishServicePage = lazy(() => import("./pages/PublishServicePage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
+const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
+const CookiesPage = lazy(() => import("./pages/CookiesPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
 // import StorePage from "./pages/StorePage"; // Tienda oculta hasta que la pasarela de pagos esté lista
-import PetPublicPage from "./pages/PetPublicPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import AboutPage from "./pages/AboutPage";
-import NotFound from "./pages/NotFound";
+const PetPublicPage = lazy(() => import("./pages/PetPublicPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 // import AIChatbot from "./components/AIChatbot"; // Desactivado temporalmente
 import RouteTracker from "./components/RouteTracker";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
+
+// Fallback simple y neutro: aparece solo durante la descarga del chunk de
+// una ruta lazy (típicamente milisegundos con buena conexión). Mismo
+// ícono que ya se usa en el resto del sitio (Loader2 + animate-spin).
+const RouteLoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -43,6 +60,7 @@ const App = () => (
         <AuthProvider>
           <RouteTracker />
           <ScrollToTop />
+          <Suspense fallback={<RouteLoadingFallback />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/buscar" element={<SearchPage />} />
@@ -74,6 +92,7 @@ const App = () => (
             <Route path="/quienes-somos" element={<AboutPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           {/* AIChatbot desactivado temporalmente hasta que esté funcionando completamente */}
           {/* <AIChatbot /> */}
         </AuthProvider>
