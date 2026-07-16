@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, AlertTriangle, PawPrint, MapPin } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertTriangle, PawPrint, MapPin } from 'lucide-react';
 import { googleMapsLink } from '@/lib/googleMaps';
 
 interface LostPet {
@@ -55,8 +56,19 @@ const LostPetsPage = () => {
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden h-full">
+                  <div className="aspect-square">
+                    <Skeleton className="h-full w-full rounded-none" />
+                  </div>
+                  <CardContent className="p-4 space-y-2">
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-1/3" />
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : pets.length === 0 ? (
             <div className="text-center py-16 space-y-3">
