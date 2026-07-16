@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ServiceReviews from "@/components/ServiceReviews";
+import StickyMobileContactBar from "@/components/StickyMobileContactBar";
 import { useService, useServiceRating, getCategoryLabel } from "@/hooks/useServices";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -114,7 +115,7 @@ const ServiceDetailPage = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 container py-8">
+      <main className="flex-1 container py-8 pb-24 md:pb-8">
         {/* Back Button */}
         <Link to="/servicios" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="h-4 w-4" />
@@ -402,6 +403,14 @@ const ServiceDetailPage = () => {
           </div>
         </div>
       </main>
+
+      {service.whatsapp && (
+        <StickyMobileContactBar
+          label="Contactar por WhatsApp"
+          icon={<MessageCircle className="h-4 w-4" />}
+          onClick={openWhatsApp}
+        />
+      )}
 
       <Footer />
     </div>
