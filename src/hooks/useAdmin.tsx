@@ -124,6 +124,7 @@ export const useTogglePropertyActive = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-properties-page"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       // Without this, the owner's own "Mis Propiedades" tab kept showing
       // stale active/inactive state within the same browser session.
@@ -148,6 +149,7 @@ export const useDeleteProperty = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-properties-page"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       queryClient.invalidateQueries({ queryKey: ["user-properties"] });
     },
@@ -188,6 +190,7 @@ export const useToggleProfileVerification = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users-page"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       // Broad match: invalidates ["profile", anyUserId] too, which is what
       // ProfilePage's Resumen tab reads — without this, the agency's own
@@ -296,6 +299,7 @@ export const useTogglePropertyVerified = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-properties-page"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       queryClient.invalidateQueries({ queryKey: ["user-properties"] });
     },
@@ -318,6 +322,7 @@ export const useToggleServiceVerified = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services-page"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
       queryClient.invalidateQueries({ queryKey: ["user-services"] });
     },
@@ -340,6 +345,8 @@ export const useToggleServiceApproval = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services-page"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services-pending-count"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
       queryClient.invalidateQueries({ queryKey: ["user-services"] });
     },

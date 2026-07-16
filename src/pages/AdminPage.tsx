@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { 
   MessageSquare, 
@@ -55,15 +55,12 @@ import {
   useIsAdmin, 
   useContactMessages, 
   useDeleteContactMessage,
-  useAllProperties,
   useTogglePropertyActive,
   useDeleteProperty,
-  useAllProfiles,
   usePropertyReports,
   useUpdatePropertyReportStatus,
   useDeletePropertyReport,
   useToggleProfileVerification,
-  useAllServices,
   useToggleServiceApproval,
   useToggleServiceVerified,
   useTogglePropertyVerified,
@@ -72,23 +69,81 @@ import {
   useUpdateAd,
   useDeleteAd
 } from "@/hooks/useAdmin";
+import {
+  useAdminPropertiesPaginated,
+  useAdminServicesPaginated,
+  useAdminUsersPaginated,
+  useAdminPendingServicesCount,
+  type PropertyStatusFilter,
+  type ServiceStatusFilter,
+  type UserStatusFilter,
+  type AdminTableState,
+} from "@/hooks/useAdminTables";
 import { useDeleteService } from "@/hooks/useServices";
+import AdminTableToolbar from "@/components/admin/AdminTableToolbar";
+import AdminTablePagination from "@/components/admin/AdminTablePagination";
+import SortableTableHead from "@/components/admin/SortableTableHead";
 import ImageUploadField from "@/components/ImageUploadField";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Megaphone } from "lucide-react";
 import { toast } from "sonner";
 
+// Handlers compartidos por las 3 tablas paginadas del admin: buscar y
+// filtrar por estado vuelven a la página 1; ordenar por la misma columna
+// invierte la dirección en vez de resetearla.
+const createTableHandlers = <S extends AdminTableState & { status: string }>(
+  setState: Dispatch<SetStateAction<S>>
+) => ({
+  onSearchChange: (search: string) => setState((s) => ({ ...s, search, page: 1 })),
+  onStatusChange: (status: string) => setState((s) => ({ ...s, status: status as S["status"], page: 1 })),
+  onSort: (column: string) =>
+    setState((s) => ({
+      ...s,
+      sortBy: column,
+      sortAscending: s.sortBy === column ? !s.sortAscending : true,
+      page: 1,
+    })),
+  onPageChange: (page: number) => setState((s) => ({ ...s, page })),
+});
+
 const AdminPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: messages = [], isLoading: messagesLoading } = useContactMessages();
-  const { data: properties = [], isLoading: propertiesLoading } = useAllProperties();
-  const { data: profiles = [], isLoading: profilesLoading } = useAllProfiles();
   const { data: reports = [], isLoading: reportsLoading } = usePropertyReports();
-  const { data: services = [], isLoading: servicesLoading } = useAllServices();
   const { data: ads = [], isLoading: adsLoading } = useAllAds();
+
+  const [propertiesState, setPropertiesState] = useState<
+    AdminTableState & { status: PropertyStatusFilter }
+  >({ page: 1, search: "", sortBy: "created_at", sortAscending: false, status: "todas" });
+  const { data: propertiesPage, isLoading: propertiesLoading } =
+    useAdminPropertiesPaginated(propertiesState);
+  const properties = propertiesPage?.rows ?? [];
+  const propertiesHandlers = createTableHandlers(setPropertiesState);
+
+  const [servicesState, setServicesState] = useState<
+    AdminTableState & { status: ServiceStatusFilter }
+  >({ page: 1, search: "", sortBy: "created_at", sortAscending: false, status: "todos" });
+  const { data: servicesPage, isLoading: servicesLoading } = useAdminServicesPaginated(servicesState);
+  const services = servicesPage?.rows ?? [];
+  const servicesHandlers = createTableHandlers(setServicesState);
+
+  const [usersState, setUsersState] = useState<AdminTableState & { status: UserStatusFilter }>({
+    page: 1,
+    search: "",
+    sortBy: "created_at",
+    sortAscending: false,
+    status: "todos",
+  });
+  const { data: usersPage, isLoading: profilesLoading } = useAdminUsersPaginated(usersState);
+  const profiles = usersPage?.rows ?? [];
+  const usersHandlers = createTableHandlers(setUsersState);
+
+  // Conteo real de servicios pendientes para el badge del tab: independiente
+  // de la búsqueda/filtro/página actual de la tabla de Servicios.
+  const { data: pendingServicesCount = 0 } = useAdminPendingServicesCount();
 
   const deleteMessage = useDeleteContactMessage();
   const updateReportStatus = useUpdatePropertyReportStatus();
@@ -331,7 +386,7 @@ const AdminPage = () => {
               <Home className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{properties.length}</div>
+              <div className="text-2xl font-bold">{propertiesPage?.totalCount ?? 0}</div>
             </CardContent>
           </Card>
           <Card>
@@ -340,7 +395,7 @@ const AdminPage = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{profiles.length}</div>
+              <div className="text-2xl font-bold">{usersPage?.totalCount ?? 0}</div>
             </CardContent>
           </Card>
         </div>
@@ -364,9 +419,9 @@ const AdminPage = () => {
             <TabsTrigger value="services" className="gap-2 shrink-0">
               <Stethoscope className="h-4 w-4" />
               Servicios
-              {services.filter((s: any) => !s.is_approved).length > 0 && (
+              {pendingServicesCount > 0 && (
                 <Badge variant="destructive" className="ml-1">
-                  {services.filter((s: any) => !s.is_approved).length}
+                  {pendingServicesCount}
                 </Badge>
               )}
             </TabsTrigger>
@@ -582,21 +637,47 @@ const AdminPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <AdminTableToolbar
+                  searchValue={servicesState.search}
+                  onSearchChange={servicesHandlers.onSearchChange}
+                  searchPlaceholder="Buscar por nombre, ciudad o email..."
+                  statusValue={servicesState.status}
+                  onStatusChange={servicesHandlers.onStatusChange}
+                  statusOptions={[
+                    { value: "todos", label: "Todos los estados" },
+                    { value: "pendientes", label: "Pendientes de aprobación" },
+                    { value: "aprobados", label: "Aprobados" },
+                    { value: "verificados", label: "Verificados" },
+                  ]}
+                />
                 {servicesLoading ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 ) : services.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No hay servicios publicados todavía
+                    No hay servicios que coincidan con la búsqueda
                   </div>
                 ) : (
+                  <>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Nombre</TableHead>
+                        <SortableTableHead
+                          column="name"
+                          label="Nombre"
+                          activeSortBy={servicesState.sortBy}
+                          ascending={servicesState.sortAscending}
+                          onSort={servicesHandlers.onSort}
+                        />
                         <TableHead>Categoría</TableHead>
-                        <TableHead>Ciudad</TableHead>
+                        <SortableTableHead
+                          column="city"
+                          label="Ciudad"
+                          activeSortBy={servicesState.sortBy}
+                          ascending={servicesState.sortAscending}
+                          onSort={servicesHandlers.onSort}
+                        />
                         <TableHead>Contacto</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead>Aprobado</TableHead>
@@ -665,6 +746,13 @@ const AdminPage = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  <AdminTablePagination
+                    page={servicesState.page}
+                    pageCount={servicesPage?.pageCount ?? 1}
+                    totalCount={servicesPage?.totalCount ?? 0}
+                    onPageChange={servicesHandlers.onPageChange}
+                  />
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -680,23 +768,56 @@ const AdminPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <AdminTableToolbar
+                  searchValue={propertiesState.search}
+                  onSearchChange={propertiesHandlers.onSearchChange}
+                  searchPlaceholder="Buscar por título, ubicación o email..."
+                  statusValue={propertiesState.status}
+                  onStatusChange={propertiesHandlers.onStatusChange}
+                  statusOptions={[
+                    { value: "todas", label: "Todos los estados" },
+                    { value: "activas", label: "Activas" },
+                    { value: "inactivas", label: "Inactivas" },
+                    { value: "verificadas", label: "Verificadas" },
+                    { value: "sin_verificar", label: "Sin verificar" },
+                  ]}
+                />
                 {propertiesLoading ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 ) : properties.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No hay propiedades
+                    No hay propiedades que coincidan con la búsqueda
                   </div>
                 ) : (
+                  <>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Título</TableHead>
+                        <SortableTableHead
+                          column="created_at"
+                          label="Fecha"
+                          activeSortBy={propertiesState.sortBy}
+                          ascending={propertiesState.sortAscending}
+                          onSort={propertiesHandlers.onSort}
+                        />
+                        <SortableTableHead
+                          column="title"
+                          label="Título"
+                          activeSortBy={propertiesState.sortBy}
+                          ascending={propertiesState.sortAscending}
+                          onSort={propertiesHandlers.onSort}
+                        />
                         <TableHead>Usuario</TableHead>
                         <TableHead>Ubicación</TableHead>
-                        <TableHead>Precio</TableHead>
+                        <SortableTableHead
+                          column="price"
+                          label="Precio"
+                          activeSortBy={propertiesState.sortBy}
+                          ascending={propertiesState.sortAscending}
+                          onSort={propertiesHandlers.onSort}
+                        />
                         <TableHead>Estado</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
@@ -779,6 +900,13 @@ const AdminPage = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  <AdminTablePagination
+                    page={propertiesState.page}
+                    pageCount={propertiesPage?.pageCount ?? 1}
+                    totalCount={propertiesPage?.totalCount ?? 0}
+                    onPageChange={propertiesHandlers.onPageChange}
+                  />
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -794,20 +922,45 @@ const AdminPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <AdminTableToolbar
+                  searchValue={usersState.search}
+                  onSearchChange={usersHandlers.onSearchChange}
+                  searchPlaceholder="Buscar por nombre o teléfono..."
+                  statusValue={usersState.status}
+                  onStatusChange={usersHandlers.onStatusChange}
+                  statusOptions={[
+                    { value: "todos", label: "Todos los estados" },
+                    { value: "verificados", label: "Verificados" },
+                    { value: "sin_verificar", label: "Sin verificar" },
+                  ]}
+                />
                 {profilesLoading ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 ) : profiles.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No hay usuarios
+                    No hay usuarios que coincidan con la búsqueda
                   </div>
                 ) : (
+                  <>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Fecha de registro</TableHead>
-                        <TableHead>Nombre</TableHead>
+                        <SortableTableHead
+                          column="created_at"
+                          label="Fecha de registro"
+                          activeSortBy={usersState.sortBy}
+                          ascending={usersState.sortAscending}
+                          onSort={usersHandlers.onSort}
+                        />
+                        <SortableTableHead
+                          column="full_name"
+                          label="Nombre"
+                          activeSortBy={usersState.sortBy}
+                          ascending={usersState.sortAscending}
+                          onSort={usersHandlers.onSort}
+                        />
                         <TableHead>Teléfono</TableHead>
                         <TableHead>Tipo</TableHead>
                         <TableHead>Verificado</TableHead>
@@ -846,6 +999,13 @@ const AdminPage = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  <AdminTablePagination
+                    page={usersState.page}
+                    pageCount={usersPage?.pageCount ?? 1}
+                    totalCount={usersPage?.totalCount ?? 0}
+                    onPageChange={usersHandlers.onPageChange}
+                  />
+                  </>
                 )}
               </CardContent>
             </Card>

@@ -305,6 +305,7 @@ export const useUpdateService = () => {
       queryClient.invalidateQueries({ queryKey: ["user-services"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
       queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services-page"] });
     },
   });
 };
@@ -324,6 +325,7 @@ export const useToggleServiceActive = () => {
       queryClient.invalidateQueries({ queryKey: ["user-services"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
       queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services-page"] });
     },
   });
 };
@@ -340,6 +342,8 @@ export const useDeleteService = () => {
       queryClient.invalidateQueries({ queryKey: ["user-services"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
       queryClient.invalidateQueries({ queryKey: ["admin-services"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services-page"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-services-pending-count"] });
     },
   });
 };
