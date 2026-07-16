@@ -23,6 +23,48 @@ import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import LocationPicker from "@/components/LocationPicker";
 
+const DRAFT_STORAGE_KEY = "am_publish_property_draft";
+
+// No persistimos imageFiles/imagePreviews (son Files, no serializables) ni
+// isSubmitting — solo los campos de texto/selección y la ubicación del
+// mapa, que es lo que de verdad duele volver a escribir si se cierra la
+// pestaña o se cuelga el formulario a mitad de camino.
+interface PublishDraft {
+  formData: {
+    title: string;
+    description: string;
+    requirements: string;
+    price: string;
+    propertyType: string;
+    location: string;
+    petTypes: string[];
+    contactName: string;
+    contactPhone: string;
+    contactEmail: string;
+  };
+  latitude: number | null;
+  longitude: number | null;
+  savedAt: number;
+}
+
+const loadDraft = (): PublishDraft | null => {
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as PublishDraft;
+  } catch {
+    return null;
+  }
+};
+
+const clearDraft = () => {
+  try {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+  } catch {
+    // localStorage no disponible (modo privado, etc.) — no es crítico.
+  }
+};
+
 const PublishPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -42,20 +84,64 @@ const PublishPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    requirements: "",
-    price: "",
-    propertyType: "",
-    location: "",
-    petTypes: [] as string[],
-    contactName: "",
-    contactPhone: "",
-    contactEmail: "",
+  const [draftRestored] = useState(() => loadDraft() !== null);
+  const [formData, setFormData] = useState(() => {
+    const draft = loadDraft();
+    return (
+      draft?.formData || {
+        title: "",
+        description: "",
+        requirements: "",
+        price: "",
+        propertyType: "",
+        location: "",
+        petTypes: [] as string[],
+        contactName: "",
+        contactPhone: "",
+        contactEmail: "",
+      }
+    );
   });
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
+  const [latitude, setLatitude] = useState<number | null>(() => loadDraft()?.latitude ?? null);
+  const [longitude, setLongitude] = useState<number | null>(() => loadDraft()?.longitude ?? null);
+
+  // Autoguardado: cada cambio en el formulario (con debounce) se persiste
+  // en localStorage, para no perder el progreso si se cierra la pestaña o
+  // el navegador se cuelga a mitad de completar el formulario. Se limpia
+  // al publicar con éxito (ver handleSubmit) o si el usuario descarta el
+  // borrador manualmente.
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          DRAFT_STORAGE_KEY,
+          JSON.stringify({ formData, latitude, longitude, savedAt: Date.now() } satisfies PublishDraft)
+        );
+      } catch {
+        // localStorage lleno o no disponible — no es crítico, seguimos sin guardar.
+      }
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [formData, latitude, longitude]);
+
+  const handleDiscardDraft = () => {
+    clearDraft();
+    setFormData({
+      title: "",
+      description: "",
+      requirements: "",
+      price: "",
+      propertyType: "",
+      location: "",
+      petTypes: [],
+      contactName: profile?.full_name || "",
+      contactPhone: profile?.phone || "",
+      contactEmail: user?.email || "",
+    });
+    setLatitude(null);
+    setLongitude(null);
+    toast.success("Borrador descartado");
+  };
 
   // Pre-fill contact info from the profile (name, phone) and auth session
   // (email), so propietario/agencia don't have to retype it on every
@@ -242,6 +328,7 @@ const PublishPage = () => {
       }
 
       toast.success("¡Tu propiedad fue publicada exitosamente!");
+      clearDraft();
       trackEvent("property_published", { property_type: formData.propertyType });
       navigate("/");
     } catch (error) {
@@ -330,6 +417,17 @@ const PublishPage = () => {
                   Importar por CSV
                 </Button>
               </Link>
+            </div>
+          )}
+
+          {draftRestored && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-secondary/50 border rounded-xl p-4 mb-8">
+              <p className="text-sm text-foreground">
+                Recuperamos el borrador de tu última visita. Las fotos no se guardan, tenés que volver a subirlas.
+              </p>
+              <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={handleDiscardDraft}>
+                Empezar de cero
+              </Button>
             </div>
           )}
 

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { logAdminAction } from "@/lib/adminActionLog";
 
 export const useIsAdmin = () => {
   const { user } = useAuth();
@@ -60,8 +61,9 @@ export const useDeleteContactMessage = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["contact-messages"] });
+      logAdminAction({ action: "delete_contact_message", targetTable: "contact_messages", targetId: id });
     },
   });
 };
@@ -122,13 +124,18 @@ export const useTogglePropertyActive = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, { id, is_active }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
       queryClient.invalidateQueries({ queryKey: ["admin-properties-page"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       // Without this, the owner's own "Mis Propiedades" tab kept showing
       // stale active/inactive state within the same browser session.
       queryClient.invalidateQueries({ queryKey: ["user-properties"] });
+      logAdminAction({
+        action: is_active ? "activate_property" : "deactivate_property",
+        targetTable: "properties",
+        targetId: id,
+      });
     },
   });
 };
@@ -147,11 +154,12 @@ export const useDeleteProperty = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
       queryClient.invalidateQueries({ queryKey: ["admin-properties-page"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       queryClient.invalidateQueries({ queryKey: ["user-properties"] });
+      logAdminAction({ action: "delete_property", targetTable: "properties", targetId: id });
     },
   });
 };
@@ -188,7 +196,7 @@ export const useToggleProfileVerification = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, { id, isVerified }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
       queryClient.invalidateQueries({ queryKey: ["admin-users-page"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
@@ -196,6 +204,11 @@ export const useToggleProfileVerification = () => {
       // ProfilePage's Resumen tab reads — without this, the agency's own
       // session kept showing "no verificada" until a hard refresh/relogin.
       queryClient.invalidateQueries({ queryKey: ["profile"] });
+      logAdminAction({
+        action: isVerified ? "verify_profile" : "unverify_profile",
+        targetTable: "profiles",
+        targetId: id,
+      });
     },
   });
 };
@@ -238,8 +251,14 @@ export const useUpdatePropertyReportStatus = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, { id, status }) => {
       queryClient.invalidateQueries({ queryKey: ["property-reports"] });
+      logAdminAction({
+        action: "update_report_status",
+        targetTable: "property_reports",
+        targetId: id,
+        details: { status },
+      });
     },
   });
 };
@@ -258,8 +277,9 @@ export const useDeletePropertyReport = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["property-reports"] });
+      logAdminAction({ action: "delete_property_report", targetTable: "property_reports", targetId: id });
     },
   });
 };
@@ -297,11 +317,16 @@ export const useTogglePropertyVerified = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, { id, isVerified }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-properties"] });
       queryClient.invalidateQueries({ queryKey: ["admin-properties-page"] });
       queryClient.invalidateQueries({ queryKey: ["properties"] });
       queryClient.invalidateQueries({ queryKey: ["user-properties"] });
+      logAdminAction({
+        action: isVerified ? "verify_property" : "unverify_property",
+        targetTable: "properties",
+        targetId: id,
+      });
     },
   });
 };
@@ -343,12 +368,17 @@ export const useToggleServiceApproval = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, { id, isApproved }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-services"] });
       queryClient.invalidateQueries({ queryKey: ["admin-services-page"] });
       queryClient.invalidateQueries({ queryKey: ["admin-services-pending-count"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
       queryClient.invalidateQueries({ queryKey: ["user-services"] });
+      logAdminAction({
+        action: isApproved ? "approve_service" : "unapprove_service",
+        targetTable: "pet_services",
+        targetId: id,
+      });
     },
   });
 };
@@ -412,9 +442,10 @@ export const useDeleteAd = () => {
       const { error } = await supabase.from("advertisements" as any).delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["admin-ads"] });
       queryClient.invalidateQueries({ queryKey: ["active-ads"] });
+      logAdminAction({ action: "delete_ad", targetTable: "advertisements", targetId: id });
     },
   });
 };

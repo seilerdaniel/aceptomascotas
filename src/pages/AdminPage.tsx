@@ -1,12 +1,17 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useState,
+  useMemo,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { 
-  MessageSquare, 
-  Home, 
-  Users, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
+import {
+  MessageSquare,
+  Home,
+  Users,
+  Trash2,
+  Eye,
+  EyeOff,
   Loader2,
   Mail,
   Calendar,
@@ -51,9 +56,9 @@ import { Switch } from "@/components/ui/switch";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  useIsAdmin, 
-  useContactMessages, 
+import {
+  useIsAdmin,
+  useContactMessages,
   useDeleteContactMessage,
   useTogglePropertyActive,
   useDeleteProperty,
@@ -69,6 +74,7 @@ import {
   useUpdateAd,
   useDeleteAd
 } from "@/hooks/useAdmin";
+
 import {
   useAdminPropertiesPaginated,
   useAdminServicesPaginated,
@@ -79,6 +85,7 @@ import {
   type UserStatusFilter,
   type AdminTableState,
 } from "@/hooks/useAdminTables";
+import { useAdminActionLog, getActionLabel } from "@/hooks/useAdminActionLog";
 import { useDeleteService } from "@/hooks/useServices";
 import AdminTableToolbar from "@/components/admin/AdminTableToolbar";
 import AdminTablePagination from "@/components/admin/AdminTablePagination";
@@ -86,7 +93,7 @@ import SortableTableHead from "@/components/admin/SortableTableHead";
 import ImageUploadField from "@/components/ImageUploadField";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Megaphone } from "lucide-react";
+import { Megaphone, History } from "lucide-react";
 import { toast } from "sonner";
 
 // Handlers compartidos por las 3 tablas paginadas del admin: buscar y
@@ -114,6 +121,12 @@ const AdminPage = () => {
   const { data: messages = [], isLoading: messagesLoading } = useContactMessages();
   const { data: reports = [], isLoading: reportsLoading } = usePropertyReports();
   const { data: ads = [], isLoading: adsLoading } = useAllAds();
+  const {
+    data: actionLogData,
+    isLoading: actionLogLoading,
+    loadMore: loadMoreActionLog,
+    hasMore: hasMoreActionLog,
+  } = useAdminActionLog();
 
   const [propertiesState, setPropertiesState] = useState<
     AdminTableState & { status: PropertyStatusFilter }
@@ -144,6 +157,16 @@ const AdminPage = () => {
   // Conteo real de servicios pendientes para el badge del tab: independiente
   // de la búsqueda/filtro/página actual de la tabla de Servicios.
   const { data: pendingServicesCount = 0 } = useAdminPendingServicesCount();
+
+  const pendingReportsCount = useMemo(
+    () => reports.filter((report) => report.status === "pending").length,
+    [reports]
+  );
+
+  const nextAdSortOrder = useMemo(
+    () => Math.max(0, ...ads.map((ad: any) => Number(ad.sort_order ?? 0))) + 1,
+    [ads]
+  );
 
   const deleteMessage = useDeleteContactMessage();
   const updateReportStatus = useUpdatePropertyReportStatus();
@@ -268,7 +291,7 @@ const AdminPage = () => {
         image_url: newAdImage,
         link_url: newAdLink.trim() || null,
         alt_text: newAdAlt.trim(),
-        sort_order: ads.length,
+        sort_order: nextAdSortOrder,
       });
       toast.success("Publicidad creada");
       setNewAdName("");
@@ -299,7 +322,7 @@ const AdminPage = () => {
   };
 
   // Loading state
-  if (authLoading || adminLoading) {
+  if (authLoading || adminLoading || isAdmin === undefined) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -402,46 +425,50 @@ const AdminPage = () => {
 
         <Tabs defaultValue="messages" className="space-y-4">
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-2">
-          <TabsList className="w-max sm:w-auto">
-            <TabsTrigger value="messages" className="gap-2 shrink-0">
-              <MessageSquare className="h-4 w-4" />
-              Mensajes
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="gap-2 shrink-0">
-              <Flag className="h-4 w-4" />
-              Reportes
-              {reports.filter((r) => r.status === "pending").length > 0 && (
-                <Badge variant="destructive" className="ml-1">
-                  {reports.filter((r) => r.status === "pending").length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="services" className="gap-2 shrink-0">
-              <Stethoscope className="h-4 w-4" />
-              Servicios
-              {pendingServicesCount > 0 && (
-                <Badge variant="destructive" className="ml-1">
-                  {pendingServicesCount}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="properties" className="gap-2 shrink-0">
-              <Home className="h-4 w-4" />
-              Propiedades
-            </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2 shrink-0">
-              <Users className="h-4 w-4" />
-              Usuarios
-            </TabsTrigger>
-            <TabsTrigger value="utm" className="gap-2 shrink-0">
-              <Link2 className="h-4 w-4" />
-              Links UTM
-            </TabsTrigger>
-            <TabsTrigger value="ads" className="gap-2 shrink-0">
-              <Megaphone className="h-4 w-4" />
-              Publicidad
-            </TabsTrigger>
-          </TabsList>
+            <TabsList className="w-max sm:w-auto">
+              <TabsTrigger value="messages" className="gap-2 shrink-0">
+                <MessageSquare className="h-4 w-4" />
+                Mensajes
+              </TabsTrigger>
+              <TabsTrigger value="reports" className="gap-2 shrink-0">
+                <Flag className="h-4 w-4" />
+                Reportes
+                {pendingReportsCount > 0 && (
+                  <Badge variant="destructive" className="ml-1">
+                    {pendingReportsCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="services" className="gap-2 shrink-0">
+                <Stethoscope className="h-4 w-4" />
+                Servicios
+                {pendingServicesCount > 0 && (
+                  <Badge variant="destructive" className="ml-1">
+                    {pendingServicesCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="properties" className="gap-2 shrink-0">
+                <Home className="h-4 w-4" />
+                Propiedades
+              </TabsTrigger>
+              <TabsTrigger value="users" className="gap-2 shrink-0">
+                <Users className="h-4 w-4" />
+                Usuarios
+              </TabsTrigger>
+              <TabsTrigger value="utm" className="gap-2 shrink-0">
+                <Link2 className="h-4 w-4" />
+                Links UTM
+              </TabsTrigger>
+              <TabsTrigger value="ads" className="gap-2 shrink-0">
+                <Megaphone className="h-4 w-4" />
+                Publicidad
+              </TabsTrigger>
+              <TabsTrigger value="activity" className="gap-2 shrink-0">
+                <History className="h-4 w-4" />
+                Actividad
+              </TabsTrigger>
+            </TabsList>
           </div>
 
           {/* Messages Tab */}
@@ -660,98 +687,98 @@ const AdminPage = () => {
                   </div>
                 ) : (
                   <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <SortableTableHead
-                          column="name"
-                          label="Nombre"
-                          activeSortBy={servicesState.sortBy}
-                          ascending={servicesState.sortAscending}
-                          onSort={servicesHandlers.onSort}
-                        />
-                        <TableHead>Categoría</TableHead>
-                        <SortableTableHead
-                          column="city"
-                          label="Ciudad"
-                          activeSortBy={servicesState.sortBy}
-                          ascending={servicesState.sortAscending}
-                          onSort={servicesHandlers.onSort}
-                        />
-                        <TableHead>Contacto</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead>Aprobado</TableHead>
-                        <TableHead>Verificado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {services.map((service: any) => (
-                        <TableRow key={service.id}>
-                          <TableCell className="font-medium">{service.name}</TableCell>
-                          <TableCell className="capitalize">{service.category?.replace(/_/g, " ")}</TableCell>
-                          <TableCell>{service.city}</TableCell>
-                          <TableCell>{service.whatsapp || service.phone || service.email || "—"}</TableCell>
-                          <TableCell>
-                            {service.is_approved ? (
-                              <Badge className="bg-primary gap-1">Aprobado</Badge>
-                            ) : (
-                              <Badge variant="destructive">Pendiente</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Switch
-                              checked={!!service.is_approved}
-                              onCheckedChange={(checked) =>
-                                handleToggleServiceApproval(service.id, checked)
-                              }
-                              aria-label="Aprobar servicio"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Switch
-                              checked={!!service.is_verified}
-                              onCheckedChange={(checked) =>
-                                handleToggleServiceVerified(service.id, checked)
-                              }
-                              aria-label="Servicio verificado"
-                            />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end items-center gap-2">
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" aria-label="Eliminar servicio">
-                                    <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Eliminar este servicio?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Esta acción no se puede deshacer.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDeleteService(service.id)}>
-                                      Eliminar
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </TableCell>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <SortableTableHead
+                            column="name"
+                            label="Nombre"
+                            activeSortBy={servicesState.sortBy}
+                            ascending={servicesState.sortAscending}
+                            onSort={servicesHandlers.onSort}
+                          />
+                          <TableHead>Categoría</TableHead>
+                          <SortableTableHead
+                            column="city"
+                            label="Ciudad"
+                            activeSortBy={servicesState.sortBy}
+                            ascending={servicesState.sortAscending}
+                            onSort={servicesHandlers.onSort}
+                          />
+                          <TableHead>Contacto</TableHead>
+                          <TableHead>Estado</TableHead>
+                          <TableHead>Aprobado</TableHead>
+                          <TableHead>Verificado</TableHead>
+                          <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <AdminTablePagination
-                    page={servicesState.page}
-                    pageCount={servicesPage?.pageCount ?? 1}
-                    totalCount={servicesPage?.totalCount ?? 0}
-                    onPageChange={servicesHandlers.onPageChange}
-                  />
+                      </TableHeader>
+                      <TableBody>
+                        {services.map((service: any) => (
+                          <TableRow key={service.id}>
+                            <TableCell className="font-medium">{service.name}</TableCell>
+                            <TableCell className="capitalize">{service.category?.replace(/_/g, " ")}</TableCell>
+                            <TableCell>{service.city}</TableCell>
+                            <TableCell>{service.whatsapp || service.phone || service.email || "—"}</TableCell>
+                            <TableCell>
+                              {service.is_approved ? (
+                                <Badge className="bg-primary gap-1">Aprobado</Badge>
+                              ) : (
+                                <Badge variant="destructive">Pendiente</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Switch
+                                checked={!!service.is_approved}
+                                onCheckedChange={(checked) =>
+                                  handleToggleServiceApproval(service.id, checked)
+                                }
+                                aria-label="Aprobar servicio"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Switch
+                                checked={!!service.is_verified}
+                                onCheckedChange={(checked) =>
+                                  handleToggleServiceVerified(service.id, checked)
+                                }
+                                aria-label="Servicio verificado"
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end items-center gap-2">
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" aria-label="Eliminar servicio">
+                                      <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>¿Eliminar este servicio?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Esta acción no se puede deshacer.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteService(service.id)}>
+                                        Eliminar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <AdminTablePagination
+                      page={servicesState.page}
+                      pageCount={servicesPage?.pageCount ?? 1}
+                      totalCount={servicesPage?.totalCount ?? 0}
+                      onPageChange={servicesHandlers.onPageChange}
+                    />
                   </>
                 )}
               </CardContent>
@@ -792,120 +819,122 @@ const AdminPage = () => {
                   </div>
                 ) : (
                   <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <SortableTableHead
-                          column="created_at"
-                          label="Fecha"
-                          activeSortBy={propertiesState.sortBy}
-                          ascending={propertiesState.sortAscending}
-                          onSort={propertiesHandlers.onSort}
-                        />
-                        <SortableTableHead
-                          column="title"
-                          label="Título"
-                          activeSortBy={propertiesState.sortBy}
-                          ascending={propertiesState.sortAscending}
-                          onSort={propertiesHandlers.onSort}
-                        />
-                        <TableHead>Usuario</TableHead>
-                        <TableHead>Ubicación</TableHead>
-                        <SortableTableHead
-                          column="price"
-                          label="Precio"
-                          activeSortBy={propertiesState.sortBy}
-                          ascending={propertiesState.sortAscending}
-                          onSort={propertiesHandlers.onSort}
-                        />
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {properties.map((property) => (
-                        <TableRow key={property.id}>
-                          <TableCell className="whitespace-nowrap">
-                            {new Date(property.created_at).toLocaleDateString("es-AR")}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">{property.title}</TableCell>
-                          <TableCell>
-                            {property.owner_full_name ? (
-                              <div className="flex items-center gap-1.5">
-                                <span className="truncate max-w-[120px]">{property.owner_full_name}</span>
-                                {property.owner_user_type && (
-                                  <Badge variant="secondary" className="capitalize text-[10px] px-1.5 py-0 shrink-0">
-                                    {property.owner_user_type}
-                                  </Badge>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground text-xs">Sin dueño</span>
-                            )}
-                          </TableCell>
-                          <TableCell>{property.location}</TableCell>
-                          <TableCell>${property.price.toLocaleString("es-AR")}</TableCell>
-                          <TableCell>
-                            <Badge variant={property.is_active ? "default" : "secondary"}>
-                              {property.is_active ? "Activa" : "Inactiva"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right space-x-1">
-                            <Switch
-                              checked={!!(property as any).property_is_verified}
-                              onCheckedChange={(checked) => handleToggleVerified(property.id, checked)}
-                              aria-label="Propiedad verificada"
-                              className="align-middle mr-1"
-                            />
-                            <Link to={`/propiedad/${property.id}`} target="_blank" rel="noopener noreferrer">
-                              <Button variant="ghost" size="icon" title="Ver publicación">
-                                <ExternalLink className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Mostrar u ocultar propiedad"
-                              onClick={() => handleToggleProperty(property.id, property.is_active || false)}
-                            >
-                              {property.is_active ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" aria-label="Eliminar propiedad">
-                                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>¿Eliminar propiedad?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Esta acción eliminará la propiedad permanentemente.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteProperty(property.id)}>
-                                    Eliminar
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </TableCell>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <SortableTableHead
+                            column="created_at"
+                            label="Fecha"
+                            activeSortBy={propertiesState.sortBy}
+                            ascending={propertiesState.sortAscending}
+                            onSort={propertiesHandlers.onSort}
+                          />
+                          <SortableTableHead
+                            column="title"
+                            label="Título"
+                            activeSortBy={propertiesState.sortBy}
+                            ascending={propertiesState.sortAscending}
+                            onSort={propertiesHandlers.onSort}
+                          />
+                          <TableHead>Usuario</TableHead>
+                          <TableHead>Ubicación</TableHead>
+                          <SortableTableHead
+                            column="price"
+                            label="Precio"
+                            activeSortBy={propertiesState.sortBy}
+                            ascending={propertiesState.sortAscending}
+                            onSort={propertiesHandlers.onSort}
+                          />
+                          <TableHead>Estado</TableHead>
+                          <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <AdminTablePagination
-                    page={propertiesState.page}
-                    pageCount={propertiesPage?.pageCount ?? 1}
-                    totalCount={propertiesPage?.totalCount ?? 0}
-                    onPageChange={propertiesHandlers.onPageChange}
-                  />
+                      </TableHeader>
+                      <TableBody>
+                        {properties.map((property) => (
+                          <TableRow key={property.id}>
+                            <TableCell className="whitespace-nowrap">
+                              {new Date(property.created_at).toLocaleDateString("es-AR")}
+                            </TableCell>
+                            <TableCell className="max-w-xs truncate">{property.title}</TableCell>
+                            <TableCell>
+                              {property.owner_full_name ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="truncate max-w-[120px]">{property.owner_full_name}</span>
+                                  {property.owner_user_type && (
+                                    <Badge variant="secondary" className="capitalize text-[10px] px-1.5 py-0 shrink-0">
+                                      {property.owner_user_type}
+                                    </Badge>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">Sin dueño</span>
+                              )}
+                            </TableCell>
+                            <TableCell>{property.location}</TableCell>
+                            <TableCell>${property.price.toLocaleString("es-AR")}</TableCell>
+                            <TableCell>
+                              <Badge variant={property.is_active ? "default" : "secondary"}>
+                                {property.is_active ? "Activa" : "Inactiva"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right space-x-1">
+                              <Switch
+                                checked={Boolean(
+                                  (property as any).property_is_verified ?? (property as any).is_verified ?? false
+                                )}
+                                onCheckedChange={(checked) => handleToggleVerified(property.id, checked)}
+                                aria-label="Propiedad verificada"
+                                className="align-middle mr-1"
+                              />
+                              <Link to={`/propiedad/${property.id}`} target="_blank" rel="noopener noreferrer">
+                                <Button variant="ghost" size="icon" title="Ver publicación">
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Mostrar u ocultar propiedad"
+                                onClick={() => handleToggleProperty(property.id, property.is_active || false)}
+                              >
+                                {property.is_active ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" aria-label="Eliminar propiedad">
+                                    <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Eliminar propiedad?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Esta acción eliminará la propiedad permanentemente.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteProperty(property.id)}>
+                                      Eliminar
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <AdminTablePagination
+                      page={propertiesState.page}
+                      pageCount={propertiesPage?.pageCount ?? 1}
+                      totalCount={propertiesPage?.totalCount ?? 0}
+                      onPageChange={propertiesHandlers.onPageChange}
+                    />
                   </>
                 )}
               </CardContent>
@@ -944,67 +973,67 @@ const AdminPage = () => {
                   </div>
                 ) : (
                   <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <SortableTableHead
-                          column="created_at"
-                          label="Fecha de registro"
-                          activeSortBy={usersState.sortBy}
-                          ascending={usersState.sortAscending}
-                          onSort={usersHandlers.onSort}
-                        />
-                        <SortableTableHead
-                          column="full_name"
-                          label="Nombre"
-                          activeSortBy={usersState.sortBy}
-                          ascending={usersState.sortAscending}
-                          onSort={usersHandlers.onSort}
-                        />
-                        <TableHead>Teléfono</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Verificado</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {profiles.map((profile: any) => (
-                        <TableRow key={profile.id}>
-                          <TableCell className="whitespace-nowrap">
-                            {new Date(profile.created_at).toLocaleDateString("es-AR")}
-                          </TableCell>
-                          <TableCell>{profile.full_name || "Sin nombre"}</TableCell>
-                          <TableCell>{profile.phone || "Sin teléfono"}</TableCell>
-                          <TableCell>
-                            {profile.user_type ? (
-                              <Badge variant="secondary" className="capitalize">
-                                {profile.user_type}
-                              </Badge>
-                            ) : (
-                              "—"
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {profile.user_type === "agencia" ? (
-                              <Switch
-                                checked={!!profile.is_verified}
-                                onCheckedChange={(checked) =>
-                                  handleToggleVerification(profile.id, checked)
-                                }
-                              />
-                            ) : (
-                              <span className="text-muted-foreground text-sm">—</span>
-                            )}
-                          </TableCell>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <SortableTableHead
+                            column="created_at"
+                            label="Fecha de registro"
+                            activeSortBy={usersState.sortBy}
+                            ascending={usersState.sortAscending}
+                            onSort={usersHandlers.onSort}
+                          />
+                          <SortableTableHead
+                            column="full_name"
+                            label="Nombre"
+                            activeSortBy={usersState.sortBy}
+                            ascending={usersState.sortAscending}
+                            onSort={usersHandlers.onSort}
+                          />
+                          <TableHead>Teléfono</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Verificado</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <AdminTablePagination
-                    page={usersState.page}
-                    pageCount={usersPage?.pageCount ?? 1}
-                    totalCount={usersPage?.totalCount ?? 0}
-                    onPageChange={usersHandlers.onPageChange}
-                  />
+                      </TableHeader>
+                      <TableBody>
+                        {profiles.map((profile: any) => (
+                          <TableRow key={profile.id}>
+                            <TableCell className="whitespace-nowrap">
+                              {new Date(profile.created_at).toLocaleDateString("es-AR")}
+                            </TableCell>
+                            <TableCell>{profile.full_name || "Sin nombre"}</TableCell>
+                            <TableCell>{profile.phone || "Sin teléfono"}</TableCell>
+                            <TableCell>
+                              {profile.user_type ? (
+                                <Badge variant="secondary" className="capitalize">
+                                  {profile.user_type}
+                                </Badge>
+                              ) : (
+                                "—"
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {profile.user_type === "agencia" ? (
+                                <Switch
+                                  checked={!!profile.is_verified}
+                                  onCheckedChange={(checked) =>
+                                    handleToggleVerification(profile.id, checked)
+                                  }
+                                />
+                              ) : (
+                                <span className="text-muted-foreground text-sm">—</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <AdminTablePagination
+                      page={usersState.page}
+                      pageCount={usersPage?.pageCount ?? 1}
+                      totalCount={usersPage?.totalCount ?? 0}
+                      onPageChange={usersHandlers.onPageChange}
+                    />
                   </>
                 )}
               </CardContent>
@@ -1141,6 +1170,64 @@ const AdminPage = () => {
                       </div>
                     ))}
                   </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Activity Log Tab */}
+          <TabsContent value="activity">
+            <Card>
+              <CardHeader>
+                <CardTitle>Actividad del admin</CardTitle>
+                <CardDescription>
+                  Quién verificó, aprobó o eliminó qué, y cuándo. Registro de solo lectura.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {actionLogLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : !actionLogData || actionLogData.rows.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Todavía no hay acciones registradas
+                  </div>
+                ) : (
+                  <>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Fecha</TableHead>
+                          <TableHead>Admin</TableHead>
+                          <TableHead>Acción</TableHead>
+                          <TableHead>Detalle</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {actionLogData.rows.map((entry: any) => (
+                          <TableRow key={entry.id}>
+                            <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                              {new Date(entry.created_at).toLocaleString("es-AR")}
+                            </TableCell>
+                            <TableCell>{entry.admin_full_name || "—"}</TableCell>
+                            <TableCell>{getActionLabel(entry.action)}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {entry.target_id ? `${entry.target_table}: ${entry.target_id.slice(0, 8)}…` : "—"}
+                              {entry.details ? ` (${JSON.stringify(entry.details)})` : ""}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    {hasMoreActionLog && (
+                      <div className="flex justify-center mt-4">
+                        <Button variant="outline" size="sm" onClick={loadMoreActionLog}>
+                          Cargar más
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
