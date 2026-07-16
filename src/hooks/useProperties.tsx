@@ -59,7 +59,14 @@ export const useProperties = (filters?: PropertyFilters) => {
       }
 
       if (filters?.petType && filters.petType !== "todas") {
-        query = query.contains("pet_types", [filters.petType]);
+        // "perro-gato" significa "acepta ambos", no un valor literal en el
+        // array pet_types (que solo contiene "perro" y/o "gato" por
+        // separado). Antes esto nunca matcheaba ninguna propiedad.
+        if (filters.petType === "perro-gato") {
+          query = query.contains("pet_types", ["perro", "gato"]);
+        } else {
+          query = query.contains("pet_types", [filters.petType]);
+        }
       }
 
       const { data, error } = await query;
