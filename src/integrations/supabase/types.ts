@@ -674,6 +674,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      submit_contact_message: {
+        Args: {
+          p_email: string
+          p_identifier: string
+          p_message: string
+          p_name: string
+          p_subject: string
+        }
+        Returns: undefined
+      }
+      submit_property_report: {
+        Args: {
+          p_details: string
+          p_identifier: string
+          p_property_id: string
+          p_reason: string
+          p_reporter_email?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
