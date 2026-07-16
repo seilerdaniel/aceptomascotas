@@ -1,4 +1,4 @@
-import { MapPin, DollarSign, Home, Dog } from "lucide-react";
+import { MapPin, DollarSign, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import PetTypeSelector from "@/components/PetTypeSelector";
 
 const SearchBar = () => {
   const navigate = useNavigate();
@@ -30,8 +31,11 @@ const SearchBar = () => {
 
   return (
     <form onSubmit={handleSearch} className="w-full">
-      <div className="bg-card rounded-2xl shadow-hover p-4 md:p-6 border">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="bg-card rounded-2xl shadow-hover p-4 md:p-6 border space-y-4">
+        {/* Pet type — primer control: "¿para quién buscás?" antes que "dónde" */}
+        <PetTypeSelector value={petType} onChange={setPetType} />
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Location */}
           <div className="relative lg:col-span-1">
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -74,22 +78,6 @@ const SearchBar = () => {
                 <SelectItem value="ph">PH</SelectItem>
                 <SelectItem value="loft">Loft</SelectItem>
                 <SelectItem value="monoambiente">Monoambiente</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Pet Type */}
-          <div className="relative lg:col-span-1">
-            <Select value={petType} onValueChange={setPetType}>
-              <SelectTrigger className="h-11">
-                <Dog className="h-4 w-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Tipo de mascota" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="perro">Perro</SelectItem>
-                <SelectItem value="gato">Gato</SelectItem>
-                <SelectItem value="perro-gato">Perro y Gato</SelectItem>
-                <SelectItem value="todas">Todas las mascotas</SelectItem>
               </SelectContent>
             </Select>
           </div>
