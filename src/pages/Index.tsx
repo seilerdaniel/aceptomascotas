@@ -113,39 +113,31 @@ const Index = () => {
 
           <div className="container relative z-10 py-16 md:py-24">
             <div className="max-w-2xl space-y-8">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-pet-green-light/80 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium text-primary animate-fade-up">
-                <div className="h-5 w-5 rounded-full bg-white p-0.5 shrink-0">
-                  <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
-                </div>
-                <span>El marketplace pet-friendly de Argentina</span>
-              </div>
-
               {/* Title */}
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight animate-fade-up" style={{ animationDelay: "0.1s" }}>
-                Alquileres donde tus mascotas también son{" "}
-                <span className="text-primary">bienvenidas</span>
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight animate-fade-up">
+                Tu próxima casa. Con{" "}
+                <span className="text-primary">lugar para los dos</span>.
               </h1>
 
               {/* Subtitle */}
-              <p className="text-lg md:text-xl text-muted-foreground max-w-lg animate-fade-up" style={{ animationDelay: "0.2s" }}>
-                Encontrá tu próximo hogar sin tener que elegir entre tu familia y tus compañeros peludos. 
-                Porque ellos también merecen un lugar donde ser felices.
+              <p className="text-lg md:text-xl text-muted-foreground max-w-lg animate-fade-up" style={{ animationDelay: "0.1s" }}>
+                Miles de familias con perro, gato o ambos ya encontraron un hogar
+                que las acepta completas. Buscá el tuyo.
               </p>
 
               {/* CTA Buttons */}
-              <div className="flex flex-wrap gap-4 animate-fade-up" style={{ animationDelay: "0.3s" }}>
+              <div className="flex flex-wrap gap-4 animate-fade-up" style={{ animationDelay: "0.2s" }}>
                 <Link to="/buscar">
                   <Button variant="hero" size="xl">
                     <Search className="h-5 w-5" />
-                    Buscar alquileres
+                    Buscar mi próximo hogar
                   </Button>
                 </Link>
                 {canPublish && (
                   <Link to="/publicar">
                     <Button variant="hero-outline" size="xl">
                       <Plus className="h-5 w-5" />
-                      Publicar alquiler
+                      Publicar mi propiedad pet-friendly
                     </Button>
                   </Link>
                 )}
