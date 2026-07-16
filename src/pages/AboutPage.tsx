@@ -61,7 +61,7 @@ const AboutPage = () => {
                 </div>
               </div>
 
-              <div className="rounded-2xl overflow-hidden shadow-lg bg-card border sm:col-span-">
+              <div className="rounded-2xl overflow-hidden shadow-lg bg-card border">
                 <img
                   src="https://xqxbzqufbfdjckcyxfyq.supabase.co/storage/v1/object/public/public-assets/reina.jpg"
                   alt="Reina"
