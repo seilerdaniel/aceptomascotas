@@ -60,7 +60,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         <CardContent className="p-4 space-y-3">
           <div className="flex items-start gap-3">
             {logoUrl && (
-              <div className="h-10 w-10 rounded-lg overflow-hidden border bg-muted shrink-0 shadow-md bg-card">
+              <div className="h-10 w-10 rounded-full overflow-hidden border bg-muted shrink-0 shadow-md bg-card">
                 <img src={logoUrl} alt={service.name} className="w-full h-full object-cover" />
               </div>
             )}

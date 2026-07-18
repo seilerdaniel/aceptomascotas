@@ -73,8 +73,8 @@ const MessagesTab = ({ messages, isLoading, onDelete }: MessagesTabProps) => {
                     <TableCell className="text-right">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" aria-label="Eliminar mensaje">
-                            <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                          <Button variant="destructive-outline" size="icon" aria-label="Eliminar mensaje">
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

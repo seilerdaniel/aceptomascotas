@@ -258,10 +258,9 @@ const PropertyImageManager = ({ property, onUpdate, userStorageUsed = 0, onStora
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant="destructive-outline"
                     size="sm"
                     disabled={isDeleting}
-                    className="text-destructive hover:text-destructive"
                   >
                     {isDeleting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

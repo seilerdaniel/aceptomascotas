@@ -65,7 +65,7 @@ const EditServiceDialog = ({ service }: EditServiceDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Editar servicio">
+        <Button variant="outline" size="sm" title="Editar servicio" aria-label="Editar servicio">
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
@@ -96,7 +96,7 @@ const EditServiceDialog = ({ service }: EditServiceDialogProps) => {
               folderPath={service.user_id || "shared"}
               filePrefix="logo"
               currentUrl={logoUrl}
-              shape="square"
+              shape="circle"
               onUploaded={setLogoUrl}
               onRemove={() => setLogoUrl(null)}
             />

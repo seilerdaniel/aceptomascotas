@@ -186,7 +186,7 @@ const ServiceDetailPage = () => {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
                   {(service as any).logo_url && (
-                    <div className="h-14 w-14 rounded-xl overflow-hidden border bg-muted shrink-0">
+                    <div className="h-14 w-14 rounded-full overflow-hidden border bg-muted shrink-0">
                       <img src={(service as any).logo_url} alt={service.name} className="w-full h-full object-cover" />
                     </div>
                   )}
@@ -404,13 +404,19 @@ const ServiceDetailPage = () => {
         </div>
       </main>
 
-      {service.whatsapp && (
+      {service.whatsapp ? (
         <StickyMobileContactBar
           label="Contactar por WhatsApp"
           icon={<MessageCircle className="h-4 w-4" />}
           onClick={openWhatsApp}
         />
-      )}
+      ) : service.phone ? (
+        <StickyMobileContactBar
+          label="Llamar ahora"
+          icon={<Phone className="h-4 w-4" />}
+          onClick={() => window.open(`tel:${service.phone}`, "_self")}
+        />
+      ) : null}
 
       <Footer />
     </div>

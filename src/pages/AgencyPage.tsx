@@ -104,7 +104,7 @@ const AgencyPage = () => {
         {/* Header con avatar + nombre */}
         <div className="container">
           <div className="flex items-end gap-4 -mt-10 mb-6">
-            <div className="h-20 w-20 rounded-2xl overflow-hidden border-4 border-background bg-muted flex items-center justify-center shrink-0">
+            <div className="h-20 w-20 rounded-full overflow-hidden border-4 border-background bg-muted flex items-center justify-center shrink-0">
               {agency.avatar_url ? (
                 <img src={agency.avatar_url} alt={agency.full_name || ''} className="w-full h-full object-cover" />
               ) : (

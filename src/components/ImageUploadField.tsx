@@ -13,7 +13,7 @@ interface ImageUploadFieldProps {
   currentUrl: string | null;
   onUploaded: (url: string) => void;
   onRemove?: () => void;
-  shape?: 'banner' | 'square';
+  shape?: 'banner' | 'square' | 'circle';
   label?: string;
 }
 
@@ -64,10 +64,11 @@ const ImageUploadField = ({
     }
   };
 
-  if (shape === 'square') {
+  if (shape === 'square' || shape === 'circle') {
+    const shapeClass = shape === 'circle' ? 'rounded-full' : 'rounded-xl';
     return (
       <div className="relative inline-block">
-        <div className="h-20 w-20 rounded-xl overflow-hidden border-2 border-primary/20 bg-muted flex items-center justify-center">
+        <div className={`h-20 w-20 ${shapeClass} overflow-hidden border-2 border-primary/20 bg-muted flex items-center justify-center`}>
           {currentUrl ? (
             <img src={currentUrl} alt={label || 'Imagen'} className="w-full h-full object-cover" />
           ) : (

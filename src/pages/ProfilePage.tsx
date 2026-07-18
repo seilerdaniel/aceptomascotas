@@ -957,7 +957,7 @@ const ProfilePage = () => {
                                 onGenerated={() => queryClient.invalidateQueries({ queryKey: ['user-pets', user?.id] })}
                               />
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="icon"
                                 aria-label="Editar mascota"
                                 onClick={() => { setEditingPet(pet); setShowPetForm(false); }}
@@ -966,7 +966,7 @@ const ProfilePage = () => {
                               </Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" aria-label="Eliminar mascota" className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                                  <Button variant="destructive-outline" size="icon" aria-label="Eliminar mascota">
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </AlertDialogTrigger>
@@ -1074,8 +1074,8 @@ const ProfilePage = () => {
                             <EditServiceDialog service={service} />
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" aria-label="Eliminar servicio">
-                                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                <Button variant="destructive-outline" size="icon" aria-label="Eliminar servicio">
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>

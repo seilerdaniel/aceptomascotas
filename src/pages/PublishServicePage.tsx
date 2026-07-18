@@ -306,7 +306,7 @@ const PublishServicePage = () => {
                           folderPath={user.id}
                           filePrefix="logo"
                           currentUrl={logoUrl}
-                          shape="square"
+                          shape="circle"
                           onUploaded={setLogoUrl}
                           onRemove={() => setLogoUrl(null)}
                         />
