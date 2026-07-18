@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+import type { AdminProperty, AdminService, AdminProfile } from "@/types/admin";
 
 // Reemplaza el patrón .select("*") sin límite que traía la tabla completa
 // al navegador en cada carga. Con volumen (cientos/miles de filas) esto
@@ -14,6 +16,14 @@ export interface PaginatedResult<T> {
   pageCount: number;
 }
 
+// Única función del archivo con tipos deliberadamente laxos: es compartida
+// por 3 tablas con schemas distintos (Propiedades/Servicios/Usuarios).
+// Tiparla por tabla implicaría triplicarla (va contra DRY) o generics
+// atados al schema completo de Database (mucha complejidad para el
+// beneficio marginal acá adentro). El contrato real de tipos vive en el
+// borde: cada hook exportado abajo (useAdminPropertiesPaginated, etc.)
+// especifica su <T> concreto (AdminProperty/AdminService/AdminProfile) y
+// es lo que consume el resto de la app — ahí sí, sin any.
 interface FetchPaginatedParams {
   table: string;
   page: number;
@@ -81,7 +91,7 @@ export const useAdminPropertiesPaginated = (
   return useQuery({
     queryKey: ["admin-properties-page", state],
     queryFn: async () => {
-      const result = await fetchPaginated<any>({
+      const result = await fetchPaginated<Tables<"properties">>({
         table: "properties",
         page: state.page,
         search: state.search,
@@ -97,10 +107,10 @@ export const useAdminPropertiesPaginated = (
         },
       });
 
-      // properties.user_id y profiles.user_id no tienen FK directa entre sí
-      // (mismo motivo que useAllProperties), así que el join se arma acá
-      // pero solo para las filas de esta página, no de toda la tabla.
-      const ownerIds = [...new Set(result.rows.map((p: any) => p.user_id).filter(Boolean))];
+      // properties.user_id y profiles.user_id no tienen FK directa entre sí,
+      // así que el join se arma acá pero solo para las filas de esta
+      // página, no de toda la tabla.
+      const ownerIds = [...new Set(result.rows.map((p) => p.user_id).filter(Boolean))] as string[];
       let profilesById: Record<string, { full_name: string | null; user_type: string | null }> = {};
 
       if (ownerIds.length > 0) {
@@ -110,17 +120,19 @@ export const useAdminPropertiesPaginated = (
           .in("user_id", ownerIds);
 
         profilesById = Object.fromEntries(
-          (profilesData || []).map((p: any) => [p.user_id, { full_name: p.full_name, user_type: p.user_type }])
+          (profilesData || []).map((p) => [p.user_id, { full_name: p.full_name, user_type: p.user_type }])
         );
       }
 
       return {
         ...result,
-        rows: result.rows.map((p: any) => ({
-          ...p,
-          owner_full_name: p.user_id ? profilesById[p.user_id]?.full_name ?? null : null,
-          owner_user_type: p.user_id ? profilesById[p.user_id]?.user_type ?? null : null,
-        })),
+        rows: result.rows.map(
+          (p): AdminProperty => ({
+            ...p,
+            owner_full_name: p.user_id ? profilesById[p.user_id]?.full_name ?? null : null,
+            owner_user_type: p.user_id ? profilesById[p.user_id]?.user_type ?? null : null,
+          })
+        ),
       };
     },
   });
@@ -135,7 +147,7 @@ export const useAdminServicesPaginated = (
   return useQuery({
     queryKey: ["admin-services-page", state],
     queryFn: () =>
-      fetchPaginated<any>({
+      fetchPaginated<AdminService>({
         table: "pet_services",
         page: state.page,
         search: state.search,
@@ -163,7 +175,7 @@ export const useAdminUsersPaginated = (
     // profiles no tiene columna de email (vive en auth.users, no accesible
     // desde el cliente), así que la búsqueda acá es por nombre y teléfono.
     queryFn: () =>
-      fetchPaginated<any>({
+      fetchPaginated<AdminProfile>({
         table: "profiles",
         page: state.page,
         search: state.search,

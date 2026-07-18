@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { AdminActionLogEntry } from "@/types/admin";
 
 const PAGE_SIZE = 25;
 
@@ -38,7 +39,7 @@ export const useAdminActionLog = () => {
       if (error) throw error;
 
       const rows = data || [];
-      const adminIds = [...new Set(rows.map((r: any) => r.admin_user_id).filter(Boolean))];
+      const adminIds = [...new Set(rows.map((r) => r.admin_user_id).filter(Boolean))];
       let namesById: Record<string, string | null> = {};
 
       if (adminIds.length > 0) {
@@ -47,14 +48,16 @@ export const useAdminActionLog = () => {
           .select("user_id, full_name")
           .in("user_id", adminIds);
 
-        namesById = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, p.full_name]));
+        namesById = Object.fromEntries((profilesData || []).map((p) => [p.user_id, p.full_name]));
       }
 
       return {
-        rows: rows.map((r: any) => ({
-          ...r,
-          admin_full_name: namesById[r.admin_user_id] ?? null,
-        })),
+        rows: rows.map(
+          (r): AdminActionLogEntry => ({
+            ...r,
+            admin_full_name: namesById[r.admin_user_id] ?? null,
+          })
+        ),
         totalCount: count ?? 0,
       };
     },

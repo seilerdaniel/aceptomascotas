@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { logAdminAction } from "@/lib/adminActionLog";
+import type { AdminContactMessage, AdminPropertyReport, AdminAd } from "@/types/admin";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 
 export const useIsAdmin = () => {
   const { user } = useAuth();
@@ -32,7 +34,7 @@ export const useIsAdmin = () => {
 export const useContactMessages = () => {
   return useQuery({
     queryKey: ["contact-messages"],
-    queryFn: async () => {
+    queryFn: async (): Promise<AdminContactMessage[]> => {
       const { data, error } = await supabase
         .from("contact_messages")
         .select("*")
@@ -64,48 +66,6 @@ export const useDeleteContactMessage = () => {
     onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["contact-messages"] });
       logAdminAction({ action: "delete_contact_message", targetTable: "contact_messages", targetId: id });
-    },
-  });
-};
-
-export const useAllProperties = () => {
-  return useQuery({
-    queryKey: ["admin-properties"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("properties")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      const properties = data || [];
-
-      // properties.user_id and profiles.user_id both point to auth.users
-      // independently (no direct FK between the two tables), so PostgREST
-      // can't embed this as a join — fetch owner profiles separately and
-      // merge client-side instead.
-      const ownerIds = [...new Set(properties.map((p: any) => p.user_id).filter(Boolean))];
-      let profilesById: Record<string, { full_name: string | null; user_type: string | null }> = {};
-
-      if (ownerIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, user_type")
-          .in("user_id", ownerIds);
-
-        profilesById = Object.fromEntries(
-          (profilesData || []).map((p: any) => [p.user_id, { full_name: p.full_name, user_type: p.user_type }])
-        );
-      }
-
-      return properties.map((p: any) => ({
-        ...p,
-        owner_full_name: p.user_id ? profilesById[p.user_id]?.full_name ?? null : null,
-        owner_user_type: p.user_id ? profilesById[p.user_id]?.user_type ?? null : null,
-      }));
     },
   });
 };
@@ -216,7 +176,7 @@ export const useToggleProfileVerification = () => {
 export const usePropertyReports = () => {
   return useQuery({
     queryKey: ["property-reports"],
-    queryFn: async () => {
+    queryFn: async (): Promise<AdminPropertyReport[]> => {
       const { data, error } = await supabase
         .from("property_reports")
         .select("*, properties(title)")
@@ -226,7 +186,7 @@ export const usePropertyReports = () => {
         throw error;
       }
 
-      return data || [];
+      return (data || []) as AdminPropertyReport[];
     },
   });
 };
@@ -338,7 +298,7 @@ export const useToggleServiceVerified = () => {
     mutationFn: async ({ id, isVerified }: { id: string; isVerified: boolean }) => {
       const { error } = await supabase
         .from("pet_services")
-        .update({ is_verified: isVerified } as any)
+        .update({ is_verified: isVerified })
         .eq("id", id);
 
       if (error) {
@@ -386,14 +346,14 @@ export const useToggleServiceApproval = () => {
 export const useAllAds = () => {
   return useQuery({
     queryKey: ["admin-ads"],
-    queryFn: async () => {
+    queryFn: async (): Promise<AdminAd[]> => {
       const { data, error } = await supabase
-        .from("advertisements" as any)
+        .from("advertisements")
         .select("*")
         .order("sort_order", { ascending: true });
 
       if (error) throw error;
-      return (data || []) as unknown as any[];
+      return data || [];
     },
   });
 };
@@ -409,7 +369,7 @@ export const useCreateAd = () => {
       alt_text: string;
       sort_order?: number;
     }) => {
-      const { error } = await supabase.from("advertisements" as any).insert(ad as any);
+      const { error } = await supabase.from("advertisements").insert(ad);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -423,8 +383,8 @@ export const useUpdateAd = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Record<string, any> }) => {
-      const { error } = await supabase.from("advertisements" as any).update(updates).eq("id", id);
+    mutationFn: async ({ id, updates }: { id: string; updates: TablesUpdate<"advertisements"> }) => {
+      const { error } = await supabase.from("advertisements").update(updates).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -439,7 +399,7 @@ export const useDeleteAd = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("advertisements" as any).delete().eq("id", id);
+      const { error } = await supabase.from("advertisements").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_data, id) => {

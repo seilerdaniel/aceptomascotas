@@ -164,7 +164,7 @@ const AdminPage = () => {
   );
 
   const nextAdSortOrder = useMemo(
-    () => Math.max(0, ...ads.map((ad: any) => Number(ad.sort_order ?? 0))) + 1,
+    () => Math.max(0, ...ads.map((ad) => Number(ad.sort_order ?? 0))) + 1,
     [ads]
   );
 
@@ -578,7 +578,7 @@ const AdminPage = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {reports.map((report: any) => (
+                      {reports.map((report) => (
                         <TableRow key={report.id}>
                           <TableCell className="whitespace-nowrap">
                             {new Date(report.created_at).toLocaleDateString("es-AR")}
@@ -713,7 +713,7 @@ const AdminPage = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {services.map((service: any) => (
+                        {services.map((service) => (
                           <TableRow key={service.id}>
                             <TableCell className="font-medium">{service.name}</TableCell>
                             <TableCell className="capitalize">{service.category?.replace(/_/g, " ")}</TableCell>
@@ -879,9 +879,7 @@ const AdminPage = () => {
                             </TableCell>
                             <TableCell className="text-right space-x-1">
                               <Switch
-                                checked={Boolean(
-                                  (property as any).property_is_verified ?? (property as any).is_verified ?? false
-                                )}
+                                checked={property.property_is_verified}
                                 onCheckedChange={(checked) => handleToggleVerified(property.id, checked)}
                                 aria-label="Propiedad verificada"
                                 className="align-middle mr-1"
@@ -996,7 +994,7 @@ const AdminPage = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {profiles.map((profile: any) => (
+                        {profiles.map((profile) => (
                           <TableRow key={profile.id}>
                             <TableCell className="whitespace-nowrap">
                               {new Date(profile.created_at).toLocaleDateString("es-AR")}
@@ -1123,7 +1121,7 @@ const AdminPage = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {ads.map((ad: any) => (
+                    {ads.map((ad) => (
                       <div
                         key={ad.id}
                         className="flex items-center gap-4 p-3 rounded-lg border bg-muted/30 flex-wrap"
@@ -1205,7 +1203,7 @@ const AdminPage = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {actionLogData.rows.map((entry: any) => (
+                        {actionLogData.rows.map((entry) => (
                           <TableRow key={entry.id}>
                             <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                               {new Date(entry.created_at).toLocaleString("es-AR")}
