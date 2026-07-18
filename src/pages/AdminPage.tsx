@@ -73,6 +73,7 @@ import { useAdminActionLog, getActionLabel } from "@/hooks/useAdminActionLog";
 import AdminTableToolbar from "@/components/admin/AdminTableToolbar";
 import AdminTablePagination from "@/components/admin/AdminTablePagination";
 import SortableTableHead from "@/components/admin/SortableTableHead";
+import ActionLogDetails from "@/components/admin/ActionLogDetails";
 import ImageUploadField from "@/components/ImageUploadField";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1068,8 +1069,10 @@ const AdminPage = () => {
                             <TableCell>{entry.admin_full_name || "—"}</TableCell>
                             <TableCell>{getActionLabel(entry.action)}</TableCell>
                             <TableCell className="text-sm text-muted-foreground">
-                              {entry.target_id ? `${entry.target_table}: ${entry.target_id.slice(0, 8)}…` : "—"}
-                              {entry.details ? ` (${JSON.stringify(entry.details)})` : ""}
+                              <div>
+                                {entry.target_id ? `${entry.target_table}: ${entry.target_id.slice(0, 8)}…` : "—"}
+                              </div>
+                              <ActionLogDetails details={entry.details} />
                             </TableCell>
                           </TableRow>
                         ))}
