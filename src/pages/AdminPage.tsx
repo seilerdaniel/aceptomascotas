@@ -59,21 +59,10 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   useIsAdmin,
   useContactMessages,
-  useDeleteContactMessage,
-  useTogglePropertyActive,
-  useDeleteProperty,
   usePropertyReports,
-  useUpdatePropertyReportStatus,
-  useDeletePropertyReport,
-  useToggleProfileVerification,
-  useToggleServiceApproval,
-  useToggleServiceVerified,
-  useTogglePropertyVerified,
   useAllAds,
-  useCreateAd,
-  useUpdateAd,
-  useDeleteAd
 } from "@/hooks/useAdmin";
+import { useAdminMutations } from "@/hooks/useAdminMutations";
 
 import {
   useAdminPropertiesPaginated,
@@ -86,7 +75,6 @@ import {
   type AdminTableState,
 } from "@/hooks/useAdminTables";
 import { useAdminActionLog, getActionLabel } from "@/hooks/useAdminActionLog";
-import { useDeleteService } from "@/hooks/useServices";
 import AdminTableToolbar from "@/components/admin/AdminTableToolbar";
 import AdminTablePagination from "@/components/admin/AdminTablePagination";
 import SortableTableHead from "@/components/admin/SortableTableHead";
@@ -168,156 +156,47 @@ const AdminPage = () => {
     [ads]
   );
 
-  const deleteMessage = useDeleteContactMessage();
-  const updateReportStatus = useUpdatePropertyReportStatus();
-  const deleteReport = useDeletePropertyReport();
-  const toggleVerification = useToggleProfileVerification();
-  const toggleServiceApproval = useToggleServiceApproval();
-  const toggleServiceVerified = useToggleServiceVerified();
-  const togglePropertyVerified = useTogglePropertyVerified();
-  const deleteService = useDeleteService();
-  const createAd = useCreateAd();
-  const updateAd = useUpdateAd();
-  const deleteAd = useDeleteAd();
+  const mutations = useAdminMutations();
+  const {
+    handleDeleteMessage,
+    handleToggleProperty,
+    handleToggleVerified,
+    handleDeleteProperty,
+    handleUpdateReportStatus,
+    handleDeleteReport,
+    handleToggleVerification,
+    handleToggleServiceApproval,
+    handleToggleServiceVerified,
+    handleDeleteService,
+    handleToggleAdActive,
+    handleDeleteAd,
+  } = mutations;
 
   const [newAdName, setNewAdName] = useState("");
   const [newAdImage, setNewAdImage] = useState<string | null>(null);
   const [newAdLink, setNewAdLink] = useState("");
   const [newAdAlt, setNewAdAlt] = useState("");
-  const togglePropertyActive = useTogglePropertyActive();
-  const deleteProperty = useDeleteProperty();
 
-  const handleDeleteMessage = async (id: string) => {
-    try {
-      await deleteMessage.mutateAsync(id);
-      toast.success("Mensaje eliminado");
-    } catch (error) {
-      toast.error("Error al eliminar el mensaje");
-    }
-  };
-
-  const handleToggleProperty = async (id: string, currentStatus: boolean) => {
-    try {
-      await togglePropertyActive.mutateAsync({ id, is_active: !currentStatus });
-      toast.success(currentStatus ? "Propiedad desactivada" : "Propiedad activada");
-    } catch (error) {
-      toast.error("Error al actualizar la propiedad");
-    }
-  };
-
-  const handleToggleVerified = async (id: string, isVerified: boolean) => {
-    try {
-      await togglePropertyVerified.mutateAsync({ id, isVerified });
-      toast.success(isVerified ? "Propiedad verificada" : "Verificación removida");
-    } catch (error) {
-      toast.error("Error al actualizar la verificación");
-    }
-  };
-
-  const handleDeleteProperty = async (id: string) => {
-    try {
-      await deleteProperty.mutateAsync(id);
-      toast.success("Propiedad eliminada");
-    } catch (error) {
-      toast.error("Error al eliminar la propiedad");
-    }
-  };
-
-  const handleUpdateReportStatus = async (
-    id: string,
-    status: "pending" | "reviewed" | "dismissed"
-  ) => {
-    try {
-      await updateReportStatus.mutateAsync({ id, status });
-      toast.success("Estado del reporte actualizado");
-    } catch (error) {
-      toast.error("Error al actualizar el reporte");
-    }
-  };
-
-  const handleDeleteReport = async (id: string) => {
-    try {
-      await deleteReport.mutateAsync(id);
-      toast.success("Reporte eliminado");
-    } catch (error) {
-      toast.error("Error al eliminar el reporte");
-    }
-  };
-
-  const handleToggleVerification = async (id: string, isVerified: boolean) => {
-    try {
-      await toggleVerification.mutateAsync({ id, isVerified });
-      toast.success(isVerified ? "Agencia verificada" : "Verificación removida");
-    } catch (error) {
-      toast.error("Error al actualizar la verificación");
-    }
-  };
-
-  const handleToggleServiceApproval = async (id: string, isApproved: boolean) => {
-    try {
-      await toggleServiceApproval.mutateAsync({ id, isApproved });
-      toast.success(isApproved ? "Servicio aprobado y publicado" : "Servicio despublicado");
-    } catch (error) {
-      toast.error("Error al actualizar el servicio");
-    }
-  };
-
-  const handleToggleServiceVerified = async (id: string, isVerified: boolean) => {
-    try {
-      await toggleServiceVerified.mutateAsync({ id, isVerified });
-      toast.success(isVerified ? "Servicio verificado" : "Verificación removida");
-    } catch (error) {
-      toast.error("Error al actualizar la verificación");
-    }
-  };
-
-  const handleDeleteService = async (id: string) => {
-    try {
-      await deleteService.mutateAsync(id);
-      toast.success("Servicio eliminado");
-    } catch (error) {
-      toast.error("Error al eliminar el servicio");
-    }
-  };
-
+  // Validación de UI + limpieza del formulario: es lógica de esta página
+  // (depende del estado local newAdName/newAdImage/etc.), no de la
+  // mutación en sí — por eso no vive dentro de useAdminMutations.
   const handleCreateAd = async () => {
     if (!newAdName.trim() || !newAdImage || !newAdAlt.trim()) {
       toast.error("Completá nombre, imagen y texto alternativo");
       return;
     }
-    try {
-      await createAd.mutateAsync({
-        advertiser_name: newAdName.trim(),
-        image_url: newAdImage,
-        link_url: newAdLink.trim() || null,
-        alt_text: newAdAlt.trim(),
-        sort_order: nextAdSortOrder,
-      });
-      toast.success("Publicidad creada");
+    const success = await mutations.handleCreateAd({
+      advertiser_name: newAdName.trim(),
+      image_url: newAdImage,
+      link_url: newAdLink.trim() || null,
+      alt_text: newAdAlt.trim(),
+      sort_order: nextAdSortOrder,
+    });
+    if (success) {
       setNewAdName("");
       setNewAdImage(null);
       setNewAdLink("");
       setNewAdAlt("");
-    } catch (error) {
-      toast.error("Error al crear la publicidad");
-    }
-  };
-
-  const handleToggleAdActive = async (id: string, isActive: boolean) => {
-    try {
-      await updateAd.mutateAsync({ id, updates: { is_active: isActive } });
-      toast.success(isActive ? "Publicidad activada" : "Publicidad pausada");
-    } catch (error) {
-      toast.error("Error al actualizar la publicidad");
-    }
-  };
-
-  const handleDeleteAd = async (id: string) => {
-    try {
-      await deleteAd.mutateAsync(id);
-      toast.success("Publicidad eliminada");
-    } catch (error) {
-      toast.error("Error al eliminar la publicidad");
     }
   };
 
@@ -1099,8 +978,8 @@ const AdminPage = () => {
                     placeholder="Ej: Promoción de descuento en consultas veterinarias"
                   />
                 </div>
-                <Button variant="hero" onClick={handleCreateAd} disabled={createAd.isPending}>
-                  {createAd.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button variant="hero" onClick={handleCreateAd} disabled={mutations.isCreatingAd}>
+                  {mutations.isCreatingAd && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Crear publicidad
                 </Button>
               </CardContent>
