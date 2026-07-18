@@ -1,9 +1,4 @@
-import {
-  useState,
-  useMemo,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   MessageSquare,
@@ -83,24 +78,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Megaphone, History } from "lucide-react";
 import { toast } from "sonner";
-
-// Handlers compartidos por las 3 tablas paginadas del admin: buscar y
-// filtrar por estado vuelven a la página 1; ordenar por la misma columna
-// invierte la dirección en vez de resetearla.
-const createTableHandlers = <S extends AdminTableState & { status: string }>(
-  setState: Dispatch<SetStateAction<S>>
-) => ({
-  onSearchChange: (search: string) => setState((s) => ({ ...s, search, page: 1 })),
-  onStatusChange: (status: string) => setState((s) => ({ ...s, status: status as S["status"], page: 1 })),
-  onSort: (column: string) =>
-    setState((s) => ({
-      ...s,
-      sortBy: column,
-      sortAscending: s.sortBy === column ? !s.sortAscending : true,
-      page: 1,
-    })),
-  onPageChange: (page: number) => setState((s) => ({ ...s, page })),
-});
+import { useAdminTableHandlers } from "@/hooks/useAdminTableHandlers";
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -122,14 +100,14 @@ const AdminPage = () => {
   const { data: propertiesPage, isLoading: propertiesLoading } =
     useAdminPropertiesPaginated(propertiesState);
   const properties = propertiesPage?.rows ?? [];
-  const propertiesHandlers = createTableHandlers(setPropertiesState);
+  const propertiesHandlers = useAdminTableHandlers(setPropertiesState);
 
   const [servicesState, setServicesState] = useState<
     AdminTableState & { status: ServiceStatusFilter }
   >({ page: 1, search: "", sortBy: "created_at", sortAscending: false, status: "todos" });
   const { data: servicesPage, isLoading: servicesLoading } = useAdminServicesPaginated(servicesState);
   const services = servicesPage?.rows ?? [];
-  const servicesHandlers = createTableHandlers(setServicesState);
+  const servicesHandlers = useAdminTableHandlers(setServicesState);
 
   const [usersState, setUsersState] = useState<AdminTableState & { status: UserStatusFilter }>({
     page: 1,
@@ -140,7 +118,7 @@ const AdminPage = () => {
   });
   const { data: usersPage, isLoading: profilesLoading } = useAdminUsersPaginated(usersState);
   const profiles = usersPage?.rows ?? [];
-  const usersHandlers = createTableHandlers(setUsersState);
+  const usersHandlers = useAdminTableHandlers(setUsersState);
 
   // Conteo real de servicios pendientes para el badge del tab: independiente
   // de la búsqueda/filtro/página actual de la tabla de Servicios.
