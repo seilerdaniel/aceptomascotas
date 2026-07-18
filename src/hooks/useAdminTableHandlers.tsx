@@ -1,6 +1,13 @@
 import { useMemo, type Dispatch, type SetStateAction } from "react";
 import type { AdminTableState } from "@/hooks/useAdminTables";
 
+export interface AdminTableHandlers {
+  onSearchChange: (search: string) => void;
+  onStatusChange: (status: string) => void;
+  onSort: (column: string) => void;
+  onPageChange: (page: number) => void;
+}
+
 // Handlers compartidos por las 3 tablas paginadas del admin: buscar y
 // filtrar por estado vuelven a la página 1; ordenar por la misma columna
 // invierte la dirección en vez de resetearla.
@@ -12,7 +19,7 @@ import type { AdminTableState } from "@/hooks/useAdminTables";
 // crea una sola vez por tabla.
 export const useAdminTableHandlers = <S extends AdminTableState & { status: string }>(
   setState: Dispatch<SetStateAction<S>>
-) => {
+): AdminTableHandlers => {
   return useMemo(
     () => ({
       onSearchChange: (search: string) => setState((s) => ({ ...s, search, page: 1 })),
