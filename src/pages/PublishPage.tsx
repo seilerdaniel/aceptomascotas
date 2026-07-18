@@ -324,7 +324,23 @@ const PublishPage = () => {
       });
 
       if (response.error) {
-        throw new Error(response.error.message || "Error al publicar");
+        // supabase-js no expone el mensaje real del error en
+        // response.error.message para errores HTTP de una Edge Function —
+        // ese campo trae el genérico "Edge Function returned a non-2xx
+        // status code" sin importar la causa real. El motivo específico
+        // (ej. "Title must be at least 10 characters") viene en el cuerpo
+        // de la respuesta, que hay que leer aparte desde error.context.
+        let detailedMessage = response.error.message || "Error al publicar";
+        try {
+          const context = (response.error as { context?: Response }).context;
+          if (context) {
+            const body = await context.clone().json();
+            if (body?.error) detailedMessage = body.error;
+          }
+        } catch {
+          // Si no se puede parsear el cuerpo, seguimos con el mensaje genérico.
+        }
+        throw new Error(detailedMessage);
       }
 
       toast.success("¡Tu propiedad fue publicada exitosamente!");

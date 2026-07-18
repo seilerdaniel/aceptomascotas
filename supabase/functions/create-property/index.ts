@@ -266,6 +266,9 @@ Deno.serve(async (req) => {
     const address = body.address
       ? validateString(body.address, "Address", 0, 300)
       : null;
+    const requirements = body.requirements
+      ? validateString(body.requirements, "Requirements", 0, 1000)
+      : null;
     const petTypes = validatePetTypes(body.petTypes);
     const contactName = validateString(body.contactName, "Contact name", 2, 100);
     const contactPhone = validatePhone(body.contactPhone);
@@ -296,6 +299,7 @@ Deno.serve(async (req) => {
       .insert({
         title,
         description,
+        requirements,
         price,
         property_type: propertyType,
         location,
