@@ -343,10 +343,8 @@ export const useDeleteService = () => {
       queryClient.invalidateQueries({ queryKey: ["user-services"] });
       queryClient.invalidateQueries({ queryKey: ["services"] });
       queryClient.invalidateQueries({ queryKey: ["admin-services"] });
-<<<<<<< HEAD
       queryClient.invalidateQueries({ queryKey: ["admin-services-page"] });
       queryClient.invalidateQueries({ queryKey: ["admin-services-pending-count"] });
-=======
       // Se usa tanto para que un proveedor borre su propio servicio como
       // para que un admin lo borre desde el panel. logAdminAction() solo
       // deja rastro si quien llama es realmente admin (lo verifica la
@@ -354,7 +352,6 @@ export const useDeleteService = () => {
       // propio servicio, el insert del log falla silenciosamente y no
       // pasa nada — no hace falta distinguir el caso acá.
       logAdminAction({ action: "delete_service", targetTable: "pet_services", targetId: id });
->>>>>>> feat/admin-action-log
     },
   });
 };
