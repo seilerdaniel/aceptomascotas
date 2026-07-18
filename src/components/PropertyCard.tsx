@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { MapPin, Dog, Cat, Check, ShieldCheck } from "lucide-react";
+import { MapPin, Dog, Cat, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import FavoriteButton from "@/components/FavoriteButton";
+import VerifiedIcon from "@/components/VerifiedIcon";
 import { Property } from "@/data/properties";
 
 interface PropertyCardProps {
@@ -54,18 +55,6 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
               <Dog className="h-3 w-3" />
               Acepta mascotas
             </Badge>
-            {property.isVerified && (
-              <Badge className="bg-accent text-accent-foreground gap-1 shadow-lg">
-                <ShieldCheck className="h-3 w-3" />
-                Agencia verificada
-              </Badge>
-            )}
-            {property.propertyIsVerified && (
-              <Badge className="bg-primary text-primary-foreground gap-1 shadow-lg">
-                <ShieldCheck className="h-3 w-3" />
-                Propiedad verificada
-              </Badge>
-            )}
           </div>
 
           {/* Favorite Button */}
@@ -84,8 +73,11 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
 
         <CardContent className="p-4 space-y-3">
           <div>
-            <h3 className="font-body text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-              {property.title}
+            <h3 className="font-body text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors flex items-center gap-1.5">
+              <span className="line-clamp-1">{property.title}</span>
+              {(property.propertyIsVerified || property.isVerified) && (
+                <VerifiedIcon label="Propiedad verificada" />
+              )}
             </h3>
             <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
               <MapPin className="h-3.5 w-3.5" />

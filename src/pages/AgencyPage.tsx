@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PropertyCard from '@/components/PropertyCard';
-import { Loader2, ShieldCheck, User, Building2 } from 'lucide-react';
+import VerifiedIcon from '@/components/VerifiedIcon';
+import { Loader2, User, Building2 } from 'lucide-react';
 
 const AgencyPage = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -115,12 +116,7 @@ const AgencyPage = () => {
                 <h1 className="font-display text-2xl font-bold text-foreground">
                   {agency.full_name || 'Agencia'}
                 </h1>
-                {agency.is_verified && (
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    Verificada
-                  </span>
-                )}
+                {agency.is_verified && <VerifiedIcon label="Agencia verificada" />}
               </div>
               <p className="text-sm text-muted-foreground">
                 {transformedProperties.length} {transformedProperties.length === 1 ? 'propiedad publicada' : 'propiedades publicadas'}

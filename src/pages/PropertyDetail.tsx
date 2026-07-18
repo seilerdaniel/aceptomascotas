@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, MapPin, Dog, Cat, Phone, Mail, User, Check, Share2, Loader2, Bird, Fish, Lock, MessageCircle, Facebook, Twitter, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Dog, Cat, Phone, Mail, User, Check, Share2, Loader2, Bird, Fish, Lock, MessageCircle, Facebook, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import ReportProperty from "@/components/ReportProperty";
 import StickyMobileContactBar from "@/components/StickyMobileContactBar";
+import VerifiedIcon from "@/components/VerifiedIcon";
 import { trackEvent } from "@/lib/analytics";
 import { googleMapsLink } from "@/lib/googleMaps";
 
@@ -213,12 +214,7 @@ const PropertyDetail = () => {
                       <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
                         {property.title}
                       </h1>
-                      {property.propertyIsVerified && (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full shrink-0">
-                          <ShieldCheck className="h-3.5 w-3.5" />
-                          Propiedad verificada
-                        </span>
-                      )}
+                      {property.propertyIsVerified && <VerifiedIcon label="Propiedad verificada" />}
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground mt-2">
                       <MapPin className="h-4 w-4" />
@@ -345,7 +341,7 @@ const PropertyDetail = () => {
                       <div className="flex items-center gap-1.5">
                         <p className="font-semibold text-foreground">{property.contactName}</p>
                         {property.isVerified && (
-                          <ShieldCheck className="h-4 w-4 text-accent shrink-0" aria-label="Agencia verificada" />
+                          <VerifiedIcon label="Agencia verificada" />
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">

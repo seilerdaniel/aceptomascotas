@@ -428,10 +428,10 @@ const ProfilePage = () => {
               <Settings className="h-8 w-8 text-primary" />
               <div>
                 <h1 className="font-display text-3xl font-bold">Mi Cuenta</h1>
-                <div className="flex items-center gap-2">
-                  <p className="text-muted-foreground">{user?.email}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <p className="text-muted-foreground truncate">{user?.email}</p>
                   {profile?.user_type && (
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium w-fit">
                       {isAdmin ? '🛡️ Administrador' : userTypeLabel[profile.user_type as keyof typeof userTypeLabel]}
                     </span>
                   )}

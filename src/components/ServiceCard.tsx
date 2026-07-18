@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { MapPin, Clock, Star, Phone, ShieldCheck } from "lucide-react";
+import { MapPin, Clock, Star, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PetService, getCategoryLabel, useServiceRating } from "@/hooks/useServices";
+import VerifiedIcon from "@/components/VerifiedIcon";
 import { cn } from "@/lib/utils";
 
 interface ServiceCardProps {
@@ -32,12 +33,6 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
             <Badge className="bg-primary text-primary-foreground shadow-lg">
               {getCategoryLabel(service.category)}
             </Badge>
-            {(service as any).is_verified && (
-              <Badge className="bg-accent text-accent-foreground shadow-lg gap-1">
-                <ShieldCheck className="h-3 w-3" />
-                Verificado
-              </Badge>
-            )}
           </div>
 
           {/* 24h Badge */}
@@ -65,13 +60,14 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         <CardContent className="p-4 space-y-3">
           <div className="flex items-start gap-3">
             {logoUrl && (
-              <div className="h-10 w-10 rounded-lg overflow-hidden border bg-muted shrink-0 -mt-8 shadow-md bg-card">
+              <div className="h-10 w-10 rounded-lg overflow-hidden border bg-muted shrink-0 shadow-md bg-card">
                 <img src={logoUrl} alt={service.name} className="w-full h-full object-cover" />
               </div>
             )}
             <div>
-              <h3 className="font-body text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                {service.name}
+              <h3 className="font-body text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors flex items-center gap-1.5">
+                <span className="line-clamp-1">{service.name}</span>
+                {service.is_verified && <VerifiedIcon label="Servicio verificado" />}
               </h3>
               <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                 <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
