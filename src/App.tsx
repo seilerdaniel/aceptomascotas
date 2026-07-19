@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 // Index es la ruta de mayor tráfico (el Home): se mantiene con import
 // eager para que la primera carga no dependa de una request adicional.
 // El resto de las rutas se cargan con React.lazy() + code-splitting por
@@ -13,29 +14,29 @@ import { Loader2 } from "lucide-react";
 // las visitas nunca llega a ver (admin, publicar, checkout de servicios,
 // legales, etc.). Esto es lo que baja el ~2.96MB del bundle principal.
 import Index from "./pages/Index";
-const SearchPage = lazy(() => import("./pages/SearchPage"));
-const PropertyDetail = lazy(() => import("./pages/PropertyDetail"));
-const PublishPage = lazy(() => import("./pages/PublishPage"));
-const BulkImportPage = lazy(() => import("./pages/BulkImportPage"));
-const AgencyPage = lazy(() => import("./pages/AgencyPage"));
-const LostPetsPage = lazy(() => import("./pages/LostPetsPage"));
-const AuthPage = lazy(() => import("./pages/AuthPage"));
-const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
-const ContactPage = lazy(() => import("./pages/ContactPage"));
-const AdminPage = lazy(() => import("./pages/AdminPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
-const ServicesPage = lazy(() => import("./pages/ServicesPage"));
-const ServiceDetailPage = lazy(() => import("./pages/ServiceDetailPage"));
-const PublishServicePage = lazy(() => import("./pages/PublishServicePage"));
-const FAQPage = lazy(() => import("./pages/FAQPage"));
-const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
-const CookiesPage = lazy(() => import("./pages/CookiesPage"));
-const TermsPage = lazy(() => import("./pages/TermsPage"));
+const SearchPage = lazyWithRetry(() => import("./pages/SearchPage"));
+const PropertyDetail = lazyWithRetry(() => import("./pages/PropertyDetail"));
+const PublishPage = lazyWithRetry(() => import("./pages/PublishPage"));
+const BulkImportPage = lazyWithRetry(() => import("./pages/BulkImportPage"));
+const AgencyPage = lazyWithRetry(() => import("./pages/AgencyPage"));
+const LostPetsPage = lazyWithRetry(() => import("./pages/LostPetsPage"));
+const AuthPage = lazyWithRetry(() => import("./pages/AuthPage"));
+const FavoritesPage = lazyWithRetry(() => import("./pages/FavoritesPage"));
+const ContactPage = lazyWithRetry(() => import("./pages/ContactPage"));
+const AdminPage = lazyWithRetry(() => import("./pages/AdminPage"));
+const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
+const ServicesPage = lazyWithRetry(() => import("./pages/ServicesPage"));
+const ServiceDetailPage = lazyWithRetry(() => import("./pages/ServiceDetailPage"));
+const PublishServicePage = lazyWithRetry(() => import("./pages/PublishServicePage"));
+const FAQPage = lazyWithRetry(() => import("./pages/FAQPage"));
+const PrivacyPage = lazyWithRetry(() => import("./pages/PrivacyPage"));
+const CookiesPage = lazyWithRetry(() => import("./pages/CookiesPage"));
+const TermsPage = lazyWithRetry(() => import("./pages/TermsPage"));
 // import StorePage from "./pages/StorePage"; // Tienda oculta hasta que la pasarela de pagos esté lista
-const PetPublicPage = lazy(() => import("./pages/PetPublicPage"));
-const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
-const AboutPage = lazy(() => import("./pages/AboutPage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const PetPublicPage = lazyWithRetry(() => import("./pages/PetPublicPage"));
+const ResetPasswordPage = lazyWithRetry(() => import("./pages/ResetPasswordPage"));
+const AboutPage = lazyWithRetry(() => import("./pages/AboutPage"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 // import AIChatbot from "./components/AIChatbot"; // Desactivado temporalmente
 import RouteTracker from "./components/RouteTracker";
 import ScrollToTop from "./components/ScrollToTop";
