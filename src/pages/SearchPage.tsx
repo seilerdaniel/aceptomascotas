@@ -14,6 +14,7 @@ import PropertyCard from "@/components/PropertyCard";
 import PropertyCardSkeleton from "@/components/PropertyCardSkeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 import Map from "@/components/Map";
 import AdvancedFilters, { FilterState } from "@/components/AdvancedFilters";
 import { useProperties, Property } from "@/hooks/useProperties";
@@ -140,6 +141,15 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Buscar alquileres pet-friendly"
+        description={
+          propertiesPage?.totalCount
+            ? `${propertiesPage.totalCount} propiedades pet-friendly disponibles para alquilar en Argentina.`
+            : "Buscá y filtrá alquileres que acepten perros y gatos en toda Argentina."
+        }
+        path="/buscar"
+      />
       <Header />
 
       <main className="flex-1 container py-8">

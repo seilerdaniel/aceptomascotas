@@ -20,6 +20,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import ServicesSidebar from "@/components/ServicesSidebar";
 import ServicesMobileMenu from "@/components/ServicesMobileMenu";
@@ -84,6 +85,11 @@ const ServicesPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Servicios para mascotas"
+        description="Veterinarias, paseadores, peluquerías y más servicios para tu mascota en toda Argentina."
+        path="/servicios"
+      />
       <Header />
 
       <main className="flex-1 container py-8">
