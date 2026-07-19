@@ -424,8 +424,14 @@ const ProfilePage = () => {
               <AvatarUpload
                 userId={user.id}
                 currentAvatarUrl={avatarUrl}
-                onUploaded={(url) => setAvatarUrl(url)}
-                onRemove={() => setAvatarUrl(null)}
+                onUploaded={(url) => {
+                  setAvatarUrl(url);
+                  queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+                }}
+                onRemove={() => {
+                  setAvatarUrl(null);
+                  queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+                }}
               />
             )}
             <div className="flex items-center gap-3">
@@ -530,7 +536,12 @@ const ProfilePage = () => {
                           .from('profiles')
                           .update({ banner_url: url } as any)
                           .eq('user_id', user.id);
-                        if (error) toast.error('Error al guardar la portada');
+                        if (error) {
+                          toast.error('Error al guardar la portada');
+                        } else {
+                          queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+                          queryClient.invalidateQueries({ queryKey: ['agency-profile', user.id] });
+                        }
                       }}
                       onRemove={async () => {
                         setBannerUrl(null);
@@ -538,7 +549,12 @@ const ProfilePage = () => {
                           .from('profiles')
                           .update({ banner_url: null } as any)
                           .eq('user_id', user.id);
-                        if (error) toast.error('Error al quitar la portada');
+                        if (error) {
+                          toast.error('Error al quitar la portada');
+                        } else {
+                          queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+                          queryClient.invalidateQueries({ queryKey: ['agency-profile', user.id] });
+                        }
                       }}
                     />
                   </CardContent>
