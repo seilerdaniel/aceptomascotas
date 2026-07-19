@@ -10,17 +10,20 @@ import { lazy, type ComponentType } from "react";
 //
 // Este helper reintenta una vez y, si sigue fallando, fuerza un reload
 // completo de la página (que sí trae el index.html nuevo con las
-// referencias correctas) — una sola vez, usando sessionStorage para no
-// caer en un loop de recargas infinitas si el problema fuera otro.
+// referencias correctas) — una sola vez POR CHUNK (no una sola vez para
+// todo el sitio), usando sessionStorage para no caer en un loop de
+// recargas infinitas si el problema fuera otro. Antes la bandera era
+// global: si /auth fallaba y el reload no alcanzaba a arreglarlo del
+// todo, esa misma bandera bloqueaba el reintento de /favoritos (un
+// chunk totalmente distinto) más tarde en la misma sesión.
 export function lazyWithRetry<T extends ComponentType<unknown>>(
-  factory: () => Promise<{ default: T }>
+  factory: () => Promise<{ default: T }>,
+  chunkName: string
 ) {
   return lazy(async () => {
-    const storageKey = "chunk-reload-attempted";
+    const storageKey = `chunk-reload-attempted:${chunkName}`;
     try {
       const module = await factory();
-      // Se cargó bien: limpiar la marca para que un fallo futuro real
-      // (no relacionado a este) también tenga su propio intento de reload.
       window.sessionStorage.removeItem(storageKey);
       return module;
     } catch (error) {

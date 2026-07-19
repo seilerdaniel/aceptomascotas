@@ -47,12 +47,37 @@ export default defineConfig({
         // Raising this avoids failing the build, but the bundle size itself
         // is worth trimming down later (see note below).
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+        // Se activa la versión nueva del Service Worker apenas se instala
+        // (sin esperar a que se cierren todas las pestañas viejas) — es lo
+        // mismo que ya hacía registerType:"autoUpdate" del lado del
+        // cliente, pero puesto acá también de forma explícita.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         // Don't cache Supabase API calls — always fetch fresh data for
         // listings, messages, etc. Only static assets get cached offline.
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: "NetworkOnly",
+          },
+          {
+            // Las navegaciones (cargar una página, incluido un reload)
+            // van siempre a la red primero. Sin esto, precacheAndRoute
+            // podía seguir sirviendo un index.html viejo desde el caché
+            // del Service Worker incluso después de un reload completo —
+            // esto es lo que hacía que recargar la página, ante un chunk
+            // roto por un deploy nuevo, no solucionara nada: seguía
+            // trayendo referencias viejas a archivos que ya no existen.
+            // Con 3 segundos de timeout cae a la versión cacheada si la
+            // red tarda demasiado (ej. sin conexión), para no dejar al
+            // usuario sin nada.
+            urlPattern: ({ request }: { request: Request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "navigations",
+              networkTimeoutSeconds: 3,
+            },
           },
         ],
       },
