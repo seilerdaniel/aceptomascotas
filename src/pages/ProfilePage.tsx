@@ -820,8 +820,18 @@ const ProfilePage = () => {
               <TabsContent value="properties">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Mis Propiedades</CardTitle>
-                    <CardDescription>Administrá tus propiedades publicadas</CardDescription>
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div>
+                        <CardTitle>Mis Propiedades</CardTitle>
+                        <CardDescription>Administrá tus propiedades publicadas</CardDescription>
+                      </div>
+                      <Link to="/publicar">
+                        <Button variant="hero" size="sm" className="gap-2">
+                          <Plus className="h-4 w-4" />
+                          Publicar propiedad
+                        </Button>
+                      </Link>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {propertiesLoading ? (
@@ -842,10 +852,7 @@ const ProfilePage = () => {
                       </div>
                     ) : (
                       <div className="text-center py-8">
-                        <p className="text-muted-foreground mb-4">Todavía no publicaste ninguna propiedad</p>
-                        <Button variant="hero" onClick={() => navigate('/publicar')}>
-                          Publicar propiedad
-                        </Button>
+                        <p className="text-muted-foreground">Todavía no publicaste ninguna propiedad</p>
                       </div>
                     )}
                   </CardContent>

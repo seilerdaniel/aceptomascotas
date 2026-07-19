@@ -39,6 +39,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 // import AIChatbot from "./components/AIChatbot"; // Desactivado temporalmente
 import RouteTracker from "./components/RouteTracker";
 import ScrollToTop from "./components/ScrollToTop";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -60,8 +61,9 @@ const App = () => (
         <AuthProvider>
           <RouteTracker />
           <ScrollToTop />
-          <Suspense fallback={<RouteLoadingFallback />}>
-          <Routes>
+          <ErrorBoundary>
+            <Suspense fallback={<RouteLoadingFallback />}>
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/buscar" element={<SearchPage />} />
             <Route path="/alquiler/:id" element={<PropertyDetail />} />
@@ -93,6 +95,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
+          </ErrorBoundary>
           {/* AIChatbot desactivado temporalmente hasta que esté funcionando completamente */}
           {/* <AIChatbot /> */}
         </AuthProvider>
