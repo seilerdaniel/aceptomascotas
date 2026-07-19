@@ -25,6 +25,7 @@ import Footer from "@/components/Footer";
 import ServicesSidebar from "@/components/ServicesSidebar";
 import ServicesMobileMenu from "@/components/ServicesMobileMenu";
 import ServiceCard from "@/components/ServiceCard";
+import ServiceCardSkeleton from "@/components/ServiceCardSkeleton";
 import { useServices, SERVICE_CATEGORIES, ServiceCategory, getCategoryLabel } from "@/hooks/useServices";
 
 const CITIES = [
@@ -248,10 +249,7 @@ const ServicesPage = () => {
             {isLoading ? (
               <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div
-                    key={i}
-                    className="bg-card rounded-2xl border h-72 animate-pulse"
-                  />
+                  <ServiceCardSkeleton key={i} />
                 ))}
               </div>
             ) : services.length === 0 ? (

@@ -17,6 +17,7 @@ import {
 import SearchBar from "@/components/SearchBar";
 import SEOHead from "@/components/SEOHead";
 import PropertyCard from "@/components/PropertyCard";
+import PropertyCardSkeleton from "@/components/PropertyCardSkeleton";
 import PetCategoryTiles from "@/components/PetCategoryTiles";
 import TrustBar from "@/components/TrustBar";
 import StoryCarousel from "@/components/StoryCarousel";
@@ -291,7 +292,7 @@ const Index = () => {
           {isLoading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-card rounded-2xl border h-80 animate-pulse" />
+                <PropertyCardSkeleton key={i} />
               ))}
             </div>
           ) : (

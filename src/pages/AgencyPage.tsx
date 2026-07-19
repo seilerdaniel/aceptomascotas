@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PropertyCard from '@/components/PropertyCard';
+import PropertyCardSkeleton from '@/components/PropertyCardSkeleton';
 import VerifiedIcon from '@/components/VerifiedIcon';
 import SEOHead from '@/components/SEOHead';
 import { Loader2, User, Building2 } from 'lucide-react';
@@ -134,8 +135,10 @@ const AgencyPage = () => {
           {/* Listado de propiedades */}
           <div className="pb-12">
             {propertiesLoading ? (
-              <div className="flex justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <PropertyCardSkeleton key={i} />
+                ))}
               </div>
             ) : transformedProperties.length > 0 ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
