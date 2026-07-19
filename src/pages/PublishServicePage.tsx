@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -185,7 +186,8 @@ const PublishServicePage = () => {
   if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Publicar servicio" description="Publicá tu servicio para mascotas en Acepto Mascotas." path="/servicios/publicar" noIndex />
+      <Header />
         <main className="flex-1 container py-16 flex justify-center items-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
@@ -202,7 +204,8 @@ const PublishServicePage = () => {
   if (profile?.user_type !== "proveedor") {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Publicar servicio" description="Publicá tu servicio para mascotas en Acepto Mascotas." path="/servicios/publicar" noIndex />
+      <Header />
         <main className="flex-1 container py-16 text-center">
           <h1 className="font-display text-2xl font-bold text-foreground mb-4">
             Publicar servicios es para cuentas de proveedor
@@ -223,7 +226,8 @@ const PublishServicePage = () => {
   if (submitted) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Publicar servicio" description="Publicá tu servicio para mascotas en Acepto Mascotas." path="/servicios/publicar" noIndex />
+      <Header />
         <main className="flex-1 container py-16">
           <div className="max-w-lg mx-auto text-center space-y-6">
             <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
@@ -253,6 +257,7 @@ const PublishServicePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title="Publicar servicio" description="Publicá tu servicio para mascotas en Acepto Mascotas." path="/servicios/publicar" noIndex />
       <Header />
 
       <main className="flex-1 container py-8">

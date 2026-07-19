@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
+import SEOHead from '@/components/SEOHead';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -37,6 +38,11 @@ const LostPetsPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Mascotas perdidas"
+        description="Ayudanos a reunir a las mascotas perdidas con sus familias. Mirá los avisos activos en tu zona."
+        path="/mascotas-perdidas"
+      />
       <Header />
 
       <main className="flex-1 container py-8">

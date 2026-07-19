@@ -3,6 +3,7 @@ import { Loader2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 
 type AccessState = "loading" | "unauthenticated" | "unauthorized";
 
@@ -18,7 +19,8 @@ const AdminAccessGuard = ({ state }: AdminAccessGuardProps) => {
   if (state === "loading") {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Panel de administración" description="Panel de administración de Acepto Mascotas." path="/admin" noIndex />
+      <Header />
         <main className="flex-1 container py-8 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
@@ -30,7 +32,8 @@ const AdminAccessGuard = ({ state }: AdminAccessGuardProps) => {
   if (state === "unauthenticated") {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Panel de administración" description="Panel de administración de Acepto Mascotas." path="/admin" noIndex />
+      <Header />
         <main className="flex-1 container py-8">
           <div className="max-w-md mx-auto text-center">
             <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -48,6 +51,7 @@ const AdminAccessGuard = ({ state }: AdminAccessGuardProps) => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title="Panel de administración" description="Panel de administración de Acepto Mascotas." path="/admin" noIndex />
       <Header />
       <main className="flex-1 container py-8">
         <div className="max-w-md mx-auto text-center">

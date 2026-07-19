@@ -14,6 +14,7 @@ import { Eye, EyeOff, ArrowLeft, PawPrint, Home, Building2, Stethoscope } from '
 import logo from "@/assets/logo.svg";
 import loginBrandImage from "@/assets/login-brand.png";
 import { z } from 'zod';
+import SEOHead from '@/components/SEOHead';
 
 const emailSchema = z.string().email('Email inválido').max(255, 'Email muy largo');
 
@@ -66,6 +67,12 @@ const userTypeOptions = [
 // scroll — only this right panel scrolls.
 const AuthLayout = ({ children }: { children: ReactNode }) => (
   <div className="min-h-screen flex bg-background">
+    <SEOHead
+      title="Iniciar sesión / Registrarse"
+      description="Ingresá o creá tu cuenta en Acepto Mascotas."
+      path="/auth"
+      noIndex
+    />
     <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
       <img src={loginBrandImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent" />
@@ -274,6 +281,12 @@ const AuthPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
+        <SEOHead
+          title="Iniciar sesión / Registrarse"
+          description="Ingresá o creá tu cuenta en Acepto Mascotas."
+          path="/auth"
+          noIndex
+        />
         <div className="animate-pulse">Cargando...</div>
       </div>
     );

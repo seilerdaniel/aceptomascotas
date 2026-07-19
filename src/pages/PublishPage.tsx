@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -365,7 +366,8 @@ const PublishPage = () => {
   if (!authLoading && !user) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Publicar propiedad" description="Publicá tu propiedad pet-friendly en Acepto Mascotas." path="/publicar" noIndex />
+      <Header />
         <main className="flex-1 container py-8">
           <div className="max-w-md mx-auto text-center">
             <h1 className="font-display text-2xl font-bold mb-4">
@@ -389,7 +391,8 @@ const PublishPage = () => {
   if (user && profile && profile.user_type !== "propietario" && profile.user_type !== "agencia") {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Publicar propiedad" description="Publicá tu propiedad pet-friendly en Acepto Mascotas." path="/publicar" noIndex />
+      <Header />
         <main className="flex-1 container py-8 text-center">
           <h1 className="font-display text-2xl font-bold text-foreground mb-4">
             Publicar propiedades es para propietarios y agencias
@@ -409,6 +412,7 @@ const PublishPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title="Publicar propiedad" description="Publicá tu propiedad pet-friendly en Acepto Mascotas." path="/publicar" noIndex />
       <Header />
 
       <main className="flex-1 container py-8">

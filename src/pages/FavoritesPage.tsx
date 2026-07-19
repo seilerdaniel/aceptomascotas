@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
 import { mockProperties } from "@/data/properties";
@@ -15,6 +16,7 @@ const FavoritesPage = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col">
+        <SEOHead title="Mis favoritos" description="Tus propiedades favoritas." path="/favoritos" noIndex />
         <Header />
         <main className="flex-1 container py-16 flex items-center justify-center">
           <div className="animate-pulse">Cargando...</div>
@@ -27,6 +29,7 @@ const FavoritesPage = () => {
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col">
+        <SEOHead title="Mis favoritos" description="Tus propiedades favoritas." path="/favoritos" noIndex />
         <Header />
         <main className="flex-1 container py-16">
           <div className="text-center max-w-md mx-auto">
@@ -51,6 +54,7 @@ const FavoritesPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title="Mis favoritos" description="Tus propiedades favoritas." path="/favoritos" noIndex />
       <Header />
 
       <main className="flex-1 container py-8">

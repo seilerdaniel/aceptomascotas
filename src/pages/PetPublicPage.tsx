@@ -8,6 +8,7 @@ import logo from '@/assets/logo.svg';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/analytics';
 import { googleMapsLink } from '@/lib/googleMaps';
+import SEOHead from '@/components/SEOHead';
 
 interface PetPublicData {
   pet_name: string;
@@ -124,6 +125,16 @@ const PetPublicPage = () => {
 
   return (
     <div className="min-h-screen bg-background p-4 flex items-center justify-center">
+      <SEOHead
+        title={pet.is_lost ? `¿Viste a ${pet.pet_name}?` : pet.pet_name}
+        description={
+          pet.is_lost
+            ? `${pet.pet_name} está perdido/a. Ayudanos a encontrarlo/a — contactá al dueño desde acá.`
+            : `Perfil de ${pet.pet_name}, con QR de identificación de Acepto Mascotas.`
+        }
+        path={`/mascota/${code}`}
+        image={pet.pet_images?.[0]}
+      />
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-6">
           <div className="h-10 w-10 rounded-full bg-white p-0.5 shadow-sm">
