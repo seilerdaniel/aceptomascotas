@@ -294,7 +294,7 @@ const PropertyImageManager = ({ property, onUpdate, userStorageUsed = 0, onStora
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {images.map((image, index) => (
               <div key={index} className="relative aspect-square rounded-lg overflow-hidden group">
-                <img
+                <img loading="lazy" decoding="async"
                   src={image}
                   alt={`Imagen ${index + 1}`}
                   className="w-full h-full object-cover"

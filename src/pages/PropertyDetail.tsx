@@ -198,7 +198,7 @@ const PropertyDetail = () => {
               <div className="space-y-4">
                 <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-muted">
                   {property.images.length > 0 ? (
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={property.images[selectedImage]}
                       alt={property.title}
                       className="w-full h-full object-cover"
@@ -222,7 +222,7 @@ const PropertyDetail = () => {
                             : "border-transparent opacity-70 hover:opacity-100"
                         }`}
                       >
-                        <img
+                        <img loading="lazy" decoding="async"
                           src={image}
                           alt={`${property.title} - Imagen ${index + 1}`}
                           className="w-full h-full object-cover"
@@ -354,7 +354,7 @@ const PropertyDetail = () => {
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-3 p-3 bg-secondary rounded-xl">
                     {property.ownerAvatarUrl ? (
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={property.ownerAvatarUrl}
                         alt={property.contactName}
                         className="h-12 w-12 rounded-full object-cover shrink-0"

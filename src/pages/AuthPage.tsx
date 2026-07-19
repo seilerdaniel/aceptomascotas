@@ -74,11 +74,11 @@ const AuthLayout = ({ children }: { children: ReactNode }) => (
       noIndex
     />
     <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-      <img src={loginBrandImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img loading="eager" decoding="async" src={loginBrandImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent" />
       <div className="relative z-10 h-full flex flex-col justify-end p-12 text-primary-foreground">
         <div className="h-14 w-14 rounded-full bg-white p-1 shadow-sm mb-6">
-          <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+          <img loading="lazy" decoding="async" src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
         </div>
         <h2 className="font-display text-3xl font-bold mb-3">
           Tu hogar, tu familia, tus mascotas
@@ -308,7 +308,7 @@ const AuthPage = () => {
             <CardHeader className="text-center space-y-4">
               <Link to="/" className="flex items-center justify-center gap-2">
                 <div className="h-16 w-16 rounded-full bg-white p-1 shadow-sm">
-                  <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+                  <img loading="lazy" decoding="async" src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
                 </div>
               </Link>
               <div>
@@ -376,7 +376,7 @@ const AuthPage = () => {
             <CardHeader className="text-center space-y-4">
               <Link to="/" className="flex items-center justify-center gap-2">
                 <div className="h-16 w-16 rounded-full bg-white p-1 shadow-sm">
-                  <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+                  <img loading="lazy" decoding="async" src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
                 </div>
               </Link>
               <div>
@@ -442,7 +442,7 @@ const AuthPage = () => {
           <CardHeader className="text-center space-y-2 pb-4">
             <Link to="/" className="flex items-center justify-center gap-2">
               <div className="h-12 w-12 rounded-full bg-white p-1 shadow-sm">
-                  <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+                  <img loading="lazy" decoding="async" src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
                 </div>
             </Link>
             <div>

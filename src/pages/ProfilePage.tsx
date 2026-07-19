@@ -414,7 +414,7 @@ const ProfilePage = () => {
       <Header />
       {!isAdmin && profile?.user_type === 'agencia' && bannerUrl && (
         <div className="w-full aspect-[5/1] bg-secondary overflow-hidden">
-          <img src={bannerUrl} alt="" className="w-full h-full object-cover" />
+          <img loading="lazy" decoding="async" src={bannerUrl} alt="" className="w-full h-full object-cover" />
         </div>
       )}
       <main className="flex-1 container py-8">

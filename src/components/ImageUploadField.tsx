@@ -70,7 +70,7 @@ const ImageUploadField = ({
       <div className="relative inline-block">
         <div className={`h-20 w-20 ${shapeClass} overflow-hidden border-2 border-primary/20 bg-muted flex items-center justify-center`}>
           {currentUrl ? (
-            <img src={currentUrl} alt={label || 'Imagen'} className="w-full h-full object-cover" />
+            <img loading="lazy" decoding="async" src={currentUrl} alt={label || 'Imagen'} className="w-full h-full object-cover" />
           ) : (
             <ImageIcon className="h-8 w-8 text-muted-foreground" />
           )}
@@ -99,7 +99,7 @@ const ImageUploadField = ({
       {label && <p className="text-sm font-medium">{label}</p>}
       <div className="relative w-full aspect-[3/1] rounded-xl overflow-hidden border-2 border-dashed border-border bg-muted flex items-center justify-center">
         {currentUrl ? (
-          <img src={currentUrl} alt={label || 'Banner'} className="w-full h-full object-cover" />
+          <img loading="lazy" decoding="async" src={currentUrl} alt={label || 'Banner'} className="w-full h-full object-cover" />
         ) : (
           <label className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-muted-foreground cursor-pointer hover:bg-foreground/5 transition-colors">
             <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />

@@ -94,7 +94,7 @@ const LostPetsPage = () => {
                     <Card className="overflow-hidden hover:shadow-hover transition-shadow h-full border-destructive/20">
                       <div className="aspect-square bg-secondary overflow-hidden">
                         {pet.images && pet.images.length > 0 ? (
-                          <img src={pet.images[0]} alt={pet.name} className="w-full h-full object-cover" />
+                          <img loading="lazy" decoding="async" src={pet.images[0]} alt={pet.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-5xl">
                             {speciesEmoji(pet.species)}

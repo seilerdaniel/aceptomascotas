@@ -72,7 +72,7 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2 transition-transform hover:scale-105">
           <div className="h-10 w-10 rounded-full bg-white p-0.5 shrink-0 shadow-sm">
-            <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+            <img loading="eager" decoding="async" src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
           </div>
           <div className="flex flex-col">
             <span className="font-body text-lg font-bold leading-tight text-foreground">

@@ -149,7 +149,7 @@ const AdsTab = ({
             <div className="space-y-3">
               {ads.map((ad) => (
                 <div key={ad.id} className="flex items-center gap-4 p-3 rounded-lg border bg-muted/30 flex-wrap">
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={ad.image_url}
                     alt={ad.alt_text}
                     className="h-16 w-28 object-cover rounded-md shrink-0"

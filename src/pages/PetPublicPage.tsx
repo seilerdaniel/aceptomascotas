@@ -138,7 +138,7 @@ const PetPublicPage = () => {
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-6">
           <div className="h-10 w-10 rounded-full bg-white p-0.5 shadow-sm">
-            <img src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
+            <img loading="lazy" decoding="async" src={logo} alt="Acepto Mascotas" className="h-full w-full rounded-full object-cover" />
           </div>
           <span className="font-body font-bold text-lg">Acepto Mascotas</span>
         </Link>
@@ -163,7 +163,7 @@ const PetPublicPage = () => {
 
           {pet.pet_images && pet.pet_images.length > 0 ? (
             <div className="aspect-square w-full">
-              <img
+              <img loading="lazy" decoding="async"
                 src={pet.pet_images[0]}
                 alt={pet.pet_name}
                 className="w-full h-full object-cover"
