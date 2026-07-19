@@ -144,8 +144,8 @@ const SearchPage = () => {
       <SEOHead
         title="Buscar alquileres pet-friendly"
         description={
-          propertiesPage?.totalCount
-            ? `${propertiesPage.totalCount} propiedades pet-friendly disponibles para alquilar en Argentina.`
+          filteredProperties.length > 0
+            ? `${filteredProperties.length} propiedades pet-friendly disponibles para alquilar en Argentina.`
             : "Buscá y filtrá alquileres que acepten perros y gatos en toda Argentina."
         }
         path="/buscar"
