@@ -1,14 +1,14 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface AdminTablePaginationProps {
+interface PaginationProps {
   page: number;
   pageCount: number;
   totalCount: number;
   onPageChange: (page: number) => void;
 }
 
-const AdminTablePagination = ({ page, pageCount, totalCount, onPageChange }: AdminTablePaginationProps) => {
+const Pagination = ({ page, pageCount, totalCount, onPageChange }: PaginationProps) => {
   if (totalCount === 0) return null;
 
   return (
@@ -40,4 +40,4 @@ const AdminTablePagination = ({ page, pageCount, totalCount, onPageChange }: Adm
   );
 };
 
-export default AdminTablePagination;
+export default Pagination;

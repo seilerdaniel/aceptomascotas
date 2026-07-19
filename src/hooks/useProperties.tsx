@@ -25,19 +25,49 @@ export const usePlatformStats = () => {
 export interface PropertyFilters {
   location?: string;
   maxPrice?: number;
-  propertyType?: string;
-  petType?: string;
   minPrice?: number;
+  // Selección simple de la barra de filtros (un solo valor) y selección
+  // múltiple del panel de filtros avanzados: se combinan en una sola
+  // lista antes de armar la query (ver buildPropertyTypeList/buildPetTypeList).
+  propertyType?: string;
+  propertyTypes?: string[];
+  petType?: string;
+  petTypes?: string[];
+  page?: number;
+  pageSize?: number;
 }
 
-// Use the public view that masks contact info for unauthenticated users
+export interface PropertiesPage {
+  rows: Property[];
+  totalCount: number;
+  pageCount: number;
+}
+
+const DEFAULT_PAGE_SIZE = 12;
+
+// Combina el filtro simple (un valor) con el avanzado (varios), sin
+// duplicar el mismo valor dos veces si el usuario tocó ambos controles.
+const combineFilterValues = (single?: string, multiple?: string[]): string[] => {
+  const values = new Set(multiple ?? []);
+  if (single) values.add(single);
+  return Array.from(values);
+};
+
+// Use the public view that masks contact info for unauthenticated users.
+// Todo el filtrado (incluidos los que antes se aplicaban del lado del
+// cliente en SearchPage) vive acá para que la paginación con range() sea
+// correcta — si algún filtro se aplicara después de traer la página,
+// una página podría mostrar menos resultados de los que en realidad hay.
 export const useProperties = (filters?: PropertyFilters) => {
+  const page = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? DEFAULT_PAGE_SIZE;
+
   return useQuery({
     queryKey: ["properties", filters],
-    queryFn: async () => {
+    queryFn: async (): Promise<PropertiesPage> => {
       let query = supabase
         .from("properties_public")
-        .select("*")
+        .select("*", { count: "exact" })
         .eq("is_active", true)
         .order("created_at", { ascending: false });
 
@@ -53,29 +83,46 @@ export const useProperties = (filters?: PropertyFilters) => {
         query = query.gte("price", filters.minPrice);
       }
 
-      if (filters?.propertyType) {
-        const propType = filters.propertyType.toLowerCase() as "departamento" | "casa" | "ph" | "loft" | "monoambiente";
-        query = query.eq("property_type", propType);
+      const propertyTypes = combineFilterValues(filters?.propertyType, filters?.propertyTypes);
+      if (propertyTypes.length > 0) {
+        query = query.in(
+          "property_type",
+          propertyTypes as ("departamento" | "casa" | "ph" | "loft" | "monoambiente")[]
+        );
       }
 
-      if (filters?.petType && filters.petType !== "todas") {
-        // "perro-gato" significa "acepta ambos", no un valor literal en el
-        // array pet_types (que solo contiene "perro" y/o "gato" por
-        // separado). Antes esto nunca matcheaba ninguna propiedad.
-        if (filters.petType === "perro-gato") {
-          query = query.contains("pet_types", ["perro", "gato"]);
-        } else {
-          query = query.contains("pet_types", [filters.petType]);
-        }
+      // "perro-gato" significa "acepta ambos", no un valor literal en el
+      // array pet_types (que solo contiene "perro" y/o "gato" por
+      // separado). "todas" no filtra nada.
+      const petTypes = combineFilterValues(
+        filters?.petType && filters.petType !== "todas" ? filters.petType : undefined,
+        filters?.petTypes
+      );
+      if (petTypes.includes("perro-gato")) {
+        query = query.contains("pet_types", ["perro", "gato"]);
+      } else if (petTypes.length > 0) {
+        // .overlaps() matchea si el array de la propiedad comparte AL
+        // MENOS UNO de los tipos pedidos (a diferencia de .contains(),
+        // que exigiría tenerlos todos).
+        query = query.overlaps("pet_types", petTypes);
       }
 
-      const { data, error } = await query;
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
 
       if (error) {
         throw error;
       }
 
-      return (data || []) as Property[];
+      const totalCount = count ?? 0;
+      return {
+        rows: (data || []) as Property[],
+        totalCount,
+        pageCount: Math.max(1, Math.ceil(totalCount / pageSize)),
+      };
     },
   });
 };
