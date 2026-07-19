@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyCardSkeleton from "@/components/PropertyCardSkeleton";
+import Pagination from "@/components/Pagination";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
@@ -48,6 +49,7 @@ const SearchPage = () => {
 
   const [showFilters, setShowFilters] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [page, setPage] = useState(1);
   const [location, setLocation] = useState(searchParams.get("ubicacion") || "");
   const [price, setPrice] = useState(searchParams.get("precio") || "");
   const [propertyType, setPropertyType] = useState(searchParams.get("tipo") || "");
@@ -60,38 +62,40 @@ const SearchPage = () => {
     amenities: [],
   });
 
-  // Build filters for the query
-  const queryFilters = useMemo(() => ({
-    location: location || undefined,
-    maxPrice: price ? parseInt(price) : undefined,
-    propertyType: propertyType || undefined,
-    petType: petType || undefined,
-    minPrice: advancedFilters.minPrice > 0 ? advancedFilters.minPrice : undefined,
-  }), [location, price, propertyType, petType, advancedFilters.minPrice]);
+  // Build filters for the query — todo el filtrado vive del lado del
+  // servidor (ver useProperties) para que la paginación con range() sea
+  // correcta. maxPrice combina el select simple con el slider avanzado
+  // (el más restrictivo de los dos aplica).
+  const queryFilters = useMemo(() => {
+    const advancedMaxPrice = advancedFilters.maxPrice < 500000 ? advancedFilters.maxPrice : undefined;
+    const simpleMaxPrice = price ? parseInt(price) : undefined;
+    const maxPrice = [advancedMaxPrice, simpleMaxPrice].filter((v): v is number => v !== undefined);
 
-  // Fetch properties from database
-  const { data: properties = [], isLoading, error } = useProperties(queryFilters);
+    return {
+      location: location || undefined,
+      maxPrice: maxPrice.length > 0 ? Math.min(...maxPrice) : undefined,
+      minPrice: advancedFilters.minPrice > 0 ? advancedFilters.minPrice : undefined,
+      propertyType: propertyType || undefined,
+      propertyTypes: advancedFilters.propertyTypes,
+      petType: petType || undefined,
+      petTypes: advancedFilters.petTypes,
+      page,
+      pageSize: 12,
+    };
+  }, [location, price, propertyType, petType, advancedFilters, page]);
 
-  // Apply additional client-side filters that can't be done in the query
-  const filteredProperties = useMemo(() => {
-    return properties.filter((property) => {
-      // Advanced price filter (max)
-      if (advancedFilters.maxPrice < 500000 && property.price > advancedFilters.maxPrice) {
-        return false;
-      }
-      // Advanced property types filter
-      if (advancedFilters.propertyTypes.length > 0 && 
-          !advancedFilters.propertyTypes.includes(property.property_type)) {
-        return false;
-      }
-      // Advanced pet types filter
-      if (advancedFilters.petTypes.length > 0 && 
-          !property.pet_types.some(pt => advancedFilters.petTypes.includes(pt))) {
-        return false;
-      }
-      return true;
-    });
-  }, [properties, advancedFilters]);
+  // Fetch properties from database (ya filtradas y paginadas del lado del servidor)
+  const { data: propertiesPage, isLoading, error } = useProperties(queryFilters);
+  const properties = propertiesPage?.rows ?? [];
+
+  // Volver a la página 1 cada vez que cambia algún filtro — si no, se
+  // podría quedar en una página que ya no existe para el nuevo resultado.
+  const filtersKey = JSON.stringify({ location, price, propertyType, petType, advancedFilters });
+  const [previousFiltersKey, setPreviousFiltersKey] = useState(filtersKey);
+  if (filtersKey !== previousFiltersKey) {
+    setPreviousFiltersKey(filtersKey);
+    if (page !== 1) setPage(1);
+  }
 
   const clearFilters = () => {
     setLocation("");
@@ -117,7 +121,7 @@ const SearchPage = () => {
   };
 
   // Transform properties for PropertyCard component
-  const transformedProperties = filteredProperties.map((p) => ({
+  const transformedProperties = properties.map((p) => ({
     id: p.id,
     title: p.title,
     description: p.description || "",
@@ -144,8 +148,8 @@ const SearchPage = () => {
       <SEOHead
         title="Buscar alquileres pet-friendly"
         description={
-          filteredProperties.length > 0
-            ? `${filteredProperties.length} propiedades pet-friendly disponibles para alquilar en Argentina.`
+          propertiesPage?.totalCount
+            ? `${propertiesPage.totalCount} propiedades pet-friendly disponibles para alquilar en Argentina.`
             : "Buscá y filtrá alquileres que acepten perros y gatos en toda Argentina."
         }
         path="/buscar"
@@ -160,7 +164,7 @@ const SearchPage = () => {
               Buscar Alquileres Pet-Friendly
             </h1>
             <p className="text-muted-foreground">
-              {isLoading ? "Buscando..." : `${filteredProperties.length} propiedades encontradas`}
+              {isLoading ? "Buscando..." : `${propertiesPage?.totalCount ?? 0} propiedades encontradas`}
             </p>
           </div>
           
@@ -303,12 +307,23 @@ const SearchPage = () => {
               Reintentar
             </Button>
           </div>
-        ) : filteredProperties.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {transformedProperties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
-          </div>
+        ) : transformedProperties.length > 0 ? (
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {transformedProperties.map((property) => (
+                <PropertyCard key={property.id} property={property} />
+              ))}
+            </div>
+            <Pagination
+              page={page}
+              pageCount={propertiesPage?.pageCount ?? 1}
+              totalCount={propertiesPage?.totalCount ?? 0}
+              onPageChange={(newPage) => {
+                setPage(newPage);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
+          </>
         ) : (
           <div className="text-center py-16 bg-card rounded-2xl border">
             <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

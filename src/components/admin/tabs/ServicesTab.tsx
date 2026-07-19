@@ -24,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import AdminTableToolbar from "@/components/admin/AdminTableToolbar";
-import AdminTablePagination from "@/components/admin/AdminTablePagination";
+import Pagination from "@/components/Pagination";
 import SortableTableHead from "@/components/admin/SortableTableHead";
 import type { AdminTableHandlers } from "@/hooks/useAdminTableHandlers";
 import type { AdminTableState, ServiceStatusFilter } from "@/hooks/useAdminTables";
@@ -167,7 +167,7 @@ const ServicesTab = ({
                   ))}
                 </TableBody>
               </Table>
-              <AdminTablePagination
+              <Pagination
                 page={state.page}
                 pageCount={pageCount}
                 totalCount={totalCount}
