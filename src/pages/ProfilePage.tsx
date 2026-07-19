@@ -13,12 +13,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { User, Phone, Loader2, Settings, PawPrint, Plus, Pencil, Trash2, MessageCircle, Info, Eye, EyeOff, AlertTriangle, LayoutDashboard, LogOut, Search, ShieldCheck, ShieldAlert, Upload } from 'lucide-react';
+import { User, Phone, Loader2, Settings, PawPrint, Plus, Pencil, Trash2, MessageCircle, Info, Eye, EyeOff, AlertTriangle, LayoutDashboard, LogOut, Search, ShieldCheck, ShieldAlert, Upload, Home, Stethoscope } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PropertyImageManager from '@/components/PropertyImageManager';
 import PetForm from '@/components/PetForm';
 import PetQRCode from '@/components/PetQRCode';
 import AvatarUpload from '@/components/AvatarUpload';
+import EmptyState from '@/components/EmptyState';
 import { trackEvent } from '@/lib/analytics';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useUserServices, useToggleServiceActive, useDeleteService, getCategoryLabel } from '@/hooks/useServices';
@@ -867,9 +868,11 @@ const ProfilePage = () => {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">Todavía no publicaste ninguna propiedad</p>
-                      </div>
+                      <EmptyState
+                        icon={Home}
+                        title="Todavía no publicaste ninguna propiedad"
+                        compact
+                      />
                     )}
                   </CardContent>
                 </Card>
@@ -1021,14 +1024,17 @@ const ProfilePage = () => {
                       </div>
                     ) : (
                       !showPetForm && (
-                        <div className="text-center py-8">
-                          <PawPrint className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-                          <p className="text-muted-foreground mb-4">Todavía no registraste ninguna mascota</p>
-                          <Button variant="hero" onClick={() => setShowPetForm(true)}>
-                            <Plus className="h-4 w-4 mr-1" />
-                            Agregar mi primera mascota
-                          </Button>
-                        </div>
+                        <EmptyState
+                          icon={PawPrint}
+                          title="Todavía no registraste ninguna mascota"
+                          action={
+                            <Button variant="hero" onClick={() => setShowPetForm(true)}>
+                              <Plus className="h-4 w-4 mr-1" />
+                              Agregar mi primera mascota
+                            </Button>
+                          }
+                          compact
+                        />
                       )
                     )}
                   </CardContent>
@@ -1128,15 +1134,19 @@ const ProfilePage = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 space-y-3">
-                      <p className="text-muted-foreground">Todavía no publicaste ningún servicio</p>
-                      <Link to="/servicios/publicar">
-                        <Button variant="outline" className="gap-2">
-                          <Plus className="h-4 w-4" />
-                          Publicar mi primer servicio
-                        </Button>
-                      </Link>
-                    </div>
+                    <EmptyState
+                      icon={Stethoscope}
+                      title="Todavía no publicaste ningún servicio"
+                      action={
+                        <Link to="/servicios/publicar">
+                          <Button variant="outline" className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            Publicar mi primer servicio
+                          </Button>
+                        </Link>
+                      }
+                      compact
+                    />
                   )}
                 </CardContent>
               </Card>

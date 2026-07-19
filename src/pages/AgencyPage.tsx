@@ -6,7 +6,8 @@ import Footer from '@/components/Footer';
 import PropertyCard from '@/components/PropertyCard';
 import VerifiedIcon from '@/components/VerifiedIcon';
 import SEOHead from '@/components/SEOHead';
-import { Loader2, User, Building2 } from 'lucide-react';
+import EmptyState from '@/components/EmptyState';
+import { Loader2, User, Building2, Home } from 'lucide-react';
 
 const AgencyPage = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -144,9 +145,7 @@ const AgencyPage = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 text-muted-foreground">
-                Esta agencia no tiene propiedades activas en este momento.
-              </div>
+              <EmptyState icon={Home} title="Esta agencia no tiene propiedades activas en este momento." />
             )}
           </div>
         </div>

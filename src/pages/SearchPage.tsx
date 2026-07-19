@@ -13,6 +13,7 @@ import {
 import PropertyCard from "@/components/PropertyCard";
 import PropertyCardSkeleton from "@/components/PropertyCardSkeleton";
 import Pagination from "@/components/Pagination";
+import EmptyState from "@/components/EmptyState";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
@@ -325,27 +326,26 @@ const SearchPage = () => {
             />
           </>
         ) : (
-          <div className="text-center py-16 bg-card rounded-2xl border">
-            <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h2 className="font-body text-xl font-semibold text-foreground mb-2">
-              No encontramos propiedades
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              {hasActiveFilters 
+          <EmptyState
+            icon={Search}
+            title="No encontramos propiedades"
+            description={
+              hasActiveFilters
                 ? "Intentá ajustar los filtros para ver más resultados"
                 : "Aún no hay propiedades publicadas. ¡Sé el primero en publicar!"
-              }
-            </p>
-            {hasActiveFilters ? (
-              <Button variant="outline" onClick={clearFilters}>
-                Limpiar filtros
-              </Button>
-            ) : canPublish ? (
-              <Button variant="hero" onClick={() => navigate("/publicar")}>
-                Publicar propiedad
-              </Button>
-            ) : null}
-          </div>
+            }
+            action={
+              hasActiveFilters ? (
+                <Button variant="outline" onClick={clearFilters}>
+                  Limpiar filtros
+                </Button>
+              ) : canPublish ? (
+                <Button variant="hero" onClick={() => navigate("/publicar")}>
+                  Publicar propiedad
+                </Button>
+              ) : undefined
+            }
+          />
         )}
       </main>
 
