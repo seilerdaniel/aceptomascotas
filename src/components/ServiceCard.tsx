@@ -21,7 +21,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
     <Link to={`/servicios/${service.id}`}>
       <Card className="group overflow-hidden cursor-pointer h-full hover:shadow-hover transition-all duration-300">
         <div className="relative aspect-[16/10] overflow-hidden">
-          <img
+          <img loading="lazy" decoding="async"
             src={imageUrl}
             alt={service.name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -61,7 +61,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
           <div className="flex items-start gap-3">
             {logoUrl && (
               <div className="h-10 w-10 rounded-full overflow-hidden border bg-muted shrink-0 shadow-md bg-card">
-                <img src={logoUrl} alt={service.name} className="w-full h-full object-cover" />
+                <img loading="lazy" decoding="async" src={logoUrl} alt={service.name} className="w-full h-full object-cover" />
               </div>
             )}
             <div>

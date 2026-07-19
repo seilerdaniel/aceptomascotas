@@ -205,7 +205,7 @@ const PetQRCode = ({ petId, petName, existingQrCode, onGenerated }: PetQRCodePro
             ) : (
               <>
                 {qrImageUrl ? (
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={qrImageUrl}
                     alt={`Código QR de ${petName}`}
                     className="w-48 h-48 rounded-lg border"

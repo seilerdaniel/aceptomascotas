@@ -118,9 +118,10 @@ const Index = () => {
         <section className="relative min-h-[85vh] flex items-center gradient-hero overflow-hidden">
           {/* Background Image with overlay */}
           <div className="absolute inset-0">
-            <img 
-              src={heroImage} 
-              alt="Hogar pet-friendly con mascotas felices" 
+            <img
+              src={heroImage}
+              alt="Hogar pet-friendly con mascotas felices"
+              loading="eager"
               fetchPriority="high"
               decoding="async"
               className="w-full h-full object-cover"
@@ -255,7 +256,7 @@ const Index = () => {
                         className="block rounded-2xl overflow-hidden border hover:opacity-90 transition-opacity"
                       >
                         <div className="w-full aspect-[3/1] bg-secondary">
-                          <img
+                          <img loading="lazy" decoding="async"
                             src={ad.image_url}
                             alt={ad.alt_text}
                             className="w-full h-full object-cover"
@@ -325,7 +326,7 @@ const Index = () => {
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-10 left-10">
                 <div className="h-32 w-32 rounded-full bg-white p-2">
-                  <img src={logo} alt="" className="h-full w-full rounded-full object-cover opacity-50" />
+                  <img loading="lazy" decoding="async" src={logo} alt="" className="h-full w-full rounded-full object-cover opacity-50" />
                 </div>
               </div>
               <div className="absolute bottom-10 right-10">

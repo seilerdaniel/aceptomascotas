@@ -242,7 +242,7 @@ const PetForm = ({ pet, onSave, onCancel }: PetFormProps) => {
           <div className="grid grid-cols-3 gap-2">
             {images.map((image, index) => (
               <div key={index} className="relative aspect-square rounded-lg overflow-hidden group">
-                <img src={image} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
+                <img loading="lazy" decoding="async" src={image} alt={`Foto ${index + 1}`} className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={() => handleRemoveImage(image)}

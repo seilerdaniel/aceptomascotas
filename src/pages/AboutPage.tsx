@@ -56,7 +56,7 @@ const AboutPage = () => {
             {/* Cards de los tres perros */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="rounded-2xl overflow-hidden shadow-lg bg-card border">
-                <img
+                <img loading="lazy" decoding="async"
                   src={PHOTO_DOGS}
                   alt="Ringo y Roco"
                   className="w-full aspect-square object-cover"
@@ -68,7 +68,7 @@ const AboutPage = () => {
               </div>
 
               <div className="rounded-2xl overflow-hidden shadow-lg bg-card border">
-                <img
+                <img loading="lazy" decoding="async"
                   src="https://xqxbzqufbfdjckcyxfyq.supabase.co/storage/v1/object/public/public-assets/reina.jpg"
                   alt="Reina"
                   className="w-full aspect-square object-cover"
@@ -87,7 +87,7 @@ const AboutPage = () => {
           <div className="container max-w-4xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="rounded-2xl overflow-hidden shadow-lg order-2 md:order-1">
-                <img
+                <img loading="lazy" decoding="async"
                   src={PHOTO_FOUNDER}
                   alt="Soy Daniel, fundador de Acepto Mascotas"
                   className="w-full h-full object-cover aspect-square"

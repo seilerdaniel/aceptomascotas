@@ -611,7 +611,7 @@ const PublishPage = () => {
                 <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
                   {imagePreviews.map((image, index) => (
                     <div key={index} className="relative aspect-square rounded-xl overflow-hidden group">
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={image}
                         alt={`Imagen ${index + 1}`}
                         className="w-full h-full object-cover"

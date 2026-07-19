@@ -102,7 +102,7 @@ const AgencyPage = () => {
         {/* Banner */}
         <div className="w-full aspect-[4/1] bg-secondary overflow-hidden">
           {agency.banner_url ? (
-            <img src={agency.banner_url} alt="" className="w-full h-full object-cover" />
+            <img loading="lazy" decoding="async" src={agency.banner_url} alt="" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10" />
           )}
@@ -113,7 +113,7 @@ const AgencyPage = () => {
           <div className="flex items-end gap-4 -mt-10 mb-6">
             <div className="h-20 w-20 rounded-full overflow-hidden border-4 border-background bg-muted flex items-center justify-center shrink-0">
               {agency.avatar_url ? (
-                <img src={agency.avatar_url} alt={agency.full_name || ''} className="w-full h-full object-cover" />
+                <img loading="lazy" decoding="async" src={agency.avatar_url} alt={agency.full_name || ''} className="w-full h-full object-cover" />
               ) : (
                 <User className="h-8 w-8 text-muted-foreground" />
               )}

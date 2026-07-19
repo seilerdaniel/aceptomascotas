@@ -149,7 +149,7 @@ const AIChatbot = () => {
           <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-full bg-white p-0.5 shrink-0">
-              <img src={logo} alt="" className="h-full w-full rounded-full object-cover" />
+              <img loading="lazy" decoding="async" src={logo} alt="" className="h-full w-full rounded-full object-cover" />
             </div>
               <div>
                 <h3 className="font-semibold">Asistente Pet-Friendly</h3>

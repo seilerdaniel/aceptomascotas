@@ -85,7 +85,7 @@ const AvatarUpload = ({ userId, currentAvatarUrl, onUploaded, onRemove }: Avatar
     <div className="relative group">
       <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-primary/20 bg-muted flex items-center justify-center">
         {currentAvatarUrl ? (
-          <img src={currentAvatarUrl} alt="Foto de perfil" className="w-full h-full object-cover" />
+          <img loading="lazy" decoding="async" src={currentAvatarUrl} alt="Foto de perfil" className="w-full h-full object-cover" />
         ) : (
           <User className="h-8 w-8 text-muted-foreground" />
         )}

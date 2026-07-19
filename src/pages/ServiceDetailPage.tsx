@@ -156,7 +156,7 @@ const ServiceDetailPage = () => {
 
         {(service as any).banner_url && (
           <div className="w-full aspect-[4/1] rounded-2xl overflow-hidden mb-6 bg-secondary">
-            <img src={(service as any).banner_url} alt="" className="w-full h-full object-cover" />
+            <img loading="lazy" decoding="async" src={(service as any).banner_url} alt="" className="w-full h-full object-cover" />
           </div>
         )}
 
@@ -166,7 +166,7 @@ const ServiceDetailPage = () => {
             {/* Image Gallery */}
             <div className="space-y-4">
               <div className="relative aspect-video overflow-hidden rounded-2xl">
-                <img
+                <img loading="lazy" decoding="async"
                   src={images[selectedImage]}
                   alt={service.name}
                   className="w-full h-full object-cover"
@@ -202,7 +202,7 @@ const ServiceDetailPage = () => {
                           : "border-transparent opacity-70 hover:opacity-100"
                       )}
                     >
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={img}
                         alt={`${service.name} ${idx + 1}`}
                         className="w-full h-full object-cover"
@@ -219,7 +219,7 @@ const ServiceDetailPage = () => {
                 <div className="flex items-start gap-3">
                   {(service as any).logo_url && (
                     <div className="h-14 w-14 rounded-full overflow-hidden border bg-muted shrink-0">
-                      <img src={(service as any).logo_url} alt={service.name} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={(service as any).logo_url} alt={service.name} className="w-full h-full object-cover" />
                     </div>
                   )}
                   <div>

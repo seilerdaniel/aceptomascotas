@@ -117,7 +117,7 @@ const StorePage = () => {
                 {products.filter(p => p.category === category).map(product => (
                   <Card key={product.id} className="overflow-hidden group hover:shadow-hover transition-all duration-300">
                     <div className="aspect-square bg-secondary/50 flex items-center justify-center p-8">
-                      <img 
+                      <img loading="lazy" decoding="async" 
                         src={product.image} 
                         alt={product.name}
                         className="h-32 w-32 object-contain opacity-80 group-hover:scale-110 transition-transform duration-300"
