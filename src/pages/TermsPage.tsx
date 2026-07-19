@@ -1,10 +1,16 @@
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { FileText } from "lucide-react";
 
 const TermsPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Términos y condiciones"
+        description="Términos y condiciones de uso de Acepto Mascotas."
+        path="/terminos"
+      />
       <Header />
       
       <main className="flex-1 container py-12">

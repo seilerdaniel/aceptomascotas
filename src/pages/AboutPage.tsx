@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
+import SEOHead from '@/components/SEOHead';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Heart, Home, PawPrint, Shield } from 'lucide-react';
@@ -10,6 +11,11 @@ const PHOTO_DOGS = 'https://xqxbzqufbfdjckcyxfyq.supabase.co/storage/v1/object/p
 const AboutPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Quiénes somos"
+        description="Conocé la historia detrás de Acepto Mascotas: una plataforma creada por y para familias con mascotas."
+        path="/quienes-somos"
+      />
       <Header />
 
       <main className="flex-1">

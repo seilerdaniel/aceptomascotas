@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import logo from '@/assets/logo.svg';
 import { z } from 'zod';
+import SEOHead from '@/components/SEOHead';
 
 const passwordSchema = z.string()
   .min(8, 'Mínimo 8 caracteres')
@@ -66,6 +67,12 @@ const ResetPasswordPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <SEOHead
+        title="Restablecer contraseña"
+        description="Restablecé tu contraseña de Acepto Mascotas."
+        path="/reset-password"
+        noIndex
+      />
       <div className="w-full max-w-md">
         <Card className="shadow-hover">
           <CardHeader className="text-center space-y-4">

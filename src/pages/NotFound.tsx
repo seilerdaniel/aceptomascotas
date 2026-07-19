@@ -4,6 +4,7 @@ import { Dog, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
 
 const NotFound = () => {
   const location = useLocation();
@@ -14,6 +15,12 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Página no encontrada"
+        description="La página que buscás no existe."
+        path={location.pathname}
+        noIndex
+      />
       <Header />
       <main className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-6 p-8">

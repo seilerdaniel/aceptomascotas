@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import AdminStatsCards from "@/components/admin/AdminStatsCards";
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import AdminAccessGuard from "@/components/admin/AdminAccessGuard";
 
@@ -114,6 +115,7 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title="Panel de administración" description="Panel de administración de Acepto Mascotas." path="/admin" noIndex />
       <Header />
 
       <main className="flex-1 container py-8">

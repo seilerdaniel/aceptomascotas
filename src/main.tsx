@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
+import { HelmetProvider } from "react-helmet-async";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { initGA } from "./lib/analytics";
@@ -12,10 +13,12 @@ initGA();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <App />
-      <Analytics />
-      <SpeedInsights />
-    </ThemeProvider>
+    <HelmetProvider>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <App />
+        <Analytics />
+        <SpeedInsights />
+      </ThemeProvider>
+    </HelmetProvider>
   </React.StrictMode>,
 );

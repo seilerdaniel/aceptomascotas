@@ -13,6 +13,7 @@ import { useState } from "react";
 import ReportProperty from "@/components/ReportProperty";
 import StickyMobileContactBar from "@/components/StickyMobileContactBar";
 import VerifiedIcon from "@/components/VerifiedIcon";
+import SEOHead from "@/components/SEOHead";
 import { trackEvent } from "@/lib/analytics";
 import { googleMapsLink } from "@/lib/googleMaps";
 
@@ -154,8 +155,34 @@ const PropertyDetail = () => {
     return labels[petType] || petType;
   };
 
+  const metaDescription = property.description
+    ? property.description.length > 155
+      ? `${property.description.slice(0, 152)}...`
+      : property.description
+    : `${property.title} en ${property.location}. ${formatPrice(property.price)}/mes. Acepta mascotas.`;
+
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title={`${property.title} — ${property.location}`}
+        description={metaDescription}
+        path={`/alquiler/${property.id}`}
+        image={property.images[0]}
+        type="product"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: property.title,
+          description: metaDescription,
+          image: property.images,
+          offers: {
+            "@type": "Offer",
+            price: property.price,
+            priceCurrency: "ARS",
+            availability: "https://schema.org/InStock",
+          },
+        }}
+      />
       <Header />
 
       <main className="flex-1 pb-24 md:pb-0">

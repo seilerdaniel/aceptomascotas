@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import {
   Accordion,
@@ -54,6 +55,11 @@ const faqs = [
 const FAQPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Preguntas frecuentes"
+        description="Respuestas a las dudas más comunes sobre publicar, buscar y alquilar con mascotas en Acepto Mascotas."
+        path="/faq"
+      />
       <Header />
       
       <main className="flex-1 container py-12">

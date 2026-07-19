@@ -15,6 +15,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import SearchBar from "@/components/SearchBar";
+import SEOHead from "@/components/SEOHead";
 import PropertyCard from "@/components/PropertyCard";
 import PetCategoryTiles from "@/components/PetCategoryTiles";
 import TrustBar from "@/components/TrustBar";
@@ -105,6 +106,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Alquileres pet-friendly en Argentina para perros y gatos"
+        description="Encontrá un alquiler que acepte a tu perro o gato, sin rechazos ni letra chica. Miles de familias con mascota ya encontraron su hogar en Acepto Mascotas."
+        path="/"
+      />
       <Header />
       
       <main className="flex-1">

@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,6 +92,11 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Contacto"
+        description="¿Tenés dudas o sugerencias? Escribinos y te respondemos a la brevedad."
+        path="/contacto"
+      />
       <Header />
 
       <main className="flex-1 container py-8">

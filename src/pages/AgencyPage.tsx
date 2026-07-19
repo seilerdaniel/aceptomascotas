@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PropertyCard from '@/components/PropertyCard';
 import VerifiedIcon from '@/components/VerifiedIcon';
+import SEOHead from '@/components/SEOHead';
 import { Loader2, User, Building2 } from 'lucide-react';
 
 const AgencyPage = () => {
@@ -89,6 +90,12 @@ const AgencyPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title={`${agency.full_name || "Agencia"} — Propiedades pet-friendly`}
+        description={`Mirá todas las propiedades pet-friendly publicadas por ${agency.full_name || "esta agencia"} en Acepto Mascotas.`}
+        path={`/agencia/${userId}`}
+        image={agency.avatar_url || undefined}
+      />
       <Header />
 
       <main className="flex-1">

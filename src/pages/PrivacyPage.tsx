@@ -1,10 +1,16 @@
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { Shield } from "lucide-react";
 
 const PrivacyPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Política de privacidad"
+        description="Cómo protegemos y usamos tus datos en Acepto Mascotas."
+        path="/privacidad"
+      />
       <Header />
       
       <main className="flex-1 container py-12">

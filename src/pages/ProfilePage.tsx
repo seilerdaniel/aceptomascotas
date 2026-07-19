@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
+import SEOHead from "@/components/SEOHead";
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -375,7 +376,8 @@ const ProfilePage = () => {
   if (!authLoading && !user) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Mi cuenta" description="Administrá tu perfil, propiedades, servicios y mascotas." path="/perfil" noIndex />
+      <Header />
         <main className="flex-1 container py-8">
           <div className="max-w-md mx-auto text-center">
             <h1 className="font-display text-2xl font-bold mb-4">Iniciá sesión</h1>
@@ -391,7 +393,8 @@ const ProfilePage = () => {
   if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Mi cuenta" description="Administrá tu perfil, propiedades, servicios y mascotas." path="/perfil" noIndex />
+      <Header />
         <main className="flex-1 container py-8 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
@@ -407,6 +410,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title="Mi cuenta" description="Administrá tu perfil, propiedades, servicios y mascotas." path="/perfil" noIndex />
       <Header />
       {!isAdmin && profile?.user_type === 'agencia' && bannerUrl && (
         <div className="w-full aspect-[5/1] bg-secondary overflow-hidden">

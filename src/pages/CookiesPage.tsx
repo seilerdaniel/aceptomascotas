@@ -1,10 +1,16 @@
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { Cookie } from "lucide-react";
 
 const CookiesPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Política de cookies"
+        description="Información sobre el uso de cookies en Acepto Mascotas."
+        path="/cookies"
+      />
       <Header />
       
       <main className="flex-1 container py-12">

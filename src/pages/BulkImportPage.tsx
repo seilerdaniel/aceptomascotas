@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
+import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -207,7 +208,8 @@ const BulkImportPage = () => {
   if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Importar propiedades por CSV" description="Importá varias propiedades a la vez." path="/publicar/importar" noIndex />
+      <Header />
         <main className="flex-1 container py-16 flex justify-center items-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </main>
@@ -224,7 +226,8 @@ const BulkImportPage = () => {
   if (profile?.user_type !== "agencia") {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header />
+        <SEOHead title="Importar propiedades por CSV" description="Importá varias propiedades a la vez." path="/publicar/importar" noIndex />
+      <Header />
         <main className="flex-1 container py-16 text-center">
           <h1 className="font-display text-2xl font-bold text-foreground mb-4">
             Import disponible solo para agencias
@@ -243,6 +246,7 @@ const BulkImportPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title="Importar propiedades por CSV" description="Importá varias propiedades a la vez." path="/publicar/importar" noIndex />
       <Header />
 
       <main className="flex-1 container py-8">

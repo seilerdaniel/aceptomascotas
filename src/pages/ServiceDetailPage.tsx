@@ -21,6 +21,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ServiceReviews from "@/components/ServiceReviews";
 import StickyMobileContactBar from "@/components/StickyMobileContactBar";
+import SEOHead from "@/components/SEOHead";
 import { useService, useServiceRating, getCategoryLabel } from "@/hooks/useServices";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -110,9 +111,40 @@ const ServiceDetailPage = () => {
 
   const images = service.images?.length ? service.images : ["/placeholder.svg"];
   const isRecommended = rating && rating.average_rating >= 4 && rating.review_count >= 3;
+  const metaDescription = service.description
+    ? service.description.length > 155
+      ? `${service.description.slice(0, 152)}...`
+      : service.description
+    : `${service.name} — ${getCategoryLabel(service.category)} en ${service.city}.`;
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title={`${service.name} — ${getCategoryLabel(service.category)} en ${service.city}`}
+        description={metaDescription}
+        path={`/servicios/${service.id}`}
+        image={images[0] !== "/placeholder.svg" ? images[0] : undefined}
+        type="product"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          name: service.name,
+          description: metaDescription,
+          image: images[0] !== "/placeholder.svg" ? images[0] : undefined,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: service.city,
+            addressCountry: "AR",
+          },
+          ...(rating?.average_rating && {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: rating.average_rating,
+              reviewCount: rating.review_count,
+            },
+          }),
+        }}
+      />
       <Header />
 
       <main className="flex-1 container py-8 pb-24 md:pb-8">
