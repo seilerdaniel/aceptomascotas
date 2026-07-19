@@ -18,6 +18,7 @@ const LocationPicker = ({ initialLat, initialLng, onChange }: LocationPickerProp
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
   const [locating, setLocating] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const token = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 
   const placeMarker = (lat: number, lng: number, flyTo = false) => {
@@ -52,6 +53,7 @@ const LocationPicker = ({ initialLat, initialLng, onChange }: LocationPickerProp
     });
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    map.current.on('load', () => setMapLoaded(true));
 
     if (initialLat && initialLng) {
       placeMarker(initialLat, initialLng);
@@ -65,6 +67,7 @@ const LocationPicker = ({ initialLat, initialLng, onChange }: LocationPickerProp
       map.current?.remove();
       map.current = null;
       marker.current = null;
+      setMapLoaded(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
@@ -101,6 +104,12 @@ const LocationPicker = ({ initialLat, initialLng, onChange }: LocationPickerProp
     <div className="space-y-2">
       <div className="relative w-full h-64 rounded-xl overflow-hidden border">
         <div ref={mapContainer} className="absolute inset-0" />
+        {!mapLoaded && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-muted/80 backdrop-blur-sm pointer-events-none">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <p className="text-xs text-muted-foreground">Cargando el mapa...</p>
+          </div>
+        )}
       </div>
       <Button
         type="button"
