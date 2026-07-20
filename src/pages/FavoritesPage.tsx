@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import EmptyState from "@/components/EmptyState";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
@@ -78,18 +79,16 @@ const FavoritesPage = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-card rounded-2xl border">
-            <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h2 className="font-body text-xl font-semibold text-foreground mb-2">
-              No tenés favoritos todavía
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Explorá propiedades y guardá tus favoritas
-            </p>
-            <Link to="/buscar">
-              <Button variant="outline">Ver propiedades</Button>
-            </Link>
-          </div>
+          <EmptyState
+            icon={Heart}
+            title="No tenés favoritos todavía"
+            description="Explorá propiedades y guardá tus favoritas"
+            action={
+              <Link to="/buscar">
+                <Button variant="outline">Ver propiedades</Button>
+              </Link>
+            }
+          />
         )}
       </main>
 
