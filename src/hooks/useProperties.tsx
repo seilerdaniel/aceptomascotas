@@ -119,7 +119,10 @@ export const useProperties = (filters?: PropertyFilters) => {
 
       const totalCount = count ?? 0;
       return {
-        rows: (data || []) as Property[],
+        // properties_public is a projection of `properties` that masks
+        // contact PII; its row type differs slightly from Property (no
+        // agency_id / owner_is_agency), so cast through unknown.
+        rows: (data || []) as unknown as Property[],
         totalCount,
         pageCount: Math.max(1, Math.ceil(totalCount / pageSize)),
       };
@@ -142,7 +145,8 @@ export const useProperty = (id: string) => {
         throw error;
       }
 
-      return data as Property | null;
+      // See above: properties_public row shape ≠ Property; cast through unknown.
+      return data as unknown as Property | null;
     },
     enabled: !!id,
   });
@@ -164,7 +168,8 @@ export const useFeaturedProperties = (limit = 6) => {
         throw error;
       }
 
-      return (data || []) as Property[];
+      // See above: properties_public row shape ≠ Property; cast through unknown.
+      return (data || []) as unknown as Property[];
     },
   });
 };
