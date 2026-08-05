@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import PetTypeSelector from "@/components/PetTypeSelector";
+import { PRICE_BUCKETS, PROPERTY_TYPES } from "@/data/taxonomy";
 
 const SearchBar = () => {
   const navigate = useNavigate();
@@ -55,12 +56,11 @@ const SearchBar = () => {
                 <SelectValue placeholder="Precio máx." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="50000">Hasta $50.000</SelectItem>
-                <SelectItem value="100000">Hasta $100.000</SelectItem>
-                <SelectItem value="150000">Hasta $150.000</SelectItem>
-                <SelectItem value="200000">Hasta $200.000</SelectItem>
-                <SelectItem value="300000">Hasta $300.000</SelectItem>
-                <SelectItem value="500000">Hasta $500.000</SelectItem>
+                {PRICE_BUCKETS.map((bucket) => (
+                  <SelectItem key={bucket.value} value={bucket.value}>
+                    {bucket.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -73,11 +73,11 @@ const SearchBar = () => {
                 <SelectValue placeholder="Tipo de propiedad" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="departamento">Departamento</SelectItem>
-                <SelectItem value="casa">Casa</SelectItem>
-                <SelectItem value="ph">PH</SelectItem>
-                <SelectItem value="loft">Loft</SelectItem>
-                <SelectItem value="monoambiente">Monoambiente</SelectItem>
+                {PROPERTY_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

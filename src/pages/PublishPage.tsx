@@ -23,6 +23,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import LocationPicker from "@/components/LocationPicker";
+import { z } from "zod";
+import { AMENITIES, PET_SIZES } from "@/data/taxonomy";
 
 const DRAFT_STORAGE_KEY = "am_publish_property_draft";
 
@@ -39,6 +41,10 @@ interface PublishDraft {
     propertyType: string;
     location: string;
     petTypes: string[];
+    petSize: string;
+    maxPets: string;
+    petFee: string;
+    amenities: string[];
     contactName: string;
     contactPhone: string;
     contactEmail: string;
@@ -65,6 +71,38 @@ const clearDraft = () => {
     // localStorage no disponible (modo privado, etc.) — no es crítico.
   }
 };
+
+// Pet-friendly detail fields are optional but validated when provided
+// (spec S9): pet_fee must not be negative and max_pets must be a
+// non-negative integer. Empty string means "not specified" — existing
+// rows stay valid (S8), so these never block publishing on their own.
+//
+// Validated as strings with explicit refinements (not z.coerce.number):
+// coercion turns "abc" into NaN and the resulting error only carries the
+// generic "Invalid input" message, hiding which field is wrong.
+const petDetailsSchema = z.object({
+  petFee: z
+    .string()
+    .refine((v) => v === "" || /^-?\d+(\.\d+)?$/.test(v.trim()), {
+      message: "La mensualidad por mascota debe ser un número",
+    })
+    .refine((v) => v === "" || Number(v) >= 0, {
+      message: "La mensualidad por mascota no puede ser negativa",
+    }),
+  maxPets: z
+    .string()
+    .refine((v) => v === "" || /^-?\d+$/.test(v.trim()), {
+      message: "El máximo de mascotas debe ser un número entero",
+    })
+    .refine((v) => v === "" || Number(v) >= 0, {
+      message: "El máximo de mascotas no puede ser negativo",
+    }),
+  petSize: z
+    .string()
+    .refine((v) => v === "" || PET_SIZES.some((size) => size.value === v), {
+      message: "Seleccioná un tamaño de mascota válido",
+    }),
+});
 
 const PublishPage = () => {
   const navigate = useNavigate();
@@ -97,6 +135,10 @@ const PublishPage = () => {
         propertyType: "",
         location: "",
         petTypes: [] as string[],
+        petSize: "",
+        maxPets: "",
+        petFee: "",
+        amenities: [] as string[],
         contactName: "",
         contactPhone: "",
         contactEmail: "",
@@ -135,6 +177,10 @@ const PublishPage = () => {
       propertyType: "",
       location: "",
       petTypes: [],
+      petSize: "",
+      maxPets: "",
+      petFee: "",
+      amenities: [],
       contactName: profile?.full_name || "",
       contactPhone: profile?.phone || "",
       contactEmail: user?.email || "",
@@ -171,6 +217,15 @@ const PublishPage = () => {
       petTypes: prev.petTypes.includes(petType)
         ? prev.petTypes.filter((p) => p !== petType)
         : [...prev.petTypes, petType],
+    }));
+  };
+
+  const handleAmenityToggle = (amenity: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenity)
+        ? prev.amenities.filter((a) => a !== amenity)
+        : [...prev.amenities, amenity],
     }));
   };
 
@@ -287,6 +342,19 @@ const PublishPage = () => {
       return;
     }
 
+    // Optional pet-friendly details: block invalid values before any
+    // network call (spec S9). The edge function re-validates server-side.
+    const petDetails = petDetailsSchema.safeParse({
+      petFee: formData.petFee,
+      maxPets: formData.maxPets,
+      petSize: formData.petSize,
+    });
+    if (!petDetails.success) {
+      const message = petDetails.error.issues[0]?.message ?? "Revisá los datos pet-friendly";
+      toast.error(message);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -321,6 +389,10 @@ const PublishPage = () => {
           images: imageUrls,
           latitude,
           longitude,
+          petFee: formData.petFee ? Number(formData.petFee) : null,
+          maxPets: formData.maxPets ? Number(formData.maxPets) : null,
+          petSize: formData.petSize || null,
+          amenities: formData.amenities,
         },
       });
 
@@ -595,6 +667,85 @@ const PublishPage = () => {
                       <span className="font-medium">{option.label}</span>
                     </label>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pet-Friendly Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Detalles pet-friendly</CardTitle>
+                <CardDescription>
+                  Contanos más sobre las mascotas y las comodidades para que los filtros de
+                  búsqueda encuentren tu propiedad
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-6 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label>Tamaño de mascota (opcional)</Label>
+                    <Select
+                      value={formData.petSize}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({ ...prev, petSize: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Cualquier tamaño" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PET_SIZES.map((size) => (
+                          <SelectItem key={size.value} value={size.value}>
+                            {size.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="maxPets">Máximo de mascotas (opcional)</Label>
+                    <Input
+                      id="maxPets"
+                      name="maxPets"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Ej: 2"
+                      value={formData.maxPets}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="petFee">Mensualidad por mascota (opcional)</Label>
+                    <Input
+                      id="petFee"
+                      name="petFee"
+                      type="number"
+                      min={0}
+                      placeholder="Ej: 5000"
+                      value={formData.petFee}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Comodidades (opcional)</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {AMENITIES.map((amenity) => (
+                      <label
+                        key={amenity.value}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={formData.amenities.includes(amenity.value)}
+                          onCheckedChange={() => handleAmenityToggle(amenity.value)}
+                        />
+                        <span className="text-sm">{amenity.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>

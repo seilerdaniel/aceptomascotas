@@ -137,6 +137,59 @@ function validateImages(value: unknown): string[] {
   return value.filter((img) => typeof img === "string" && img.startsWith("http"));
 }
 
+// Optional pet-friendly attributes (spec S8/S9): pet_fee must be a
+// non-negative number, max_pets a non-negative integer, pet_size one of
+// the enum values, amenities a known subset. Empty/missing values stay
+// null/default so existing rows remain valid.
+function validatePetFee(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const fee = Number(value);
+  if (isNaN(fee) || fee < 0) {
+    throw new Error("pet_fee must be a non-negative number");
+  }
+  return fee;
+}
+
+function validateMaxPets(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const maxPets = Number(value);
+  if (isNaN(maxPets) || !Number.isInteger(maxPets) || maxPets < 0) {
+    throw new Error("max_pets must be a non-negative integer");
+  }
+  return maxPets;
+}
+
+function validatePetSize(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  const validSizes = ["pequeno", "mediano", "grande"];
+  if (typeof value !== "string" || !validSizes.includes(value.toLowerCase())) {
+    throw new Error(`pet_size must be one of: ${validSizes.join(", ")}`);
+  }
+  return value.toLowerCase();
+}
+
+function validateAmenities(value: unknown): string[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) {
+    throw new Error("Amenities must be an array");
+  }
+  const validAmenities = [
+    "balcon",
+    "terraza",
+    "jardin",
+    "cochera",
+    "pileta",
+    "parrilla",
+    "gimnasio",
+    "seguridad",
+  ];
+  const filtered = value.filter(
+    (amenity): amenity is string =>
+      typeof amenity === "string" && validAmenities.includes(amenity.toLowerCase())
+  );
+  return [...new Set(filtered)];
+}
+
 // Validate user metadata during signup
 function validateSignupMetadata(fullName: unknown): string | null {
   if (!fullName) return null;
@@ -274,6 +327,10 @@ Deno.serve(async (req) => {
     const contactPhone = validatePhone(body.contactPhone);
     const contactEmail = validateEmail(body.contactEmail);
     const images = validateImages(body.images);
+    const petFee = validatePetFee(body.petFee);
+    const maxPets = validateMaxPets(body.maxPets);
+    const petSize = validatePetSize(body.petSize);
+    const amenities = validateAmenities(body.amenities);
 
     // Location coordinates are optional; validate range if provided.
     let latitude: number | null = null;
@@ -313,6 +370,10 @@ Deno.serve(async (req) => {
         images,
         latitude,
         longitude,
+        pet_fee: petFee,
+        max_pets: maxPets,
+        pet_size: petSize,
+        amenities,
       })
       .select()
       .single();
