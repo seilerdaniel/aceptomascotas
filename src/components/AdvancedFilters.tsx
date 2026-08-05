@@ -8,6 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { PROPERTY_TYPES, PET_TYPES, AMENITIES, MAX_PRICE } from '@/data/taxonomy';
 
 interface AdvancedFiltersProps {
   onFiltersChange: (filters: FilterState) => void;
@@ -22,39 +23,12 @@ export interface FilterState {
   amenities: string[];
 }
 
-const PROPERTY_TYPES = [
-  { value: 'departamento', label: 'Departamento' },
-  { value: 'casa', label: 'Casa' },
-  { value: 'ph', label: 'PH' },
-  { value: 'loft', label: 'Loft' },
-  { value: 'monoambiente', label: 'Monoambiente' },
-];
-
-const PET_TYPES = [
-  { value: 'perro', label: 'Perro' },
-  { value: 'gato', label: 'Gato' },
-  { value: 'aves', label: 'Aves' },
-  { value: 'peces', label: 'Peces' },
-  { value: 'otros', label: 'Otros' },
-];
-
-const AMENITIES = [
-  { value: 'balcon', label: 'Balcón' },
-  { value: 'terraza', label: 'Terraza' },
-  { value: 'jardin', label: 'Jardín' },
-  { value: 'cochera', label: 'Cochera' },
-  { value: 'pileta', label: 'Pileta' },
-  { value: 'parrilla', label: 'Parrilla' },
-  { value: 'gimnasio', label: 'Gimnasio' },
-  { value: 'seguridad', label: 'Seguridad 24hs' },
-];
-
 const AdvancedFilters = ({ onFiltersChange, initialFilters }: AdvancedFiltersProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(
     initialFilters || {
       minPrice: 0,
-      maxPrice: 500000,
+      maxPrice: MAX_PRICE,
       propertyTypes: [],
       petTypes: [],
       amenities: [],
@@ -78,7 +52,7 @@ const AdvancedFilters = ({ onFiltersChange, initialFilters }: AdvancedFiltersPro
   const clearFilters = () => {
     const defaultFilters: FilterState = {
       minPrice: 0,
-      maxPrice: 500000,
+      maxPrice: MAX_PRICE,
       propertyTypes: [],
       petTypes: [],
       amenities: [],
@@ -89,7 +63,7 @@ const AdvancedFilters = ({ onFiltersChange, initialFilters }: AdvancedFiltersPro
 
   const hasActiveFilters =
     filters.minPrice > 0 ||
-    filters.maxPrice < 500000 ||
+    filters.maxPrice < MAX_PRICE ||
     filters.propertyTypes.length > 0 ||
     filters.petTypes.length > 0 ||
     filters.amenities.length > 0;
@@ -133,7 +107,7 @@ const AdvancedFilters = ({ onFiltersChange, initialFilters }: AdvancedFiltersPro
             <div className="px-2">
               <Slider
                 value={[filters.minPrice, filters.maxPrice]}
-                max={500000}
+                max={MAX_PRICE}
                 step={10000}
                 onValueChange={([min, max]) => {
                   updateFilter('minPrice', min);
