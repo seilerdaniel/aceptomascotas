@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildWhatsAppLink, handleWhatsAppContact } from "@/lib/whatsapp";
 import { WHATSAPP } from "@/config";
 import { trackEvent } from "@/lib/analytics";
-import { getClientIdentifier } from "@/lib/clientIdentifier";
 import { supabase } from "@/integrations/supabase/client";
 
 // WhatsApp module coverage (spec S21/S25/S26): the wa.me builder
@@ -23,7 +22,8 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 const mockTrackEvent = vi.mocked(trackEvent);
-const mockRpc = vi.mocked(supabase.rpc);
+type RpcFn = (fn: string, args: Record<string, unknown>) => Promise<unknown>;
+const mockRpc = vi.mocked(supabase.rpc as unknown as RpcFn);
 
 describe("buildWhatsAppLink (S21)", () => {
   it("strips non-digits from the phone", () => {

@@ -64,15 +64,20 @@ export const handleWhatsAppContact = ({
     ...(entityId ? { entity_id: entityId } : {}),
   });
 
-  void supabase
-    .rpc("log_whatsapp_click", {
-      p_identifier: getClientIdentifier(),
-      p_source: source,
-      p_referrer: typeof window !== "undefined" ? window.location.href : null,
-    })
-    .catch(() => {
-      // Swallow: the click already happened; logging is best-effort (S25).
-    });
+  // log_whatsapp_click is not in the generated RPC types until the
+  // migration is applied to the remote project (gen:types desync, same as
+  // slices 1-2) — narrow the rpc call through a plain promise signature.
+  const logClick = supabase.rpc as unknown as (
+    fn: string,
+    args: Record<string, unknown>
+  ) => Promise<unknown>;
+  void logClick("log_whatsapp_click", {
+    p_identifier: getClientIdentifier(),
+    p_source: source,
+    p_referrer: typeof window !== "undefined" ? window.location.href : null,
+  }).catch(() => {
+    // Swallow: the click already happened; logging is best-effort (S25).
+  });
 
   window.open(link, "_blank");
 };

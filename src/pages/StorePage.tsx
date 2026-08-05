@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, MessageCircle } from "lucide-react";
 import logo from "@/assets/logo.svg";
+import { handleWhatsAppContact } from "@/lib/whatsapp";
 
 interface Product {
   id: string;
@@ -80,10 +81,11 @@ const formatPrice = (price: number) => {
 
 const StorePage = () => {
   const handleWhatsAppOrder = (product: Product) => {
-    const message = encodeURIComponent(
-      `¡Hola! Me interesa comprar: ${product.name} (${formatPrice(product.price)}). ¿Podrían darme más información?`
-    );
-    window.open(`https://wa.me/5491112345678?text=${message}`, '_blank');
+    handleWhatsAppContact({
+      message: `¡Hola! Me interesa comprar: ${product.name} (${formatPrice(product.price)}). ¿Podrían darme más información?`,
+      source: "store",
+      entityId: product.id,
+    });
   };
 
   const categories = [...new Set(products.map(p => p.category))];
