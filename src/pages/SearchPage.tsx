@@ -121,28 +121,31 @@ const SearchPage = () => {
     navigate(`/alquiler/${id}`);
   };
 
-  // Transform properties for PropertyCard component
-  const transformedProperties = properties.map((p) => ({
-    id: p.id,
-    title: p.title,
-    description: p.description || "",
-    location: p.location,
-    price: p.price,
-    propertyType: p.property_type,
-    petTypes: p.pet_types,
-    images: p.images || [],
-    contactName: p.contact_name,
-    contactPhone: p.contact_phone || "",
-    contactEmail: p.contact_email || "",
-    amenities: [],
-    // TODO: remove the `as any` cast once `npm run gen:types` picks up
-    // the owner_is_verified column added by the verification migration.
-    isVerified: (p as any).owner_is_verified ?? false,
-    propertyIsVerified: (p as any).property_is_verified ?? false,
-    agencyId: (p as any).agency_id ?? null,
-    latitude: (p as any).latitude ?? null,
-    longitude: (p as any).longitude ?? null,
-  }));
+  // Transform properties for PropertyCard component. properties_public
+  // rows are cast to Property; agency_id is a derived view column, so the
+  // row type is widened once instead of using per-field `as any` casts.
+  const transformedProperties = properties.map((p) => {
+    const row = p as Property & { agency_id: string | null };
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description || "",
+      location: row.location,
+      price: row.price,
+      propertyType: row.property_type,
+      petTypes: row.pet_types,
+      images: row.images || [],
+      contactName: row.contact_name,
+      contactPhone: row.contact_phone || "",
+      contactEmail: row.contact_email || "",
+      amenities: [],
+      isVerified: row.owner_is_verified ?? false,
+      propertyIsVerified: row.property_is_verified ?? false,
+      agencyId: row.agency_id ?? null,
+      latitude: row.latitude ?? null,
+      longitude: row.longitude ?? null,
+    };
+  });
 
   return (
     <div className="min-h-screen flex flex-col">

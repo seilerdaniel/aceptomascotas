@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useProperty } from "@/hooks/useProperties";
+import { useProperty, type Property } from "@/hooks/useProperties";
 import { useAuth } from "@/hooks/useAuth";
 import { mockProperties } from "@/data/properties";
 import { toast } from "sonner";
@@ -20,33 +20,36 @@ import { googleMapsLink } from "@/lib/googleMaps";
 const PropertyDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
-  const { data: dbProperty, isLoading, error } = useProperty(id || "");
+  const { data: dbProperty, isLoading } = useProperty(id || "");
   const [selectedImage, setSelectedImage] = useState(0);
 
   const mockProperty = mockProperties.find((p) => p.id === id);
 
-  const property = dbProperty
+  // properties_public rows are cast to Property; agency_id is a derived
+  // view column, so the row type is widened once instead of per-field
+  // `as any` casts.
+  const widenedProperty = dbProperty as (Property & { agency_id: string | null }) | null;
+
+  const property = widenedProperty
     ? {
-        id: dbProperty.id,
-        title: dbProperty.title,
-        description: dbProperty.description || "",
-        requirements: (dbProperty as any).requirements || "",
-        location: dbProperty.location,
-        price: dbProperty.price,
-        propertyType: dbProperty.property_type,
-        petTypes: dbProperty.pet_types,
-        images: dbProperty.images || [],
-        contactName: dbProperty.contact_name,
-        contactPhone: dbProperty.contact_phone || "",
-        contactEmail: dbProperty.contact_email || "",
-        // TODO: remove the `as any` cast once `npm run gen:types` picks up
-        // the owner_is_verified column added by the verification migration.
-        isVerified: (dbProperty as any).owner_is_verified ?? false,
-        propertyIsVerified: (dbProperty as any).property_is_verified ?? false,
-        ownerAvatarUrl: (dbProperty as any).owner_avatar_url ?? null,
-        agencyId: (dbProperty as any).agency_id ?? null,
-        latitude: (dbProperty as any).latitude ?? null,
-        longitude: (dbProperty as any).longitude ?? null,
+        id: widenedProperty.id,
+        title: widenedProperty.title,
+        description: widenedProperty.description || "",
+        requirements: widenedProperty.requirements || "",
+        location: widenedProperty.location,
+        price: widenedProperty.price,
+        propertyType: widenedProperty.property_type,
+        petTypes: widenedProperty.pet_types,
+        images: widenedProperty.images || [],
+        contactName: widenedProperty.contact_name,
+        contactPhone: widenedProperty.contact_phone || "",
+        contactEmail: widenedProperty.contact_email || "",
+        isVerified: widenedProperty.owner_is_verified ?? false,
+        propertyIsVerified: widenedProperty.property_is_verified ?? false,
+        ownerAvatarUrl: widenedProperty.owner_avatar_url ?? null,
+        agencyId: widenedProperty.agency_id ?? null,
+        latitude: widenedProperty.latitude ?? null,
+        longitude: widenedProperty.longitude ?? null,
         amenities: [],
       }
     : mockProperty;
