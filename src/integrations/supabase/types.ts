@@ -470,6 +470,50 @@ export type Database = {
           },
         ]
       }
+      property_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          is_approved: boolean
+          pet_dimensions: Json | null
+          property_id: string
+          rating: number
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          pet_dimensions?: Json | null
+          property_id: string
+          rating: number
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          pet_dimensions?: Json | null
+          property_id?: string
+          rating?: number
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_reviews_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limit_events: {
         Row: {
           action: string
@@ -644,6 +688,22 @@ export type Database = {
           user_id?: never
         }
         Relationships: []
+      }
+      property_ratings: {
+        Row: {
+          average_rating: number | null
+          property_id: string | null
+          review_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_reviews_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_ratings: {
         Row: {
