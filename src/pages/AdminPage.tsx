@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { MessageSquare, Home, Users, Loader2, Flag, Link2, Stethoscope, Megaphone, History } from "lucide-react";
+import { MessageSquare, Home, Users, Loader2, Flag, Link2, Stethoscope, Megaphone, History, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +23,12 @@ import {
   useAdminServicesPaginated,
   useAdminUsersPaginated,
   useAdminPendingServicesCount,
+  useAdminPropertyReviewsPaginated,
+  useAdminPendingReviewsCount,
   type PropertyStatusFilter,
   type ServiceStatusFilter,
   type UserStatusFilter,
+  type ReviewStatusFilter,
   type AdminTableState,
 } from "@/hooks/useAdminTables";
 import { useAdminTableHandlers } from "@/hooks/useAdminTableHandlers";
@@ -37,6 +40,7 @@ import { useAdminMutations } from "@/hooks/useAdminMutations";
 import MessagesTab from "@/components/admin/tabs/MessagesTab";
 import ReportsTab from "@/components/admin/tabs/ReportsTab";
 import ServicesTab from "@/components/admin/tabs/ServicesTab";
+import ReviewsTab from "@/components/admin/tabs/ReviewsTab";
 import PropertiesTab from "@/components/admin/tabs/PropertiesTab";
 import UsersTab from "@/components/admin/tabs/UsersTab";
 import UtmTab from "@/components/admin/tabs/UtmTab";
@@ -61,6 +65,7 @@ const AdminPage = () => {
   // Conteo real de servicios pendientes para el badge del tab: independiente
   // de la búsqueda/filtro/página actual de la tabla de Servicios.
   const { data: pendingServicesCount = 0 } = useAdminPendingServicesCount();
+  const { data: pendingReviewsCount = 0 } = useAdminPendingReviewsCount();
 
   // ---------- Paginated tables ----------
   const [propertiesState, setPropertiesState] = useState<
@@ -78,6 +83,16 @@ const AdminPage = () => {
   });
   const { data: servicesPage, isLoading: servicesLoading } = useAdminServicesPaginated(servicesState);
   const servicesHandlers = useAdminTableHandlers(setServicesState);
+
+  const [reviewsState, setReviewsState] = useState<AdminTableState & { status: ReviewStatusFilter }>({
+    page: 1,
+    search: "",
+    sortBy: "created_at",
+    sortAscending: false,
+    status: "pendientes",
+  });
+  const { data: reviewsPage, isLoading: reviewsLoading } = useAdminPropertyReviewsPaginated(reviewsState);
+  const reviewsHandlers = useAdminTableHandlers(setReviewsState);
 
   const [usersState, setUsersState] = useState<AdminTableState & { status: UserStatusFilter }>({
     page: 1,
@@ -157,6 +172,15 @@ const AdminPage = () => {
                   </Badge>
                 )}
               </TabsTrigger>
+              <TabsTrigger value="reviews" className="gap-2 shrink-0">
+                <Star className="h-4 w-4" />
+                Reseñas
+                {pendingReviewsCount > 0 && (
+                  <Badge variant="destructive" className="ml-1">
+                    {pendingReviewsCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="properties" className="gap-2 shrink-0">
                 <Home className="h-4 w-4" />
                 Propiedades
@@ -199,6 +223,17 @@ const AdminPage = () => {
             onToggleApproval={mutations.handleToggleServiceApproval}
             onToggleVerified={mutations.handleToggleServiceVerified}
             onDelete={mutations.handleDeleteService}
+          />
+
+          <ReviewsTab
+            reviews={reviewsPage?.rows ?? []}
+            isLoading={reviewsLoading}
+            state={reviewsState}
+            handlers={reviewsHandlers}
+            pageCount={reviewsPage?.pageCount ?? 1}
+            totalCount={reviewsPage?.totalCount ?? 0}
+            onToggleApproval={mutations.handleToggleReviewApproval}
+            onDelete={mutations.handleDeleteReview}
           />
 
           <PropertiesTab
