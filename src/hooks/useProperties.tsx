@@ -28,11 +28,18 @@ export interface PropertyFilters {
   minPrice?: number;
   // Selección simple de la barra de filtros (un solo valor) y selección
   // múltiple del panel de filtros avanzados: se combinan en una sola
-  // lista antes de armar la query (ver buildPropertyTypeList/buildPetTypeList).
+  // lista antes de armar la query (ver combineFilterValues).
   propertyType?: string;
   propertyTypes?: string[];
   petType?: string;
   petTypes?: string[];
+  // Pet-friendly attributes (spec F3): petFee applies `lte`, maxPets `lte`,
+  // petSize `eq` and amenities `overlaps` (partial match, S7). All of them
+  // run server-side against properties_public, before range() pagination.
+  petSize?: string;
+  maxPets?: number;
+  petFee?: number;
+  amenities?: string[];
   page?: number;
   pageSize?: number;
 }
@@ -53,6 +60,107 @@ const combineFilterValues = (single?: string, multiple?: string[]): string[] => 
   return Array.from(values);
 };
 
+// Pure, unit-testable description of the WHERE predicates that useProperties
+// applies (spec F3/S6/S7). Pagination (range) is applied separately, after
+// the predicates, so totals stay correct — buildPropertyQuery never emits a
+// range predicate.
+export type PropertyQueryPredicate =
+  | { op: "ilike"; column: "location"; value: string }
+  | { op: "lte"; column: "price" | "pet_fee" | "max_pets"; value: number }
+  | { op: "gte"; column: "price"; value: number }
+  | { op: "in"; column: "property_type"; value: string[] }
+  | { op: "eq"; column: "pet_size"; value: string }
+  | { op: "contains"; column: "pet_types"; value: string[] }
+  | { op: "overlaps"; column: "pet_types" | "amenities"; value: string[] };
+
+export const buildPropertyQuery = (filters?: PropertyFilters): PropertyQueryPredicate[] => {
+  const predicates: PropertyQueryPredicate[] = [];
+
+  if (filters?.location) {
+    predicates.push({ op: "ilike", column: "location", value: `%${filters.location}%` });
+  }
+
+  if (filters?.maxPrice) {
+    predicates.push({ op: "lte", column: "price", value: filters.maxPrice });
+  }
+
+  if (filters?.minPrice) {
+    predicates.push({ op: "gte", column: "price", value: filters.minPrice });
+  }
+
+  const propertyTypes = combineFilterValues(filters?.propertyType, filters?.propertyTypes);
+  if (propertyTypes.length > 0) {
+    predicates.push({ op: "in", column: "property_type", value: propertyTypes });
+  }
+
+  // "perro-gato" significa "acepta ambos", no un valor literal en el
+  // array pet_types (que solo contiene "perro" y/o "gato" por
+  // separado). "todas" no filtra nada.
+  const petTypes = combineFilterValues(
+    filters?.petType && filters.petType !== "todas" ? filters.petType : undefined,
+    filters?.petTypes
+  );
+  if (petTypes.includes("perro-gato")) {
+    predicates.push({ op: "contains", column: "pet_types", value: ["perro", "gato"] });
+  } else if (petTypes.length > 0) {
+    // .overlaps() matchea si el array de la propiedad comparte AL
+    // MENOS UNO de los tipos pedidos (a diferencia de .contains(),
+    // que exigiría tenerlos todos).
+    predicates.push({ op: "overlaps", column: "pet_types", value: petTypes });
+  }
+
+  // Pet-friendly predicates (F3/S6/S7): "up to" buckets map to lte, pet size
+  // to eq, and amenities to overlaps so a property matching at least one
+  // selected amenity qualifies.
+  if (filters?.petFee !== undefined && filters.petFee !== null) {
+    predicates.push({ op: "lte", column: "pet_fee", value: filters.petFee });
+  }
+  if (filters?.maxPets !== undefined && filters.maxPets !== null) {
+    predicates.push({ op: "lte", column: "max_pets", value: filters.maxPets });
+  }
+  if (filters?.petSize) {
+    predicates.push({ op: "eq", column: "pet_size", value: filters.petSize });
+  }
+  if (filters?.amenities && filters.amenities.length > 0) {
+    predicates.push({ op: "overlaps", column: "amenities", value: filters.amenities });
+  }
+
+  return predicates;
+};
+
+const buildBaseQuery = () =>
+  supabase
+    .from("properties_public")
+    .select("*", { count: "exact" })
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
+
+// Applies the pure predicates onto the live query builder. Column and value
+// are widened through `never` because supabase-js constrains them to the
+// view's generated types, which the descriptors already respect.
+const applyPredicate = (
+  query: ReturnType<typeof buildBaseQuery>,
+  predicate: PropertyQueryPredicate
+) => {
+  const column = predicate.column as never;
+  switch (predicate.op) {
+    case "ilike":
+      return query.ilike(column, predicate.value as never);
+    case "lte":
+      return query.lte(column, predicate.value as never);
+    case "gte":
+      return query.gte(column, predicate.value as never);
+    case "in":
+      return query.in(column, predicate.value as never);
+    case "eq":
+      return query.eq(column, predicate.value as never);
+    case "contains":
+      return query.contains(column, predicate.value as never);
+    case "overlaps":
+      return query.overlaps(column, predicate.value as never);
+  }
+};
+
 // Use the public view that masks contact info for unauthenticated users.
 // Todo el filtrado (incluidos los que antes se aplicaban del lado del
 // cliente en SearchPage) vive acá para que la paginación con range() sea
@@ -65,46 +173,10 @@ export const useProperties = (filters?: PropertyFilters) => {
   return useQuery({
     queryKey: ["properties", filters],
     queryFn: async (): Promise<PropertiesPage> => {
-      let query = supabase
-        .from("properties_public")
-        .select("*", { count: "exact" })
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+      let query = buildBaseQuery();
 
-      if (filters?.location) {
-        query = query.ilike("location", `%${filters.location}%`);
-      }
-
-      if (filters?.maxPrice) {
-        query = query.lte("price", filters.maxPrice);
-      }
-
-      if (filters?.minPrice) {
-        query = query.gte("price", filters.minPrice);
-      }
-
-      const propertyTypes = combineFilterValues(filters?.propertyType, filters?.propertyTypes);
-      if (propertyTypes.length > 0) {
-        query = query.in(
-          "property_type",
-          propertyTypes as ("departamento" | "casa" | "ph" | "loft" | "monoambiente")[]
-        );
-      }
-
-      // "perro-gato" significa "acepta ambos", no un valor literal en el
-      // array pet_types (que solo contiene "perro" y/o "gato" por
-      // separado). "todas" no filtra nada.
-      const petTypes = combineFilterValues(
-        filters?.petType && filters.petType !== "todas" ? filters.petType : undefined,
-        filters?.petTypes
-      );
-      if (petTypes.includes("perro-gato")) {
-        query = query.contains("pet_types", ["perro", "gato"]);
-      } else if (petTypes.length > 0) {
-        // .overlaps() matchea si el array de la propiedad comparte AL
-        // MENOS UNO de los tipos pedidos (a diferencia de .contains(),
-        // que exigiría tenerlos todos).
-        query = query.overlaps("pet_types", petTypes);
+      for (const predicate of buildPropertyQuery(filters)) {
+        query = applyPredicate(query, predicate);
       }
 
       const from = (page - 1) * pageSize;
