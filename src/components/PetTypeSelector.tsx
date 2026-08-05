@@ -1,15 +1,18 @@
 import { Dog, Cat, PawPrint } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PET_TYPES } from "@/data/taxonomy";
 
 interface PetTypeOption {
   value: string;
   label: string;
 }
 
+// The hero chip selector intentionally shows only the two main pet types
+// (perro/gato) plus the combined and no-filter states. The options are
+// sourced from taxonomy — no duplicated literals (spec S1).
 const OPTIONS: PetTypeOption[] = [
   { value: "", label: "Todas" },
-  { value: "perro", label: "Perro" },
-  { value: "gato", label: "Gato" },
+  ...PET_TYPES.filter((type) => type.value === "perro" || type.value === "gato"),
   { value: "perro-gato", label: "Ambos" },
 ];
 

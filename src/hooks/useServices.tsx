@@ -236,7 +236,7 @@ export const useCreateService = () => {
           is_approved: false,
           banner_url: service.banner_url || null,
           logo_url: service.logo_url || null,
-        } as any)
+        })
         .select()
         .single();
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Search, SlidersHorizontal, X, Map as MapIcon, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,15 +18,21 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import Map from "@/components/Map";
-import AdvancedFilters, { FilterState } from "@/components/AdvancedFilters";
+import AdvancedFilters, { type FilterState } from "@/components/AdvancedFilters";
 import { useProperties, Property } from "@/hooks/useProperties";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useAdmin";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PRICE_BUCKETS, PROPERTY_TYPES, PET_TYPES, MAX_PRICE } from "@/data/taxonomy";
+import {
+  parseSearchFilters,
+  writeSearchFilters,
+  type SearchFilters,
+} from "@/lib/searchFilters";
 
 const SearchPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const { user } = useAuth();
@@ -51,39 +57,89 @@ const SearchPage = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [page, setPage] = useState(1);
-  const [location, setLocation] = useState(searchParams.get("ubicacion") || "");
-  const [price, setPrice] = useState(searchParams.get("precio") || "");
-  const [propertyType, setPropertyType] = useState(searchParams.get("tipo") || "");
-  const [petType, setPetType] = useState(searchParams.get("mascota") || "");
-  const [advancedFilters, setAdvancedFilters] = useState<FilterState>({
-    minPrice: 0,
-    maxPrice: 500000,
-    propertyTypes: [],
-    petTypes: [],
-    amenities: [],
-  });
+
+  // The URL is the single source of truth for filter state (spec U1): the
+  // params are parsed on every render, so initial load (S28), a refresh
+  // (S27) and back/forward navigation (S29) all restore identical results.
+  const filters = useMemo(() => parseSearchFilters(searchParams), [searchParams]);
+
+  // Location is a text input: keep a local draft so typing is immediate, and
+  // write it back debounced (design U1) with replace so pauses do not flood
+  // history.
+  const [locationDraft, setLocationDraft] = useState(filters.ubicacion);
+  useEffect(() => {
+    setLocationDraft(filters.ubicacion);
+  }, [filters.ubicacion]);
+  useEffect(() => {
+    if (locationDraft === filters.ubicacion) return;
+    const timeout = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      writeSearchFilters(params, { ...filters, ubicacion: locationDraft });
+      setSearchParams(params, { replace: true });
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [locationDraft, filters, searchParams, setSearchParams]);
+
+  const writeFilters = (next: SearchFilters, mode: "push" | "replace" = "push") => {
+    const params = new URLSearchParams(searchParams);
+    writeSearchFilters(params, next);
+    setSearchParams(params, { replace: mode === "replace" });
+  };
+
+  const advancedFilters: FilterState = useMemo(
+    () => ({
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      propertyTypes: filters.propertyTypes,
+      petTypes: filters.petTypes,
+      amenities: filters.amenities,
+      petSize: filters.petSize,
+      maxPets: filters.maxPets,
+      petFee: filters.petFee,
+    }),
+    [filters]
+  );
+
+  const handleAdvancedChange = (next: FilterState, mode: "push" | "replace" = "push") => {
+    writeFilters(
+      {
+        ...filters,
+        minPrice: next.minPrice,
+        maxPrice: next.maxPrice,
+        propertyTypes: next.propertyTypes,
+        petTypes: next.petTypes,
+        amenities: next.amenities,
+        petSize: next.petSize,
+        maxPets: next.maxPets,
+        petFee: next.petFee,
+      },
+      mode
+    );
+  };
 
   // Build filters for the query — todo el filtrado vive del lado del
   // servidor (ver useProperties) para que la paginación con range() sea
   // correcta. maxPrice combina el select simple con el slider avanzado
   // (el más restrictivo de los dos aplica).
   const queryFilters = useMemo(() => {
-    const advancedMaxPrice = advancedFilters.maxPrice < 500000 ? advancedFilters.maxPrice : undefined;
-    const simpleMaxPrice = price ? parseInt(price) : undefined;
+    const advancedMaxPrice = filters.maxPrice < MAX_PRICE ? filters.maxPrice : undefined;
+    const simpleMaxPrice = filters.precio ? parseInt(filters.precio, 10) : undefined;
     const maxPrice = [advancedMaxPrice, simpleMaxPrice].filter((v): v is number => v !== undefined);
 
     return {
-      location: location || undefined,
+      location: filters.ubicacion || undefined,
       maxPrice: maxPrice.length > 0 ? Math.min(...maxPrice) : undefined,
-      minPrice: advancedFilters.minPrice > 0 ? advancedFilters.minPrice : undefined,
-      propertyType: propertyType || undefined,
-      propertyTypes: advancedFilters.propertyTypes,
-      petType: petType || undefined,
-      petTypes: advancedFilters.petTypes,
+      minPrice: filters.minPrice > 0 ? filters.minPrice : undefined,
+      propertyTypes: filters.propertyTypes.length > 0 ? filters.propertyTypes : undefined,
+      petTypes: filters.petTypes.length > 0 ? filters.petTypes : undefined,
+      petSize: filters.petSize || undefined,
+      maxPets: filters.maxPets !== "" ? Number(filters.maxPets) : undefined,
+      petFee: filters.petFee !== "" ? Number(filters.petFee) : undefined,
+      amenities: filters.amenities.length > 0 ? filters.amenities : undefined,
       page,
       pageSize: 12,
     };
-  }, [location, price, propertyType, petType, advancedFilters, page]);
+  }, [filters, page]);
 
   // Fetch properties from database (ya filtradas y paginadas del lado del servidor)
   const { data: propertiesPage, isLoading, error } = useProperties(queryFilters);
@@ -91,58 +147,64 @@ const SearchPage = () => {
 
   // Volver a la página 1 cada vez que cambia algún filtro — si no, se
   // podría quedar en una página que ya no existe para el nuevo resultado.
-  const filtersKey = JSON.stringify({ location, price, propertyType, petType, advancedFilters });
+  const filtersKey = JSON.stringify(filters);
   const [previousFiltersKey, setPreviousFiltersKey] = useState(filtersKey);
   if (filtersKey !== previousFiltersKey) {
     setPreviousFiltersKey(filtersKey);
     if (page !== 1) setPage(1);
   }
 
+  const hasActiveFilters =
+    filters.ubicacion !== "" ||
+    filters.precio !== "" ||
+    filters.minPrice > 0 ||
+    filters.maxPrice < MAX_PRICE ||
+    filters.propertyTypes.length > 0 ||
+    filters.petTypes.length > 0 ||
+    filters.amenities.length > 0 ||
+    filters.petSize !== "" ||
+    filters.maxPets !== "" ||
+    filters.petFee !== "";
+
   const clearFilters = () => {
-    setLocation("");
-    setPrice("");
-    setPropertyType("");
-    setPetType("");
-    setAdvancedFilters({
-      minPrice: 0,
-      maxPrice: 500000,
-      propertyTypes: [],
-      petTypes: [],
-      amenities: [],
-    });
+    setSearchParams({}, { replace: true });
   };
 
-  const hasActiveFilters = location || price || propertyType || petType || 
-    advancedFilters.propertyTypes.length > 0 || 
-    advancedFilters.petTypes.length > 0 || 
-    advancedFilters.amenities.length > 0;
+  // Simple selects are single-value views of the merged URL params: the
+  // select shows a value only when the shared param holds exactly one of it.
+  const simplePropertyType = filters.propertyTypes.length === 1 ? filters.propertyTypes[0] : "";
+  const simplePetType =
+    filters.petTypes.length === 0 ? "todas" : filters.petTypes.length === 1 ? filters.petTypes[0] : "";
 
   const handlePropertyClick = (id: string) => {
     navigate(`/alquiler/${id}`);
   };
 
-  // Transform properties for PropertyCard component
-  const transformedProperties = properties.map((p) => ({
-    id: p.id,
-    title: p.title,
-    description: p.description || "",
-    location: p.location,
-    price: p.price,
-    propertyType: p.property_type,
-    petTypes: p.pet_types,
-    images: p.images || [],
-    contactName: p.contact_name,
-    contactPhone: p.contact_phone || "",
-    contactEmail: p.contact_email || "",
-    amenities: [],
-    // TODO: remove the `as any` cast once `npm run gen:types` picks up
-    // the owner_is_verified column added by the verification migration.
-    isVerified: (p as any).owner_is_verified ?? false,
-    propertyIsVerified: (p as any).property_is_verified ?? false,
-    agencyId: (p as any).agency_id ?? null,
-    latitude: (p as any).latitude ?? null,
-    longitude: (p as any).longitude ?? null,
-  }));
+  // Transform properties for PropertyCard component. properties_public
+  // rows are cast to Property; agency_id is a derived view column, so the
+  // row type is widened once instead of using per-field `as any` casts.
+  const transformedProperties = properties.map((p) => {
+    const row = p as Property & { agency_id: string | null };
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description || "",
+      location: row.location,
+      price: row.price,
+      propertyType: row.property_type,
+      petTypes: row.pet_types,
+      images: row.images || [],
+      contactName: row.contact_name,
+      contactPhone: row.contact_phone || "",
+      contactEmail: row.contact_email || "",
+      amenities: [],
+      isVerified: row.owner_is_verified ?? false,
+      propertyIsVerified: row.property_is_verified ?? false,
+      agencyId: row.agency_id ?? null,
+      latitude: row.latitude ?? null,
+      longitude: row.longitude ?? null,
+    };
+  });
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -168,7 +230,7 @@ const SearchPage = () => {
               {isLoading ? "Buscando..." : `${propertiesPage?.totalCount ?? 0} propiedades encontradas`}
             </p>
           </div>
-          
+
           <div className="flex gap-2">
             <Button
               variant={showMap ? "soft" : "outline"}
@@ -207,49 +269,56 @@ const SearchPage = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Ubicación..."
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                value={locationDraft}
+                onChange={(e) => setLocationDraft(e.target.value)}
                 className="pl-9"
               />
             </div>
 
-            <Select value={price} onValueChange={setPrice}>
+            <Select value={filters.precio} onValueChange={(value) => writeFilters({ ...filters, precio: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Precio máx." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="50000">Hasta $50.000</SelectItem>
-                <SelectItem value="100000">Hasta $100.000</SelectItem>
-                <SelectItem value="150000">Hasta $150.000</SelectItem>
-                <SelectItem value="200000">Hasta $200.000</SelectItem>
-                <SelectItem value="300000">Hasta $300.000</SelectItem>
-                <SelectItem value="500000">Hasta $500.000</SelectItem>
+                {PRICE_BUCKETS.map((bucket) => (
+                  <SelectItem key={bucket.value} value={bucket.value}>
+                    {bucket.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
-            <Select value={propertyType} onValueChange={setPropertyType}>
+            <Select
+              value={simplePropertyType}
+              onValueChange={(value) => writeFilters({ ...filters, propertyTypes: value ? [value] : [] })}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Tipo de propiedad" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="departamento">Departamento</SelectItem>
-                <SelectItem value="casa">Casa</SelectItem>
-                <SelectItem value="ph">PH</SelectItem>
-                <SelectItem value="loft">Loft</SelectItem>
-                <SelectItem value="monoambiente">Monoambiente</SelectItem>
+                {PROPERTY_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
-            <Select value={petType} onValueChange={setPetType}>
+            <Select
+              value={simplePetType}
+              onValueChange={(value) =>
+                writeFilters({ ...filters, petTypes: value && value !== "todas" ? [value] : [] })
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Tipo de mascota" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="perro">Perro</SelectItem>
-                <SelectItem value="gato">Gato</SelectItem>
-                <SelectItem value="aves">Aves</SelectItem>
-                <SelectItem value="peces">Peces</SelectItem>
-                <SelectItem value="otros">Otros</SelectItem>
+                {PET_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
                 <SelectItem value="todas">Todas las mascotas</SelectItem>
               </SelectContent>
             </Select>
@@ -264,10 +333,7 @@ const SearchPage = () => {
 
           {/* Advanced Filters */}
           <div className="mt-4">
-            <AdvancedFilters
-              onFiltersChange={setAdvancedFilters}
-              initialFilters={advancedFilters}
-            />
+            <AdvancedFilters filters={advancedFilters} onFiltersChange={handleAdvancedChange} />
           </div>
         </div>
 
