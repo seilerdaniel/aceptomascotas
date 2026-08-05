@@ -17,6 +17,7 @@ import PropertyReviews from "@/components/PropertyReviews";
 import SEOHead from "@/components/SEOHead";
 import { trackEvent } from "@/lib/analytics";
 import { googleMapsLink } from "@/lib/googleMaps";
+import { handleWhatsAppContact } from "@/lib/whatsapp";
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -116,8 +117,12 @@ const PropertyDetail = () => {
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(`${shareText}\n${shareUrl}`);
-    window.open(`https://wa.me/?text=${text}`, "_blank");
+    handleWhatsAppContact({
+      phone: "",
+      message: `${shareText}\n${shareUrl}`,
+      source: "property_detail",
+      entityId: property.id,
+    });
   };
 
   const handleShareFacebook = () => {
@@ -130,12 +135,12 @@ const PropertyDetail = () => {
   };
 
   const handleContact = () => {
-    const message = encodeURIComponent(
-      `Hola! Me interesa la propiedad "${property.title}" publicada en Acepto.Mascotas.`
-    );
-    const phone = property.contactPhone.replace(/\D/g, "");
-    trackEvent("whatsapp_contact_click", { source: "property_detail", property_id: property.id });
-    window.open(`https://wa.me/${phone}?text=${message}`, "_blank");
+    handleWhatsAppContact({
+      phone: property.contactPhone,
+      message: `Hola! Me interesa la propiedad "${property.title}" publicada en Acepto.Mascotas.`,
+      source: "property_detail",
+      entityId: property.id,
+    });
   };
 
   const getPetIcon = (petType: string) => {

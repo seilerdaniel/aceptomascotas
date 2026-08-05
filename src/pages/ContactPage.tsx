@@ -12,13 +12,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import { getClientIdentifier } from "@/lib/clientIdentifier";
-
-// TODO: número temporal (personal de Daniel). Reemplazar cuando esté
-// disponible el número de WhatsApp Business dedicado a Acepto Mascotas.
-const WHATSAPP_NUMBER = "5491131797343";
-const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-  "Hola! Te escribo desde Acepto Mascotas, tengo una consulta."
-)}`;
+import { handleWhatsAppContact } from "@/lib/whatsapp";
+import { WHATSAPP } from "@/config";
 
 const ContactPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,18 +117,20 @@ const ContactPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <a
-                href={WHATSAPP_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
-                onClick={() => trackEvent("whatsapp_contact_click", { source: "contact_page" })}
+              <Button
+                variant="hero"
+                size="lg"
+                className="w-full gap-2"
+                onClick={() =>
+                  handleWhatsAppContact({
+                    message: WHATSAPP.defaultMessage,
+                    source: "contact_page",
+                  })
+                }
               >
-                <Button variant="hero" size="lg" className="w-full gap-2">
-                  <MessageCircle className="h-5 w-5" />
-                  Escribir por WhatsApp
-                </Button>
-              </a>
+                <MessageCircle className="h-5 w-5" />
+                Escribir por WhatsApp
+              </Button>
             </CardContent>
           </Card>
 
@@ -245,15 +242,19 @@ const ContactPage = () => {
             >
               aceptomascotas@gmail.com
             </a>
-            <a
-              href={WHATSAPP_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+            <button
+              type="button"
+              onClick={() =>
+                handleWhatsAppContact({
+                  message: WHATSAPP.defaultMessage,
+                  source: "contact_page",
+                })
+              }
+              className="text-primary hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
             >
               <MessageCircle className="h-4 w-4" />
               WhatsApp
-            </a>
+            </button>
           </div>
         </div>
       </main>

@@ -26,6 +26,7 @@ import { useService, useServiceRating, getCategoryLabel } from "@/hooks/useServi
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { handleWhatsAppContact } from "@/lib/whatsapp";
 
 const ServiceDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,11 +64,12 @@ const ServiceDetailPage = () => {
 
   const openWhatsApp = () => {
     if (service?.whatsapp) {
-      const phone = service.whatsapp.replace(/\D/g, "");
-      const message = encodeURIComponent(
-        `Hola! Vi tu servicio "${service.name}" en Acepto Mascotas y me gustaría consultar.`
-      );
-      window.open(`https://wa.me/${phone}?text=${message}`, "_blank");
+      handleWhatsAppContact({
+        phone: service.whatsapp,
+        message: `Hola! Vi tu servicio "${service.name}" en Acepto Mascotas y me gustaría consultar.`,
+        source: "service_detail",
+        entityId: service.id,
+      });
     }
   };
 

@@ -8,6 +8,7 @@ import logo from '@/assets/logo.svg';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/analytics';
 import { googleMapsLink } from '@/lib/googleMaps';
+import { buildWhatsAppLink, handleWhatsAppContact } from '@/lib/whatsapp';
 import SEOHead from '@/components/SEOHead';
 
 interface PetPublicData {
@@ -54,12 +55,13 @@ const PetPublicPage = () => {
     fetchPet();
   }, [code]);
 
-  const buildWhatsAppLink = (phone: string) => {
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const message = encodeURIComponent(
-      `¡Hola! Encontré a tu mascota mediante el código QR de Acepto Mascotas 🐾`
-    );
-    return `https://wa.me/${cleanPhone}?text=${message}`;
+  const handleContactWhatsApp = () => {
+    if (!pet?.owner_phone) return;
+    handleWhatsAppContact({
+      phone: pet.owner_phone,
+      message: `¡Hola! Encontré a tu mascota mediante el código QR de Acepto Mascotas 🐾`,
+      source: "pet_public",
+    });
   };
 
   const handleShareLostAlert = async () => {
@@ -76,7 +78,10 @@ const PetPublicPage = () => {
         // User cancelled the share sheet; nothing to do.
       }
     } else {
-      const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
+      const whatsappShareUrl = buildWhatsAppLink({
+        phone: "",
+        text: `${shareText} ${shareUrl}`,
+      });
       window.open(whatsappShareUrl, '_blank');
     }
   };
@@ -200,12 +205,10 @@ const PetPublicPage = () => {
               </p>
 
               {hasPrimaryWhatsapp && pet.owner_phone && (
-                <a href={buildWhatsAppLink(pet.owner_phone)} target="_blank" rel="noopener noreferrer">
-                  <Button variant="hero" className="w-full gap-2">
-                    <MessageCircle className="h-4 w-4" />
-                    Contactar por WhatsApp
-                  </Button>
-                </a>
+                <Button variant="hero" className="w-full gap-2" onClick={handleContactWhatsApp}>
+                  <MessageCircle className="h-4 w-4" />
+                  Contactar por WhatsApp
+                </Button>
               )}
 
               {!hasPrimaryWhatsapp && pet.owner_phone && (

@@ -1,13 +1,8 @@
 import { Heart, Mail, MapPin, Facebook, Instagram, Coffee, ShoppingBag, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.svg";
-
-// TODO: número temporal (personal de Daniel). Reemplazar cuando esté
-// disponible el número de WhatsApp Business dedicado a Acepto Mascotas.
-const WHATSAPP_NUMBER = "5491131797343";
-const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-  "Hola! Te escribo desde Acepto Mascotas, tengo una consulta."
-)}`;
+import { handleWhatsAppContact } from "@/lib/whatsapp";
+import { WHATSAPP } from "@/config";
 
 // Custom TikTok icon since lucide doesn't have it
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -102,15 +97,19 @@ const Footer = () => {
                 <Mail className="h-4 w-4" />
                 <span>aceptomascotas@gmail.com</span>
               </a>
-              <a
-                href={WHATSAPP_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-primary transition-colors"
+              <button
+                type="button"
+                onClick={() =>
+                  handleWhatsAppContact({
+                    message: WHATSAPP.defaultMessage,
+                    source: "footer",
+                  })
+                }
+                className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
               >
                 <MessageCircle className="h-4 w-4" />
                 <span>WhatsApp</span>
-              </a>
+              </button>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 <span>Argentina</span>
