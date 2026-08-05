@@ -13,6 +13,7 @@ import { useState } from "react";
 import ReportProperty from "@/components/ReportProperty";
 import StickyMobileContactBar from "@/components/StickyMobileContactBar";
 import VerifiedIcon from "@/components/VerifiedIcon";
+import PropertyReviews from "@/components/PropertyReviews";
 import SEOHead from "@/components/SEOHead";
 import { trackEvent } from "@/lib/analytics";
 import { googleMapsLink } from "@/lib/googleMaps";
@@ -346,6 +347,9 @@ const PropertyDetail = () => {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Reviews */}
+              <PropertyReviews propertyId={property.id} />
             </div>
 
             {/* Sidebar - Contact */}
