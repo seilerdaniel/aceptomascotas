@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 interface LogAdminActionParams {
   action: string;
@@ -31,7 +32,9 @@ export const logAdminAction = async ({
       action,
       target_table: targetTable,
       target_id: targetId ?? null,
-      details: details ?? null,
+      // details is Record<string, unknown> but the log column is jsonb (Json);
+      // cast through unknown — values at runtime are plain JSON-safe objects.
+      details: (details as unknown as Json) ?? null,
     });
 
     if (error) {
