@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import type { AdminProperty, AdminService, AdminProfile } from "@/types/admin";
+import type { AdminProperty, AdminService, AdminProfile, AdminPropertyReview } from "@/types/admin";
 
 // Reemplaza el patrón .select("*") sin límite que traía la tabla completa
 // al navegador en cada carga. Con volumen (cientos/miles de filas) esto
@@ -37,7 +37,7 @@ interface FetchPaginatedParams {
   applyFilters?: (query: any) => any;
 }
 
-const fetchPaginated = async <T,>({
+export const fetchPaginated = async <T,>({
   table,
   page,
   pageSize = ADMIN_PAGE_SIZE,
@@ -199,6 +199,74 @@ export const useAdminPendingServicesCount = () => {
     queryFn: async () => {
       const { count, error } = await supabase
         .from("pet_services")
+        .select("*", { count: "exact", head: true })
+        .eq("is_approved", false);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+};
+
+// ---------- Reseñas de propiedades ----------
+export type ReviewStatusFilter = "todas" | "pendientes" | "aprobadas";
+
+export const useAdminPropertyReviewsPaginated = (
+  state: AdminTableState & { status: ReviewStatusFilter }
+) => {
+  return useQuery({
+    queryKey: ["admin-property-reviews-page", state],
+    queryFn: async () => {
+      const result = await fetchPaginated<Tables<"property_reviews">>({
+        table: "property_reviews",
+        page: state.page,
+        search: state.search,
+        searchColumns: ["user_name", "comment"],
+        sortBy: state.sortBy,
+        sortAscending: state.sortAscending,
+        applyFilters: (query) => {
+          if (state.status === "pendientes") return query.eq("is_approved", false);
+          if (state.status === "aprobadas") return query.eq("is_approved", true);
+          return query;
+        },
+      });
+
+      // Reseñas sin título de propiedad no sirven para moderar: se resuelve
+      // el join a properties solo para las filas de esta página.
+      const propertyIds = [
+        ...new Set(result.rows.map((r) => r.property_id).filter(Boolean)),
+      ] as string[];
+      let titlesById: Record<string, string> = {};
+
+      if (propertyIds.length > 0) {
+        const { data: propertiesData } = await supabase
+          .from("properties")
+          .select("id, title")
+          .in("id", propertyIds);
+
+        titlesById = Object.fromEntries(
+          (propertiesData || []).map((p) => [p.id, p.title])
+        );
+      }
+
+      return {
+        ...result,
+        rows: result.rows.map(
+          (r): AdminPropertyReview => ({
+            ...r,
+            properties: { title: titlesById[r.property_id] ?? "Propiedad eliminada" },
+          })
+        ),
+      };
+    },
+  });
+};
+
+export const useAdminPendingReviewsCount = () => {
+  return useQuery({
+    queryKey: ["admin-property-reviews-pending-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("property_reviews")
         .select("*", { count: "exact", head: true })
         .eq("is_approved", false);
       if (error) throw error;

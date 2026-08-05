@@ -18,6 +18,13 @@ export type AdminPropertyReport = Omit<Tables<"property_reports">, "status"> & {
 
 export type AdminService = Tables<"pet_services">;
 
+export type AdminPropertyReview = Tables<"property_reviews"> & {
+  // Viene del join `.select("*, properties(title)")` en
+  // useAdminPropertyReviewsPaginated. Puede ser null si la propiedad ya
+  // fue eliminada.
+  properties: { title: string } | null;
+};
+
 export type AdminProperty = Tables<"properties"> & {
   // Calculados en useAdminPropertiesPaginated: properties.user_id y
   // profiles.user_id no tienen FK directa, así que el nombre/tipo del

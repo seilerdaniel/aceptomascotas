@@ -8,6 +8,8 @@ import {
   useToggleServiceApproval,
   useToggleServiceVerified,
   useTogglePropertyVerified,
+  useTogglePropertyReviewApproval,
+  useDeletePropertyReview,
   useCreateAd,
   useUpdateAd,
   useDeleteAd,
@@ -36,6 +38,8 @@ export const useAdminMutations = () => {
   const toggleServiceVerifiedMutation = useToggleServiceVerified();
   const togglePropertyVerifiedMutation = useTogglePropertyVerified();
   const deleteServiceMutation = useDeleteService();
+  const togglePropertyReviewApprovalMutation = useTogglePropertyReviewApproval();
+  const deletePropertyReviewMutation = useDeletePropertyReview();
   const createAdMutation = useCreateAd();
   const updateAdMutation = useUpdateAd();
   const deleteAdMutation = useDeleteAd();
@@ -112,6 +116,20 @@ export const useAdminMutations = () => {
         () => deleteServiceMutation.mutateAsync(id),
         "Servicio eliminado",
         "Error al eliminar el servicio"
+      ),
+
+    handleToggleReviewApproval: (id: string, isApproved: boolean) =>
+      executeMutation(
+        () => togglePropertyReviewApprovalMutation.mutateAsync({ id, isApproved }),
+        isApproved ? "Reseña aprobada y publicada" : "Reseña despublicada",
+        "Error al actualizar la reseña"
+      ),
+
+    handleDeleteReview: (id: string) =>
+      executeMutation(
+        () => deletePropertyReviewMutation.mutateAsync(id),
+        "Reseña eliminada",
+        "Error al eliminar la reseña"
       ),
 
     handleCreateAd: (ad: TablesInsert<"advertisements">) =>

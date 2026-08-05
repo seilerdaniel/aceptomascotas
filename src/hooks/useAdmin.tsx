@@ -343,6 +343,62 @@ export const useToggleServiceApproval = () => {
   });
 };
 
+export const useTogglePropertyReviewApproval = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, isApproved }: { id: string; isApproved: boolean }) => {
+      const { error } = await supabase
+        .from("property_reviews")
+        .update({ is_approved: isApproved })
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+    },
+    onSuccess: (_data, { id, isApproved }) => {
+      // Aprobar/desaprobar cambia lo que ve el público y el promedio:
+      // invalida la lista pública, el rating y las queries del tab admin
+      // (S19).
+      queryClient.invalidateQueries({ queryKey: ["property-reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["property-ratings"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-property-reviews-page"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-property-reviews-pending-count"] });
+      logAdminAction({
+        action: isApproved ? "approve_property_review" : "unapprove_property_review",
+        targetTable: "property_reviews",
+        targetId: id,
+      });
+    },
+  });
+};
+
+export const useDeletePropertyReview = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("property_reviews")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+    },
+    onSuccess: (_data, id) => {
+      // Eliminar saca la reseña del público y de los promedios (S20).
+      queryClient.invalidateQueries({ queryKey: ["property-reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["property-ratings"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-property-reviews-page"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-property-reviews-pending-count"] });
+      logAdminAction({ action: "delete_property_review", targetTable: "property_reviews", targetId: id });
+    },
+  });
+};
+
 export const useAllAds = () => {
   return useQuery({
     queryKey: ["admin-ads"],
