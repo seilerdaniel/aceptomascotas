@@ -18,6 +18,9 @@ export interface Property {
   contactPhone: string;
   contactEmail: string;
   amenities: string[];
+  pet_fee?: number | null;
+  max_pets?: number | null;
+  pet_size?: "pequeno" | "mediano" | "grande" | null;
   isVerified?: boolean;
   propertyIsVerified?: boolean;
   ownerAvatarUrl?: string | null;
@@ -40,6 +43,9 @@ export const mockProperties: Property[] = [
     contactPhone: "+54 11 1234-5678",
     contactEmail: "maria@email.com",
     amenities: ["Balcón", "Amoblado", "Luminoso", "Cerca de parques"],
+    pet_fee: 0,
+    max_pets: 2,
+    pet_size: "mediano",
   },
   {
     id: "2",
@@ -54,6 +60,9 @@ export const mockProperties: Property[] = [
     contactPhone: "+54 11 9876-5432",
     contactEmail: "carlos@email.com",
     amenities: ["Jardín amplio", "Parrilla", "Cochera", "Zona tranquila"],
+    pet_fee: 15000,
+    max_pets: 3,
+    pet_size: "grande",
   },
   {
     id: "3",
@@ -68,6 +77,9 @@ export const mockProperties: Property[] = [
     contactPhone: "+54 11 5555-1234",
     contactEmail: "ana@email.com",
     amenities: ["Terraza privada", "Techos altos", "Diseño moderno", "Ladrillo a la vista"],
+    pet_fee: 5000,
+    max_pets: 1,
+    pet_size: "pequeno",
   },
   {
     id: "4",
