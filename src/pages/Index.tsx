@@ -28,6 +28,7 @@ import CafecitoSection from "@/components/CafecitoSection";
 import { useFeaturedProperties, usePlatformStats } from "@/hooks/useProperties";
 import { useActiveAds } from "@/hooks/useAdvertisements";
 import { trackEvent } from "@/lib/analytics";
+import { toPropertyCard } from "@/lib/propertyTransform";
 import { mockProperties } from "@/data/properties";
 import heroImage from "@/assets/hero-image.jpg";
 import logo from "@/assets/logo.svg";
@@ -79,26 +80,11 @@ const Index = () => {
   const STATS_MIN_PROPERTIES = 5;
   const showStats = (stats?.properties ?? 0) >= STATS_MIN_PROPERTIES;
 
-  // Transform database properties to match PropertyCard format.
-  // isVerified/propertyIsVerified se mapean igual que en PropertyDetail.tsx
-  // y SearchPage.tsx: sin esto, PropertyCard nunca mostraba el badge de
-  // "Propiedad verificada" en el Home aunque la propiedad sí lo estuviera.
-  const transformedDbProperties = dbProperties.map((p) => ({
-    id: p.id,
-    title: p.title,
-    description: p.description || "",
-    location: p.location,
-    price: p.price,
-    propertyType: p.property_type,
-    petTypes: p.pet_types,
-    images: p.images || [],
-    contactName: p.contact_name,
-    contactPhone: p.contact_phone || "",
-    contactEmail: p.contact_email || "",
-    amenities: [],
-    isVerified: (p as any).owner_is_verified ?? false,
-    propertyIsVerified: (p as any).property_is_verified ?? false,
-  }));
+  // Transform database properties to match PropertyCard format. The shared
+  // toPropertyCard mapper (D8) null-safely maps the pet attributes
+  // (pet_fee/max_pets/pet_size) and the verification flags, so PropertyCard
+  // receives real values — no per-field `as any` casts needed.
+  const transformedDbProperties = dbProperties.map((p) => toPropertyCard(p));
 
   // Use database properties if available, otherwise fall back to mock data
   const featuredProperties = transformedDbProperties.length > 0 

@@ -30,6 +30,7 @@ import {
   writeSearchFilters,
   type SearchFilters,
 } from "@/lib/searchFilters";
+import { toPropertyCard } from "@/lib/propertyTransform";
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -182,28 +183,11 @@ const SearchPage = () => {
 
   // Transform properties for PropertyCard component. properties_public
   // rows are cast to Property; agency_id is a derived view column, so the
-  // row type is widened once instead of using per-field `as any` casts.
+  // row type is widened once (instead of per-field `as any` casts) and the
+  // shared toPropertyCard mapper (D8) does the null-safe field mapping.
   const transformedProperties = properties.map((p) => {
     const row = p as Property & { agency_id: string | null };
-    return {
-      id: row.id,
-      title: row.title,
-      description: row.description || "",
-      location: row.location,
-      price: row.price,
-      propertyType: row.property_type,
-      petTypes: row.pet_types,
-      images: row.images || [],
-      contactName: row.contact_name,
-      contactPhone: row.contact_phone || "",
-      contactEmail: row.contact_email || "",
-      amenities: [],
-      isVerified: row.owner_is_verified ?? false,
-      propertyIsVerified: row.property_is_verified ?? false,
-      agencyId: row.agency_id ?? null,
-      latitude: row.latitude ?? null,
-      longitude: row.longitude ?? null,
-    };
+    return toPropertyCard(row);
   });
 
   return (
