@@ -16,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 20%;
 
-    --primary: 160 35% 45%;
+    --primary: 155 38% 42%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 35 60% 95%;
@@ -25,7 +25,7 @@
     --muted: 40 20% 94%;
     --muted-foreground: 220 10% 45%;
 
-    --accent: 15 85% 60%;
+    --accent: 18 78% 58%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -33,19 +33,44 @@
 
     --border: 40 20% 88%;
     --input: 40 20% 88%;
-    --ring: 160 35% 45%;
+    --ring: var(--primary);
 
     --radius: 0.75rem;
 
-    /* Custom tokens */
-    --pet-green: 160 35% 45%;
-    --pet-green-light: 160 30% 92%;
-    --pet-coral: 15 85% 60%;
-    --pet-coral-light: 15 80% 95%;
-    --pet-cream: 40 33% 98%;
-    --pet-warm: 35 60% 95%;
-    --pet-text: 220 20% 20%;
-    --pet-text-muted: 220 10% 45%;
+    /* Semantic role variants (soft tints derived from primary/accent) */
+    --primary-soft: 155 38% 92%;
+    --accent-soft: 18 78% 95%;
+
+    /* Pet-fee chip palette: free listings use success, paid use warning */
+    --success: 150 45% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 28 75% 50%;
+    --warning-foreground: 220 20% 20%;
+
+    /* Organic shape token (cards, hero, pills) */
+    --radius-organic: 1.75rem;
+
+    /* Type-role sizes */
+    --font-size-display: 3.5rem;
+    --font-size-heading: 2rem;
+    --font-size-body: 1rem;
+    --font-size-caption: 0.875rem;
+
+    /* Motion tokens */
+    --duration-fast: 150ms;
+    --duration-base: 300ms;
+    --duration-slow: 600ms;
+    --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Pet-* aliases reference semantic roles (D1) — never redefine values */
+    --pet-green: var(--primary);
+    --pet-green-light: var(--primary-soft);
+    --pet-coral: var(--accent);
+    --pet-coral-light: var(--accent-soft);
+    --pet-cream: var(--background);
+    --pet-warm: var(--secondary);
+    --pet-text: var(--foreground);
+    --pet-text-muted: var(--muted-foreground);
 
     --gradient-hero: linear-gradient(135deg, hsl(160 35% 45% / 0.08) 0%, hsl(35 60% 95%) 50%, hsl(15 85% 60% / 0.08) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(40 33% 98%) 100%);
@@ -97,14 +122,23 @@
     --input: 220 15% 25%;
     --ring: 160 40% 50%;
 
-    --pet-green: 160 40% 50%;
-    --pet-green-light: 160 30% 20%;
-    --pet-coral: 15 80% 55%;
-    --pet-coral-light: 15 60% 20%;
-    --pet-cream: 220 20% 12%;
-    --pet-warm: 220 15% 18%;
-    --pet-text: 40 20% 95%;
-    --pet-text-muted: 220 10% 60%;
+    --pet-green: var(--primary);
+    --pet-green-light: var(--primary-soft);
+    --pet-coral: var(--accent);
+    --pet-coral-light: var(--accent-soft);
+    --pet-cream: var(--background);
+    --pet-warm: var(--secondary);
+    --pet-text: var(--foreground);
+    --pet-text-muted: var(--muted-foreground);
+
+    /* Additive-only dark keys (D4): aliases resolve to the same hsl values
+       as the baseline, and the new chip roles get dark-contrast values. */
+    --primary-soft: 160 30% 20%;
+    --accent-soft: 15 60% 20%;
+    --success: 150 55% 45%;
+    --success-foreground: 220 20% 10%;
+    --warning: 35 85% 62%;
+    --warning-foreground: 220 20% 10%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -210,4 +244,31 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* Global reduced-motion guard (spec: all new motion gated by
+   prefers-reduced-motion). Under `reduce` every animation/transition is
+   zeroed and iteration is capped, so elements render at their final state
+   without transform/opacity motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scroll-reveal states (D7). JS adds `data-revealed` on scroll-into-view
+   (or immediately under reduced motion). The media block above makes the
+   entrance animation instant under `reduce`, so opacity:0 never persists:
+   the final layout always renders. */
+[data-reveal] {
+  opacity: 0;
+}
+
+[data-reveal][data-revealed] {
+  animation: fadeUp var(--duration-slow) var(--ease-out-soft) forwards;
 }

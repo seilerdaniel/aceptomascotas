@@ -61,6 +61,14 @@ export default {
           text: "hsl(var(--pet-text))",
           "text-muted": "hsl(var(--pet-text-muted))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -82,6 +90,13 @@ export default {
         sm: "calc(var(--radius) - 4px)",
         xl: "calc(var(--radius) + 4px)",
         "2xl": "calc(var(--radius) + 8px)",
+        organic: "var(--radius-organic)",
+      },
+      fontSize: {
+        display: "var(--font-size-display)",
+        heading: "var(--font-size-heading)",
+        body: "var(--font-size-body)",
+        caption: "var(--font-size-caption)",
       },
       boxShadow: {
         soft: "var(--shadow-soft)",
@@ -102,6 +117,10 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "float-soft": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
         fadeUp: {
           from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
@@ -119,6 +138,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         float: "float 6s ease-in-out infinite",
+        "float-soft": "float-soft 5s var(--ease-out-soft) infinite",
         "fade-up": "fadeUp 0.6s ease-out forwards",
         "fade-in": "fadeIn 0.5s ease-out forwards",
         shimmer: "shimmer 2s linear infinite",
