@@ -128,3 +128,7 @@ id_*
 *_rsa
 id_ed25519*
 *.key
+
+# SDD Local Artifacts & CodeGraph
+.codegraph/
+sdd-init-result.json
