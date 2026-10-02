@@ -301,6 +301,10 @@ export type Database = {
           id: string
           is_verified: boolean
           phone: string | null
+          // Provisional: hand-written to match migration
+          // 20261002120000_add_property_plans.sql. Pending `gen:types` regeneration.
+          plan: Database["public"]["Enums"]["plan_tier"]
+          plan_expires_at: string | null
           updated_at: string
           user_id: string
           user_type: Database["public"]["Enums"]["user_type"] | null
@@ -315,6 +319,10 @@ export type Database = {
           id?: string
           is_verified?: boolean
           phone?: string | null
+          // Provisional: hand-written to match migration
+          // 20261002120000_add_property_plans.sql. Pending `gen:types` regeneration.
+          plan?: Database["public"]["Enums"]["plan_tier"]
+          plan_expires_at?: string | null
           updated_at?: string
           user_id: string
           user_type?: Database["public"]["Enums"]["user_type"] | null
@@ -329,6 +337,10 @@ export type Database = {
           id?: string
           is_verified?: boolean
           phone?: string | null
+          // Provisional: hand-written to match migration
+          // 20261002120000_add_property_plans.sql. Pending `gen:types` regeneration.
+          plan?: Database["public"]["Enums"]["plan_tier"]
+          plan_expires_at?: string | null
           updated_at?: string
           user_id?: string
           user_type?: Database["public"]["Enums"]["user_type"] | null
@@ -788,6 +800,9 @@ export type Database = {
       app_role: "admin" | "moderator" | "user"
       pet_size: "pequeno" | "mediano" | "grande"
       pet_type: "perro" | "gato" | "aves" | "peces" | "otros"
+      // Provisional: hand-written to match migration
+      // 20261002120000_add_property_plans.sql. Pending `gen:types` regeneration.
+      plan_tier: "gratis" | "pro"
       property_type: "departamento" | "casa" | "ph" | "loft" | "monoambiente"
       service_category:
         | "veterinaria"
@@ -931,6 +946,9 @@ export const Constants = {
       app_role: ["admin", "moderator", "user"],
       pet_size: ["pequeno", "mediano", "grande"],
       pet_type: ["perro", "gato", "aves", "peces", "otros"],
+      // Provisional: hand-written to match migration
+      // 20261002120000_add_property_plans.sql. Pending `gen:types` regeneration.
+      plan_tier: ["gratis", "pro"],
       property_type: ["departamento", "casa", "ph", "loft", "monoambiente"],
       service_category: [
         "veterinaria",
