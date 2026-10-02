@@ -41,9 +41,9 @@
 --   evidence of the privilege outcome.
 --
 -- STAGING NOTE: this migration is authored in slices — T1.1 schema and plan
--- resolvers, T1.2 the insert gate (sections 7 and 8, this file today), T1.3 plan
--- consistency. The header above describes the finished file. Sections 9 and 10
--- do not exist at this commit.
+-- resolvers, T1.2 the insert gate (sections 7 and 8), T1.3 plan consistency
+-- (sections 9 and 10). With T1.3 the SQL file is complete; the only remaining
+-- slice, T1.4, edits generated types only and does not touch this file.
 -- ============================================================================
 
 -- 1. Plan enum and the two columns.
@@ -266,3 +266,175 @@ DROP TRIGGER IF EXISTS trg_enforce_property_quota ON public.properties;
 CREATE TRIGGER trg_enforce_property_quota
 BEFORE INSERT ON public.properties
 FOR EACH ROW EXECUTE FUNCTION public.enforce_property_quota();
+
+-- 9. Plan consistency — ONE trigger, two decisions.
+--
+-- This function does both jobs the profile UPDATE path needs: it refuses a
+-- self-service plan change, and it pauses the excess when the effective plan
+-- falls to a tier with a finite limit. One function, not two triggers, and the
+-- reason is mechanical rather than stylistic.
+--
+-- PostgreSQL fires triggers that share the same event and timing in
+-- ALPHABETICAL ORDER BY NAME, and there is no way to declare it otherwise:
+-- FOLLOWS and PRECEDES are MySQL and Oracle syntax and do not exist in the
+-- PostgreSQL 18 CREATE TRIGGER grammar. So if the guard and the deactivation
+-- were two triggers, the first one's NAME would decide which sees what. The
+-- other BEFORE UPDATE triggers on profiles are trg_prevent_self_verification
+-- (20260707140512:24) and update_profiles_updated_at (20260108000904:112), so a
+-- deactivation trigger sorting before the guard would pause live listings and
+-- then let the guard revert NEW.plan — live listings destroyed, plan unchanged,
+-- and any check that only reads profiles.plan would report everything fine.
+--
+-- A single function cannot disagree with itself: it resolves the effective plan
+-- once and both decisions read that one resolution.
+--
+-- And because the guard RAISES instead of reverting silently, a rejected
+-- change aborts the statement, so the inner UPDATE public.properties rolls back
+-- together with the profile write. That is what makes R12 and R13 structurally
+-- true rather than true by naming convention — atomicity is the transaction's,
+-- not the author's careful sequencing.
+--
+-- The trigger is named trg_enforce_plan_consistency so it sorts FIRST
+-- (trg_e < trg_p < update_...), which means a rejection happens before
+-- trg_prevent_self_verification or update_profiles_updated_at touch anything.
+-- That ordering is defense in depth; the real correction is that both decisions
+-- live in one function. Do not rename it up into the trg_p..trg_u range on the
+-- assumption that its name is what enforces the guard.
+CREATE OR REPLACE FUNCTION public.enforce_plan_consistency()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_old_effective public.plan_tier;
+  v_new_effective public.plan_tier;
+  v_new_limit     INTEGER;
+BEGIN
+  -- (a) R11 — a plan is changed from an admin surface, not from the account.
+  --
+  -- Compared BY VALUE, not by column list. A guard conditioned on which columns
+  -- appear in the SET list would fire on any UPDATE that names plan at all, so a
+  -- form that round-trips the whole row would be refused for a save that changed
+  -- nothing. Comparing the two values means a normal profile save that never
+  -- touches plan always passes — ProfilePage.tsx:261-269 writes four named
+  -- columns today.
+  --
+  -- It RAISES, and does not revert silently the way prevent_self_verification
+  -- does, for two reasons. One: the caller learns its write was refused instead
+  -- of receiving success and a toast that lies. Two, and this is the load-bearing
+  -- one: a silent revert leaves the statement SUCCEEDING, so any deactivation
+  -- already run inside it stays committed. Raising aborts the statement and its
+  -- transaction, and the inner UPDATE public.properties rolls back with it.
+  --
+  -- auth.uid() IS NULL is the direct-SQL path (Supabase dashboard, psql)
+  -- documented in section 10. It is load-bearing, not a hole: has_role is
+  -- SELECT EXISTS over user_roles, so has_role(NULL, 'admin') is false, and
+  -- without this clause every grant written down in section 10 would be
+  -- silently refused. It is a narrow boolean OR inside the change test and it
+  -- stays there — hoisting it into a bypass around the test would also admit any
+  -- session that merely happens to carry no uid.
+  IF (NEW.plan IS DISTINCT FROM OLD.plan
+      OR NEW.plan_expires_at IS DISTINCT FROM OLD.plan_expires_at)
+     AND NOT public.has_role(auth.uid(), 'admin')
+     AND auth.uid() IS NOT NULL THEN
+    RAISE EXCEPTION
+      'No podés cambiar tu plan por tu cuenta. Pedile a un administrador que lo actualice.'
+      USING ERRCODE = '42501';
+  END IF;
+
+  -- (b) The downgrade reaction.
+  --
+  -- BOTH limits are derived from OLD and NEW VALUES. There is no SELECT anywhere
+  -- in this function body and there must never be one. A BEFORE UPDATE row
+  -- trigger runs before the row is written, so re-reading public.profiles
+  -- returns OLD.plan: on a pro -> gratis downgrade it resolves "unlimited",
+  -- get_property_limit returns NULL, the finite-limit branch below is skipped,
+  -- and no listing is ever deactivated. That is the single case the trigger
+  -- exists for, and it shipped looking correct because the text was present and
+  -- every presence guard passed. Defect #31; R14 names this shape as a
+  -- requirement failure regardless of what the text says.
+  --
+  -- The condition is "the RESOLVED EFFECTIVE PLAN changed", not "the plan column
+  -- changed", and that is what makes the three hard cases converge:
+  --   - an admin setting plan_expires_at into the past resolves NEW as gratis,
+  --     so the expiry-driven downgrade pauses the excess too (R14 Scenario 14.2);
+  --   - a repeated downgrade resolves NEW exactly as the first one did, so the
+  --     branch finds no work and the downgrade is idempotent (Scenario 14.6);
+  --   - an update to an unrelated column resolves NEW the same as OLD, so
+  --     nothing is paused (R12 Scenario 12.2).
+  v_old_effective := public.resolve_effective_plan(OLD.plan, OLD.plan_expires_at);
+  v_new_effective := public.resolve_effective_plan(NEW.plan, NEW.plan_expires_at);
+
+  IF v_new_effective IS DISTINCT FROM v_old_effective THEN
+    v_new_limit := public.get_property_limit(v_new_effective);
+    -- The IS NULL test comes first and is not optional. NULL is the unlimited
+    -- sentinel: an upgrade to pro resolves it, and an unlimited plan must pause
+    -- nothing.
+    IF v_new_limit IS NOT NULL THEN
+      -- Pauses, never deletes. R16's restorability holds because the rows, their
+      -- content and their images are untouched.
+      --
+      -- The ordering is TOTAL. created_at is NOT NULL DEFAULT now() and
+      -- bulk-create-properties inserts rows in a tight loop, so timestamp ties
+      -- are real; id is the uuid PRIMARY KEY, unique and never null. The
+      -- id DESC tiebreak carries NO semantic meaning — a v4 uuid has no temporal
+      -- order — and exists only so the survivor set is reproducible on an
+      -- equivalent fixture (R15 Scenario 15.2).
+      --
+      -- The public read view filters on is_active = true, so pausing is what
+      -- removes a listing from the search path. The view itself is not touched.
+      --
+      -- owner_is_agency is deliberately never written here: a plan change never
+      -- mutates user_type, and this migration must not trip the
+      -- snapshot-vs-live mismatch that the spec defers to its own change.
+      UPDATE public.properties
+      SET is_active = false
+      WHERE id IN (
+        SELECT id FROM public.properties
+        WHERE user_id = NEW.user_id AND is_active = true
+        ORDER BY created_at DESC, id DESC
+        OFFSET v_new_limit
+      );
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+-- No named grant, for the same reason and with the same precedent as section 8:
+-- the caller is the trigger, not a client. 20260719130000 revokes the four
+-- trigger functions it touched from PUBLIC with no replacement grant, and they
+-- still fire in production — a trigger does not need EXECUTE from PUBLIC.
+--
+-- This is deliberately STRICTER than R4's literal wording ("granted explicitly
+-- to a named role"), which is a known spec defect recorded in the design: a
+-- named grant on a trigger function grants nothing useful and only widens the
+-- surface. Do not add a GRANT here to satisfy the wording.
+REVOKE EXECUTE ON FUNCTION public.enforce_plan_consistency() FROM PUBLIC;
+
+DROP TRIGGER IF EXISTS trg_enforce_plan_consistency ON public.profiles;
+CREATE TRIGGER trg_enforce_plan_consistency
+BEFORE UPDATE ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION public.enforce_plan_consistency();
+
+-- 10. The documented plan-grant path.
+--
+-- R22.4 blesses granting a plan by direct SQL, and these are the statements.
+-- They work precisely because of the auth.uid() IS NULL allowance in 9(a): a
+-- dashboard or psql session carries no JWT, so auth.uid() is NULL, so
+-- has_role(NULL, 'admin') is false and the allowance is the only thing letting
+-- them through. Without it the documented grant path would not exist at all and
+-- every operator write below would be silently refused.
+--
+-- The allowance is NOT reachable from PostgREST: role anon has no UPDATE policy
+-- on profiles that passes, and a signed JWT always carries sub, so auth.uid()
+-- is never NULL for an API caller.
+--
+--   UPDATE public.profiles SET plan = 'pro' WHERE user_id = '<uuid>';
+--   UPDATE public.profiles SET plan = 'pro', plan_expires_at = now() + interval '30 days' WHERE user_id = '<uuid>';
+--
+-- Either statement may pause listings if it LOWERS the effective plan. That is
+-- section 9(b) doing its job, not a side effect to be surprised by; granting a
+-- plan never pauses anything.

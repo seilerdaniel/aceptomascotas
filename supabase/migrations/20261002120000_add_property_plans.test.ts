@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Text guard for the Fase 3 Freemium migration (spec R1, R2, R3, R4.2, R9, R17).
+// Text guard for the Fase 3 Freemium migration
+// (spec R1, R2, R3, R4.2, R9, R11, R12, R14, R15, R17, R22.4).
 //
 // WHAT THIS GUARD PROVES: presence and ordering. Nothing else.
 //
@@ -22,6 +23,19 @@ import { join } from "node:path";
 // that get_property_limit() declares 3 proves a literal is present in the text.
 // It does not prove the database enforces 3 (R2 Scenario 2.1; the enforcement
 // half is R5 Scenario 5.1 and R9 Scenario 9.1, both deployed-only).
+//
+// THE ONE THAT LOOKS BEHAVIORAL AND IS NOT — read this before citing the
+// "no FROM public.profiles" assertion. It is the highest-value assertion in this
+// file and simultaneously the most dangerous, precisely because it reads like a
+// behavioral claim. It is not one. A text guard can only settle a structural
+// property of the text, and this settles exactly one: the trigger does not
+// consult the table it reacts to. In a BEFORE UPDATE row trigger the stored
+// tuple is still OLD, so a re-read resolves the pre-change plan, the
+// finite-limit branch is skipped, and no listing is ever deactivated — the one
+// case the trigger exists for (defect #31). So the assertion fails loudly if
+// someone reintroduces that shape, and it is NEVER evidence for R14's outcome.
+// R14's outcome is "a downgrade leaves at most 3 active listings"; only a
+// deployed database can settle that.
 
 // Vitest runs from the project root, so process.cwd() is the repo root.
 // The timestamp is fixed BEFORE this guard is authored, because the guard
@@ -113,14 +127,19 @@ describe("add_property_plans migration guard — schema and plan resolvers (T1.1
     );
     const granted = matchCount(/GRANT\s+EXECUTE ON FUNCTION public\./g);
 
-    // Five as of T1.2: the four plan resolvers plus enforce_property_quota.
-    expect(created).toBe(5);
+    // Six as of T1.3: the four plan resolvers plus the two trigger functions.
+    expect(created).toBe(6);
+    // creates === revokes is the meaningful invariant. The absolute number is
+    // only a tripwire for an accidental seventh function.
     expect(revoked).toBe(created);
-    // Named grants cover the plan resolvers only. Trigger functions are revoked
-    // without a named grant because their caller is the trigger, not a client —
-    // the shape 20260719130000 already uses for the two trigger functions it
-    // revoked. R4's "granted to a named role" clause is therefore applied to the
-    // resolvers and deliberately not to the trigger functions.
+    // Named grants cover the plan resolvers only — four. The two TRIGGER
+    // functions are revoked WITHOUT a named grant because their caller is the
+    // trigger, not a client, which is the shape 20260719130000 already uses for
+    // the four trigger functions it revoked from PUBLIC. R4's "granted to a
+    // named role" clause is therefore applied to the resolvers and deliberately
+    // NOT to the trigger functions: the deviation runs in the stricter
+    // direction, it is a recorded spec defect, and it must not be "fixed" by
+    // adding a grant that grants nothing useful.
     expect(granted).toBe(4);
   });
 
@@ -310,6 +329,114 @@ describe("add_property_plans migration guard — insert gate (T1.2)", () => {
     // match: an empty capture fails it too.
     const message = block.match(/'Alcanzaste tu límite de %[^']*'/)?.[0] ?? "";
     expect(message).toContain("seguir publicando");
+  });
+});
+
+// Plan consistency: the self-escalation guard and the downgrade reaction (T1.3).
+//
+// HONESTY FOR THIS WHOLE BLOCK, and it is load-bearing rather than decorative:
+// every assertion below is a presence or shape claim. The one that reads as
+// behavioral is the "no FROM public.profiles" assertion, and the file header
+// already explains why it is not: it proves the trigger does not re-read the
+// table it reacts to, and it settles nothing about whether any listing is ever
+// paused. A green run of this block is a green run of this block. R11, R12,
+// R13, R14, R15, R16 and the behavior half of R22.4 all stay deployed-only.
+describe("add_property_plans migration guard — plan consistency (T1.3)", () => {
+  it("makes both decisions in ONE function, not two triggers", () => {
+    // R12. Two triggers that must agree on the effective plan IS the hazard:
+    // PostgreSQL orders same-event same-timing triggers alphabetically by name
+    // and offers no FOLLOWS/PRECEDES, so with two triggers the first one's NAME
+    // decides which sees what, and a later trigger could revert NEW.plan after
+    // live listings were already paused. One function cannot disagree with
+    // itself. The name sorts first (trg_e < trg_p < update_...) as defense in
+    // depth, so a rejection lands before trg_prevent_self_verification and
+    // update_profiles_updated_at touch anything.
+    expect(
+      matchCount(/CREATE OR REPLACE FUNCTION public\.enforce_plan_[a-z_]+\(/g)
+    ).toBe(1);
+    expect(matchCount(/CREATE TRIGGER trg_enforce_plan_consistency/g)).toBe(1);
+    expect(migration).toMatch(
+      /CREATE TRIGGER trg_enforce_plan_consistency\s+BEFORE UPDATE ON public\.profiles\s+FOR EACH ROW EXECUTE FUNCTION public\.enforce_plan_consistency\(\)/
+    );
+    // The two-trigger sketch named its second trigger this. Its absence is the
+    // shape of the hazard the merge removes.
+    expect(migration).not.toMatch(/enforce_plan_downgrade/);
+  });
+
+  it("derives both limits from OLD and NEW, never from a read of public.profiles", () => {
+    // R14, and the regression this whole function exists to avoid.
+    //
+    // Restating the header's honesty note because this is the assertion most
+    // likely to be misread: it is a STRUCTURAL claim about the text, not a
+    // behavioral one. What it proves is that no SELECT from public.profiles
+    // appears in the body, and that both sides are resolved from values. What it
+    // does NOT prove is that any listing is ever paused. That is R14 Scenario
+    // 14.1, deployed-only.
+    const block = functionBlock("enforce_plan_consistency");
+    expect(block).not.toMatch(/FROM public\.profiles/);
+    expect(block).toMatch(
+      /resolve_effective_plan\(OLD\.plan, OLD\.plan_expires_at\)/
+    );
+    expect(block).toMatch(
+      /resolve_effective_plan\(NEW\.plan, NEW\.plan_expires_at\)/
+    );
+  });
+
+  it("selects survivors with a TOTAL ordering", () => {
+    // R15 Scenarios 15.1 and 15.2. created_at is NOT NULL DEFAULT now() and
+    // bulk-create-properties inserts in a tight loop, so timestamp ties are
+    // real; id is the uuid PRIMARY KEY, unique and never null, so
+    // (created_at DESC, id DESC) is total and the survivor set is reproducible.
+    // The id DESC tiebreak carries NO semantic meaning — a v4 uuid has no
+    // temporal order — and exists only to be total. Reversing the product
+    // preference is one keyword in this one line, because the TypeScript mirror
+    // deliberately does not model survivor selection.
+    expect(functionBlock("enforce_plan_consistency")).toMatch(
+      /ORDER BY created_at DESC, id DESC/
+    );
+  });
+
+  it("raises 42501 on a self-service plan change, with the direct-SQL allowance inside the test", () => {
+    // R11. Two halves, both load-bearing.
+    //
+    // RAISE, not the silent revert prevent_self_verification performs: a silent
+    // revert leaves the statement SUCCEEDING, so a deactivation already run
+    // inside it stays committed. Raising aborts the transaction and rolls the
+    // inner UPDATE public.properties back with the profile write — that is what
+    // makes R12 and R13 structurally true rather than true by naming
+    // convention.
+    //
+    // auth.uid() IS NOT NULL is an ALLOWANCE and belongs inside the change
+    // test: has_role is SELECT EXISTS over user_roles, so has_role(NULL,
+    // 'admin') is false, and without the allowance every direct-SQL grant
+    // documented in section 10 would be silently refused. It is unreachable
+    // from PostgREST — anon has no passing UPDATE policy on profiles and a
+    // signed JWT always carries sub — and it must stay a narrow boolean OR
+    // rather than becoming a bypass around the test.
+    const block = functionBlock("enforce_plan_consistency");
+    // Compared BY VALUE, not by column list, so a normal profile save that
+    // never touches plan always passes (ProfilePage.tsx:261-269 writes four
+    // named columns today).
+    expect(block).toMatch(
+      /NEW\.plan IS DISTINCT FROM OLD\.plan\s+OR NEW\.plan_expires_at IS DISTINCT FROM OLD\.plan_expires_at/
+    );
+    expect(block).toMatch(/AND NOT public\.has_role\(auth\.uid\(\), 'admin'\)/);
+    expect(block).toMatch(/AND auth\.uid\(\) IS NOT NULL THEN/);
+    expect(block).toMatch(/USING ERRCODE = '42501'/);
+  });
+
+  it("documents the direct-SQL grant path R22.4 blesses", () => {
+    // R22.4. These statements are the reason the auth.uid() IS NULL allowance
+    // above is coherent: a dashboard or psql session carries no JWT, so the
+    // guard has to let it through. A text guard cannot prove the database
+    // accepts them — that is R22.1/R22.2, deployed-only. It proves only that
+    // the path is written down where an operator will actually find it.
+    expect(migration).toMatch(
+      /UPDATE public\.profiles SET plan = 'pro' WHERE user_id = '<uuid>';/
+    );
+    expect(migration).toMatch(
+      /UPDATE public\.profiles SET plan = 'pro', plan_expires_at = now\(\) \+ interval '30 days' WHERE user_id = '<uuid>';/
+    );
   });
 });
 
