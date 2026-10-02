@@ -113,9 +113,15 @@ describe("add_property_plans migration guard — schema and plan resolvers (T1.1
     );
     const granted = matchCount(/GRANT\s+EXECUTE ON FUNCTION public\./g);
 
-    expect(created).toBe(4);
+    // Five as of T1.2: the four plan resolvers plus enforce_property_quota.
+    expect(created).toBe(5);
     expect(revoked).toBe(created);
-    expect(granted).toBe(created);
+    // Named grants cover the plan resolvers only. Trigger functions are revoked
+    // without a named grant because their caller is the trigger, not a client —
+    // the shape 20260719130000 already uses for the two trigger functions it
+    // revoked. R4's "granted to a named role" clause is therefore applied to the
+    // resolvers and deliberately not to the trigger functions.
+    expect(granted).toBe(4);
   });
 
   it("declares 3 as the gratis limit and NULL as the pro sentinel", () => {
@@ -192,6 +198,118 @@ describe("add_property_plans migration guard — schema and plan resolvers (T1.1
     expect(migration).not.toMatch(/DROP\s+VIEW/i);
     expect(migration).not.toMatch(/CREATE\s+VIEW/i);
     expect(migration).not.toMatch(/properties_public/);
+  });
+});
+
+// Insert gate: the policy and the quota trigger (T1.2).
+//
+// These assertions prove that both mechanisms EXIST, and that the policy carries
+// the clauses that make it a gate. They prove nothing about what a caller
+// observes. Specifically:
+//
+//   - The trigger EXISTS and the RAISE text is present. They do NOT prove the
+//     trigger is what rejects an over-quota insert. That is R5 Scenario 5.2a,
+//     deployed-only.
+//   - The policy carries ownership, role and quota clauses. They do NOT prove
+//     the policy rejects anything, and they do NOT prove the error class a
+//     caller sees. That is R5 Scenario 5.2b, deployed-only.
+//
+// A green run of this block against R5, R6, R7, R8 or R10 is a false green.
+describe("add_property_plans migration guard — insert gate (T1.2)", () => {
+  it("creates the INSERT policy after the enum and after the helpers it calls", () => {
+    // R5 presence half. The ordering is load-bearing, not cosmetic: the policy
+    // body calls get_effective_plan, get_property_limit and
+    // count_active_properties, so the migration cannot be applied with the
+    // policy ahead of them.
+    const policy = migration.indexOf(
+      'CREATE POLICY "Publishers within plan quota can insert properties"'
+    );
+    const predecessors = [
+      "CREATE TYPE public.plan_tier",
+      "CREATE OR REPLACE FUNCTION public.get_effective_plan",
+      "CREATE OR REPLACE FUNCTION public.get_property_limit",
+      "CREATE OR REPLACE FUNCTION public.count_active_properties",
+    ].map((needle) => migration.indexOf(needle));
+
+    expect(policy).toBeGreaterThan(-1);
+    expect(predecessors).not.toContain(-1);
+    for (const at of predecessors) {
+      expect(policy).toBeGreaterThan(at);
+    }
+  });
+
+  it("drops the previous INSERT policy instead of leaving it beside the new one", () => {
+    // Permissive policies are OR'ed, not AND'ed. The policy this one replaces
+    // (20260108000904:55) is WITH CHECK (auth.uid() = user_id) with no role
+    // gate, so leaving it in place would keep admitting any authenticated
+    // caller and would make the new role gate inert. Without this line the
+    // whole of R7 stays open.
+    expect(migration).toMatch(
+      /DROP POLICY IF EXISTS "Authenticated users can insert properties" ON public\.properties/
+    );
+  });
+
+  it("gates the INSERT policy on ownership, publisher role and a NULL-checked quota", () => {
+    // R5 presence half, R7, R8, R10. Same EXISTS shape as the proven
+    // pet_services policy at 20260712100000:8-17.
+    const start = migration.indexOf(
+      'CREATE POLICY "Publishers within plan quota can insert properties"'
+    );
+    expect(start).toBeGreaterThan(-1);
+    const policy = migration.slice(
+      start,
+      migration.indexOf(
+        "CREATE OR REPLACE FUNCTION public.enforce_property_quota"
+      )
+    );
+
+    expect(policy).toMatch(/FOR INSERT TO authenticated\s+WITH CHECK/);
+    // R8 Scenarios 8.1 and 8.2: the row belongs to the caller, so neither a
+    // cross-account user_id nor a null one passes.
+    expect(policy).toMatch(/auth\.uid\(\) = user_id/);
+    // R7. The pair is ('propietario', 'agencia') and is deliberately NOT
+    // narrowed to agencies: PublishPage.tsx:463 admits both, and narrowing
+    // would lock out a user type the UI allows. Closing drift D4 is exactly
+    // this clause — the old policy had no role gate at all.
+    expect(policy).toMatch(
+      /profiles\.user_type IN \('propietario', 'agencia'\)/
+    );
+
+    // R10 Scenario 10.1 / R2 Scenario 2.2. NULL is the unlimited sentinel, and
+    // the IS NULL test must come FIRST: comparing a count against a NULL limit
+    // yields NULL, which is not TRUE, so an unlimited plan would silently
+    // reject every insert instead of none.
+    const nullCheckAt = policy.indexOf(
+      "public.get_property_limit(public.get_effective_plan(auth.uid())) IS NULL"
+    );
+    const compareAt = policy.indexOf("< public.get_property_limit(");
+    expect(nullCheckAt).toBeGreaterThan(-1);
+    expect(compareAt).toBeGreaterThan(nullCheckAt);
+  });
+
+  it("creates the quota trigger and raises the Spanish quota message from it", () => {
+    // R6 presence half, and R5 Scenario 5.2a's error class in the text.
+    //
+    // This trigger — not the policy — is the mechanism that fires for an
+    // over-quota insert, because PostgreSQL enforces WITH CHECK AFTER BEFORE
+    // row triggers (Finding D-1). That ordering is the whole reason the
+    // readable message is reachable at all, and it is the reason this
+    // mechanism must not be collapsed into a policy-only design.
+    expect(migration).toMatch(
+      /CREATE TRIGGER trg_enforce_property_quota\s+BEFORE INSERT ON public\.properties\s+FOR EACH ROW EXECUTE FUNCTION public\.enforce_property_quota\(\)/
+    );
+
+    const block = functionBlock("enforce_property_quota");
+    expect(block).toMatch(/RETURNS TRIGGER/);
+    expect(block).toMatch(/SECURITY DEFINER/);
+    expect(block).toMatch(/USING ERRCODE = 'P0001'/);
+
+    // R6. The % is the interpolation of the limit through v_limit. The space in
+    // "seguir publicando" is part of the requirement, not a typo (defect #31),
+    // so this is a containment check on the whole literal rather than a loose
+    // match: an empty capture fails it too.
+    const message = block.match(/'Alcanzaste tu límite de %[^']*'/)?.[0] ?? "";
+    expect(message).toContain("seguir publicando");
   });
 });
 

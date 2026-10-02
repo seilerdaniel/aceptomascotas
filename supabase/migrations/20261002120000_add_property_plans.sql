@@ -41,9 +41,9 @@
 --   evidence of the privilege outcome.
 --
 -- STAGING NOTE: this migration is authored in slices — T1.1 schema and plan
--- resolvers (this file today), T1.2 the insert gate, T1.3 plan consistency.
--- The header above describes the finished file. Sections 7 to 10 do not exist
--- at this commit.
+-- resolvers, T1.2 the insert gate (sections 7 and 8, this file today), T1.3 plan
+-- consistency. The header above describes the finished file. Sections 9 and 10
+-- do not exist at this commit.
 -- ============================================================================
 
 -- 1. Plan enum and the two columns.
@@ -174,3 +174,95 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.get_effective_plan(UUID) FROM PUBLIC;
 GRANT  EXECUTE ON FUNCTION public.get_effective_plan(UUID) TO authenticated;
+
+-- 7. The properties INSERT policy.
+--
+-- The policy this replaces (20260108000904_f9fac999:54-55) is
+-- WITH CHECK (auth.uid() = user_id) and nothing else. It never had a role gate,
+-- so a buscador could insert a property directly through PostgREST — the rule
+-- existed only in PublishPage.tsx:463, in the client. This closes that gap and
+-- makes RLS agree with the UI. Same EXISTS shape as the pet_services fix at
+-- 20260712100000:8-17.
+--
+-- The DROP is load-bearing, not housekeeping. Permissive policies are OR'ed, not
+-- AND'ed, so leaving the old ownership-only policy in place would keep
+-- admitting every authenticated caller and would make the role gate below
+-- inert. Without this line the whole role gate buys nothing.
+DROP POLICY IF EXISTS "Authenticated users can insert properties" ON public.properties;
+
+CREATE POLICY "Publishers within plan quota can insert properties"
+ON public.properties FOR INSERT TO authenticated
+WITH CHECK (
+  -- R8: the row belongs to the caller. This is what rejects a cross-account
+  -- user_id and a null one.
+  auth.uid() = user_id
+  -- R7: role gate, closing the gap described above. The pair is
+  -- ('propietario', 'agencia') and is deliberately NOT narrowed to agencies:
+  -- PublishPage.tsx:463 admits both, and narrowing would lock out a user type
+  -- the publish flow allows.
+  AND EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE profiles.user_id = auth.uid()
+      AND profiles.user_type IN ('propietario', 'agencia')
+  )
+  -- R10: NULL is the unlimited sentinel and the IS NULL test comes first.
+  -- Comparing a count against a NULL limit yields NULL, which is not TRUE, so
+  -- an unlimited plan would silently reject every insert instead of none.
+  AND (
+    public.get_property_limit(public.get_effective_plan(auth.uid())) IS NULL
+    OR public.count_active_properties(auth.uid())
+       < public.get_property_limit(public.get_effective_plan(auth.uid()))
+  )
+);
+
+-- 8. The readable message.
+--
+-- A violated WITH CHECK reaches PostgREST as a bare 42501
+-- insufficient_privilege, indistinguishable from any other permission error.
+-- bulk-create-properties captures rowError.message per row and shows it to the
+-- user, so a trigger carrying its own message is what makes the quota legible
+-- in the product at all.
+--
+-- WHY THIS TRIGGER, AND WHY IT CANNOT BE COLLAPSED INTO THE POLICY — Finding
+-- D-1. PostgreSQL enforces RLS WITH CHECK expressions for INSERT, UPDATE and
+-- MERGE AFTER BEFORE row triggers have fired (PostgreSQL 18, CREATE POLICY).
+-- So for an over-quota insert this trigger rejects first, raising P0001 with the
+-- Spanish text below, and the policy's quota clause in section 7 never runs. It
+-- is an untraveled backstop: present, correct, and not the mechanism the caller
+-- ever sees. Do not "simplify" this by making the policy the quota's authority.
+--
+-- The two mechanisms are not alternatives and neither is the fallback for the
+-- other. A buscador, a cross-account user_id and a null user_id have no quota to
+-- reject, so this trigger is silent on all three and the policy is genuinely
+-- the only gate there. That is why both stay.
+CREATE OR REPLACE FUNCTION public.enforce_property_quota()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_limit INTEGER;
+BEGIN
+  v_limit := public.get_property_limit(public.get_effective_plan(NEW.user_id));
+  IF v_limit IS NOT NULL
+     AND public.count_active_properties(NEW.user_id) >= v_limit THEN
+    -- The % interpolates v_limit. The space in "seguir publicando" is part of
+    -- the requirement, not a typo.
+    RAISE EXCEPTION
+      'Alcanzaste tu límite de % publicaciones activas. Desactivá una publicación o actualizá tu plan para seguir publicando.',
+      v_limit
+      USING ERRCODE = 'P0001';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+-- No named grant here: the caller is the trigger, not a client. This is the
+-- shape 20260719130000 already applies to the trigger functions it revoked.
+REVOKE EXECUTE ON FUNCTION public.enforce_property_quota() FROM PUBLIC;
+
+DROP TRIGGER IF EXISTS trg_enforce_property_quota ON public.properties;
+CREATE TRIGGER trg_enforce_property_quota
+BEFORE INSERT ON public.properties
+FOR EACH ROW EXECUTE FUNCTION public.enforce_property_quota();
